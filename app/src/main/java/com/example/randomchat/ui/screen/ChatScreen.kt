@@ -34,7 +34,7 @@ fun ChatScreen(
     ) {
         Icon(
             imageVector = Icons.Outlined.MailOutline,
-            contentDescription = "Chat Bubble",
+            contentDescription = "test",
             modifier = Modifier.size(160.dp),
             tint = Color(0xFFD8D8D8)
         )
