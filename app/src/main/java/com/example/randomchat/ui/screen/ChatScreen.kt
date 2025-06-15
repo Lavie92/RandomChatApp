@@ -40,7 +40,7 @@ fun ChatScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Let’s start chatting!",
+            text = "s   ",
             fontSize = 22.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black
