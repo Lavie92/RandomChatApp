@@ -15,10 +15,10 @@ pr = repo.get_pull(pr_number)
 review_comment = ""
 
 for file in pr.get_files():
-    # Chỉ review file Kotlin
     if file.filename.endswith('.kt'):
         diff = file.patch
-        if diff:              prompt = f"Please review the following Kotlin code diff and provide suggestions, point out bugs or code smells:\n\n{diff}"
+        if diff:
+            prompt = f"Please review the following Kotlin code diff and provide suggestions, point out bugs or code smells:\n\n{diff}"
             chat = openai.ChatCompletion.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}]
