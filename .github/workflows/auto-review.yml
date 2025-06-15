@@ -8,16 +8,22 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
-          
+
       - name: Get PR diff
         id: diff
         run: |
-          git fetch origin ${{ github.base_ref }}
-          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+          git fetch origin ${GITHUB_BASE_REF}:${GITHUB_BASE_REF}
+          MERGE_BASE=$(git merge-base origin/${{ github.base_ref }} HEAD || echo "")
+          if [ -z "$MERGE_BASE" ]; then
+            echo "No merge base found. Ensure the base branch and the PR branch have common commits."
+            exit 1
+          fi
+          git diff origin/${{ github.base_ref }} HEAD > diff.txt
 
       - name: Call ChatGPT API
         id: chatgpt
@@ -30,11 +36,4 @@ jobs:
             -H "Authorization: Bearer $OPENAI_API_KEY" \
             -d '{
               "model": "gpt-4o",
-              "messages": [{"role": "user", "content": "'"$PROMPT"'"}]
-            }' | jq -r '.choices[0].message.content')
-          echo "$RESPONSE" > review.txt
-
-      - name: Post review to PR
-        uses: mshick/add-pr-comment@v2
-        with:
-          message-path: review.txt
+              "messages": [{"r]()
