@@ -8,7 +8,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 github_token = os.getenv("GITHUB_TOKEN")
 repo_name = os.getenv("GITHUB_REPOSITORY")
 pr_number = int(os.getenv("PR_NUMBER"))
-model = os.getenv("OPENAI_MODEL", "gpt-4o")
+model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
 ai = OpenAI(api_key=openai_api_key)
 g = Github(github_token)
