@@ -38,7 +38,7 @@ fun ChatScreen(
             modifier = Modifier.size(160.dp),
             tint = Color(0xFFD8D8D8)
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = "Let’s start chatting!",
             fontSize = 22.sp,
