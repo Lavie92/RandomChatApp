@@ -52,7 +52,12 @@ for file in pr.get_files():
                 new_line_num += 1
                 continue
 
-            prompt = "Please review the following Kotlin line and comment if it contains any bug, code smell, or improvement opportunity. Only respond if there is a valid suggestion:\n\n" + content
+            prompt = (
+                "Review the following Kotlin code line. "
+                "Only reply if you detect a possible null-safety issue, improper class or method naming, "
+                "or a significant bug. If the code is fine, reply exactly: SKIP.\n\n"
+                + content
+            )
 
             try:
                 response = ai.chat.completions.create(
@@ -66,7 +71,7 @@ for file in pr.get_files():
                 new_line_num += 1
                 continue
 
-            if message and not re.match(r'^\s*(?:no issue?s?(?: found)?)[\.]?$', message, flags=re.IGNORECASE):
+            if message and message.strip().upper() != "SKIP":
                 try:
                     pr.create_review_comment(
                         body=message,
