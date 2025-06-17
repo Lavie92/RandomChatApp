@@ -12,6 +12,7 @@ ai = OpenAI(api_key=openai_api_key)
 g = Github(github_token)
 repo = g.get_repo(repo_name)
 pr = repo.get_pull(pr_number)
+commit = repo.get_commit(pr.head.sha)
 
 for file in pr.get_files():
     if not file.filename.endswith(".kt") or not file.patch:
@@ -38,7 +39,7 @@ for file in pr.get_files():
                 try:
                     pr.create_review_comment(
                         body=message,
-                        commit_id=pr.head.sha,
+                        commit=commit,
                         path=file.filename,
                         position=position + 1
                     )
