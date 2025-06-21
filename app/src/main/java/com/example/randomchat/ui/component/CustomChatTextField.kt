@@ -27,11 +27,13 @@ fun CustomChatTextField(
         placeholder = { Text(stringResource(R.string.type_a_message)) },
         shape = RoundedCornerShape(24.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF5F5F5),
-            unfocusedContainerColor = Color(0xFFF5F5F5),
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = Color(0xFF2979FF)
+            cursorColor = Color(0xFF2979FF),
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface
         ),
         singleLine = true,
         modifier = modifier

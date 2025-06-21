@@ -1,14 +1,18 @@
 package com.example.randomchat.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -18,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,7 +49,7 @@ fun ChatScreen(
 ) {
     var chatStarted by remember { mutableStateOf(false) }
 
-    if (!chatStarted) {
+    if (chatStarted) {
         WelcomeScreen(
             onStartChatClick = { chatStarted = true }
         )
@@ -69,14 +74,18 @@ fun WelcomeScreen(
             modifier = Modifier.size(160.dp),
             tint = Color(0xFFD8D8D8)
         )
+
         Spacer(modifier = Modifier.height(24.dp))
+
         Text(
             fontSize = 22.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black,
             text = stringResource(R.string.lets_start_chatting)
         )
+
         Spacer(modifier = Modifier.height(32.dp))
+
         TextButton(
             onClick = onStartChatClick
         ) {
@@ -90,8 +99,72 @@ fun WelcomeScreen(
     }
 }
 
+//TODO: just hard code to test UI
 val myUserId = "user_1"
 val sampleMessages = listOf(
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
+    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
+    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
+    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
+    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
     Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
     Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
     Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
@@ -108,7 +181,7 @@ fun ConversationScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFE5DDD5))
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -129,13 +202,14 @@ fun ConversationScreen(
         ChatInputBar(
             value = messageText,
             onValueChange = { messageText = it },
-            onSendImage = { /* TODO: Handle image */ },
             onVoiceRecord = { /* TODO: Handle voice */ },
-            onSend = {messageText /*TODO: Handle send */},
+            onSendImage = {/* TODO: Handle send image */ },
+            onSend = { messageText /*TODO: Handle send */ },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(top = 4.dp)
         )
     }
 }
@@ -150,19 +224,20 @@ fun MessageBubble(
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            color = if (isMe) Color(0xFFDCF8C6) else Color.White,
+            color = if (isMe) Color.LightGray else Color.Transparent,
             shape = RoundedCornerShape(
                 topStart = 16.dp,
                 topEnd = 16.dp,
                 bottomEnd = if (isMe) 0.dp else 16.dp,
                 bottomStart = if (isMe) 16.dp else 0.dp
             ),
-            shadowElevation = 2.dp
+            border = if (!isMe) BorderStroke(1.dp, Color.LightGray) else null
         ) {
             Text(
                 text = content,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .padding(horizontal = 14.dp, vertical = 8.dp)
                     .widthIn(max = 260.dp)
