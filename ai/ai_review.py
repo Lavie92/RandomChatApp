@@ -1,101 +1,47 @@
 import os
-import re
+import openai
 from github import Github
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 github_token = os.getenv("GITHUB_TOKEN")
 repo_name = os.getenv("GITHUB_REPOSITORY")
-pr_number_str = os.getenv("PR_NUMBER")
-
-if not openai_api_key or not github_token or not repo_name or not pr_number_str:
-    raise RuntimeError("Missing one or more required environment variables: OPENAI_API_KEY, GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER")
-
-pr_number = int(pr_number_str)
+pr_number = int(os.getenv("PR_NUMBER"))
+model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
 ai = OpenAI(api_key=openai_api_key)
-github_client = Github(github_token)
-repo = github_client.get_repo(repo_name)
+g = Github(github_token)
+repo = g.get_repo(repo_name)
 pr = repo.get_pull(pr_number)
-commit = repo.get_commit(pr.head.sha)
 
-output_lines = []
+review_comment = ""
 
 for file in pr.get_files():
-    if not file.filename.endswith(".kt") or not file.patch:
-        continue
-
-    patch_text = file.patch
-    patch_lines = patch_text.splitlines()
-    new_line_num = None
-
-    for line in patch_lines:
-        if line.startswith('@@'):
-            match = re.match(r'.*\+(\d+)(?:,(\d+))?', line)
-            if match:
-                new_line_num = int(match.group(1))
-            else:
-                new_line_num = None
-            continue
-
-        if new_line_num is None:
-            continue
-
-        if line.startswith('+++') or line.startswith('---'):
-            continue
-
-        if line.startswith('+'):
-            if line.startswith('+++'):
-                continue
-            content = line[1:]
-            if content.strip() == "":
-                new_line_num += 1
-                continue
-
-            prompt = (
-                "Review the following Kotlin code line. "
-                "Only reply if you detect a possible null-safety issue, improper class or method naming, "
-                "or a significant bug. If the code is fine, reply exactly: SKIP.\n\n"
-                + content
+    if file.filename.endswith('.kt') and file.patch:
+        try:
+            diff = file.patch
+            prompt = f"Please review the following Kotlin code diff and provide suggestions, identify any bugs or code smells:\n\n{diff}"
+            messages: list[ChatCompletionMessageParam] = [
+                {"role": "user", "content": prompt}
+            ]
+            chat = ai.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=0.2
             )
+            content = chat.choices[0].message.content
+            review_comment += f"**File: {file.filename}**\n{content}\n\n"
+        except Exception as e:
+            review_comment += f"**File: {file.filename}**\nOpenAI error: {str(e)}\n\n"
 
-            try:
-                response = ai.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.3
-                )
-                message = response.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"OpenAI API call failed for {file.filename} (line {new_line_num}): {e}")
-                new_line_num += 1
-                continue
-
-            if message and message.strip().upper() != "SKIP":
-                try:
-                    pr.create_review_comment(
-                        body=message,
-                        commit=commit,
-                        path=file.filename,
-                        line=new_line_num,
-                        side="RIGHT"
-                    )
-                    output_lines.append(f"{file.filename} (line {new_line_num}): {message}")
-                except Exception as e:
-                    print(f"Failed to create comment for {file.filename} (line {new_line_num}): {e}")
-
-            new_line_num += 1
-
-        elif line.startswith('-'):
-            continue
-
-        else:
-            new_line_num += 1
-
-with open("output.txt", "w") as f:
-    if output_lines:
-        f.write("AI Review Comments:\n")
-        for out_line in output_lines:
-            f.write(out_line + "\n")
-    else:
-        f.write("No issues found by AI.")
+if review_comment:
+    try:
+        pr.create_issue_comment(review_comment)
+    except Exception as e:
+        print(f"Failed to post comment: {e}")
+    with open("output.txt", "w", encoding="utf-8") as f:
+        f.write(review_comment)
+else:
+    with open("output.txt", "w") as f:
+        f.write("No Kotlin files changed or no reviewable diffs.")
