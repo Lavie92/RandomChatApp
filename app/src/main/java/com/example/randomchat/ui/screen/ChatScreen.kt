@@ -46,7 +46,7 @@ fun ChatScreen(
 ) {
     var chatStarted by remember { mutableStateOf(false) }
 
-    if (chatStarted) {
+    if (!chatStarted) {
         WelcomeScreen(
             onStartChatClick = { chatStarted = true }
         )
