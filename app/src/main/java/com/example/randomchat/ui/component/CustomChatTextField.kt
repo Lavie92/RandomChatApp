@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.randomchat.R
+import com.example.randomchat.ui.theme.Dimens
 
 @Composable
 fun CustomChatTextField(
@@ -24,8 +24,13 @@ fun CustomChatTextField(
     TextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(stringResource(R.string.type_a_message)) },
-        shape = RoundedCornerShape(24.dp),
+        placeholder = {
+            Text(
+                stringResource(R.string.type_a_message),
+                style = MaterialTheme.typography.bodySmall
+            )
+        },
+        shape = RoundedCornerShape(Dimens.textFieldRadius),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -37,7 +42,7 @@ fun CustomChatTextField(
         ),
         singleLine = true,
         modifier = modifier
-            .height(52.dp)
+            .height(Dimens.textFieldHeight)
     )
 }
 
@@ -48,7 +53,8 @@ fun PreviewTextField() {
         value = "",
         onValueChange = {},
         modifier = Modifier
-            .padding(vertical = 4.dp)
-    )}
+            .padding(Dimens.smallMargin)
+    )
+}
 
 

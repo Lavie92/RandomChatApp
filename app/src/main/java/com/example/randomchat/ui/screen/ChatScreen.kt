@@ -3,15 +3,12 @@ package com.example.randomchat.ui.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,8 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.randomchat.R
 import androidx.compose.runtime.getValue
@@ -42,6 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.randomchat.model.Message
 import com.example.randomchat.ui.component.ChatInputBar
+import com.example.randomchat.ui.component.CustomSpacer
+import com.example.randomchat.ui.theme.*
 
 @Composable
 fun ChatScreen(
@@ -71,28 +68,27 @@ fun WelcomeScreen(
         Icon(
             imageVector = Icons.Outlined.MailOutline,
             contentDescription = null,
-            modifier = Modifier.size(160.dp),
+            modifier = Modifier.size(Dimens.mailIcon),
             tint = Color(0xFFD8D8D8)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        CustomSpacer(height = Dimens.baseSpacerHeight)
 
         Text(
-            fontSize = 22.sp,
+            fontSize = Dimens.welcomeTextSize,
             fontWeight = FontWeight.Medium,
             color = Color.Black,
             text = stringResource(R.string.lets_start_chatting)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        CustomSpacer(height = Dimens.baseSpacerHeight)
 
         TextButton(
             onClick = onStartChatClick
         ) {
             Text(
                 text = stringResource(R.string.start_a_chat),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF2979FF)
             )
         }
@@ -178,7 +174,7 @@ fun ConversationScreen(
     modifier: Modifier = Modifier
 ) {
     var messageText by remember { mutableStateOf("") }
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
@@ -186,8 +182,9 @@ fun ConversationScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 60.dp, top = 8.dp, start = 12.dp, end = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .weight(1f)
+                .padding(top = Dimens.baseMargin, start = Dimens.baseMarginDouble, end = Dimens.baseMarginDouble),
+            verticalArrangement = Arrangement.spacedBy(Dimens.baseMargin),
             reverseLayout = true
         ) {
             items(messages.asReversed()) { message ->
@@ -206,10 +203,9 @@ fun ConversationScreen(
             onSendImage = {/* TODO: Handle send image */ },
             onSend = { messageText /*TODO: Handle send */ },
             modifier = Modifier
-                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .padding(WindowInsets.navigationBars.asPaddingValues())
-                .padding(top = 4.dp)
+                .padding(top = Dimens.smallMargin)
         )
     }
 }
@@ -224,23 +220,22 @@ fun MessageBubble(
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            color = if (isMe) Color.LightGray else Color.Transparent,
+            color = if (isMe) messageBackground else Color.Transparent,
             shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
-                bottomEnd = if (isMe) 0.dp else 16.dp,
-                bottomStart = if (isMe) 16.dp else 0.dp
+                topStart = Dimens.baseMarginDouble,
+                topEnd = Dimens.baseMarginDouble,
+                bottomEnd = if (isMe) Dimens.emptySize else Dimens.baseMarginDouble,
+                bottomStart = if (isMe) Dimens.baseMarginDouble else Dimens.emptySize
             ),
-            border = if (!isMe) BorderStroke(1.dp, Color.LightGray) else null
+            border = if (!isMe) BorderStroke(Dimens.smallBorderStrokeWidth, Color.LightGray) else null
         ) {
             Text(
                 text = content,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-                    .widthIn(max = 260.dp)
+                    .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
+                    .widthIn(max = Dimens.messageMaxSizeable)
             )
         }
     }
