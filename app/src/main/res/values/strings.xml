@@ -6,5 +6,5 @@
     <string name="type_a_message">Type a message…!</string>
     <string name="login_with_facebook">Login with Facebook</string>
     <string name="login_with_google">Login with Google</string>
-    <string name="default_web_client_id">762418910163-u1fc6ijuq7b5i00i09cvt3omcpdhpjee.apps.googleusercontent.com"</string>
+    <string name="default_web_client_id">"762418910163-u1fc6ijuq7b5i00i09cvt3omcpdhpjee.apps.googleusercontent.com"</string>
 </resources>
