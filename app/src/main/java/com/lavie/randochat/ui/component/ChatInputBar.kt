@@ -1,4 +1,4 @@
-package com.example.randomchat.ui.component
+package com.lavie.randochat.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -10,8 +10,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.randomchat.R
-import com.example.randomchat.ui.theme.Dimens
+import com.lavie.randochat.R
+import com.lavie.randochat.ui.theme.Dimens
 
 @Composable
 fun ChatInputBar(

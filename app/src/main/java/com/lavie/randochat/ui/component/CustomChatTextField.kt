@@ -1,4 +1,4 @@
-package com.example.randomchat.ui.component
+package com.lavie.randochat.ui.component
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.randomchat.R
-import com.example.randomchat.ui.theme.Dimens
+import com.lavie.randochat.R
+import com.lavie.randochat.ui.theme.Dimens
 
 @Composable
 fun CustomChatTextField(

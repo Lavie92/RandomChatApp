@@ -1,4 +1,4 @@
-package com.example.randomchat.ui.screen
+package com.lavie.randochat.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,15 +30,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
-import com.example.randomchat.R
+import com.lavie.randochat.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.example.randomchat.model.Message
-import com.example.randomchat.ui.component.ChatInputBar
-import com.example.randomchat.ui.component.CustomSpacer
-import com.example.randomchat.ui.theme.*
+import androidx.compose.ui.tooling.preview.Preview
+import com.lavie.randochat.model.Message
+import com.lavie.randochat.ui.component.ChatInputBar
+import com.lavie.randochat.ui.component.CustomSpacer
+import com.lavie.randochat.ui.theme.*
 
 @Composable
 fun ChatScreen(

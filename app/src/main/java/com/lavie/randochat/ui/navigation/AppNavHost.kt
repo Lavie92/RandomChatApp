@@ -1,10 +1,10 @@
-package com.example.randomchat.ui.navigation
+package com.lavie.randochat.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.randomchat.ui.screen.*
+import com.lavie.randochat.ui.screen.*
 
 @Composable
 fun AppNavHost() {
