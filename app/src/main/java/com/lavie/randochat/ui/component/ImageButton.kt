@@ -1,4 +1,4 @@
-package com.example.randomchat.ui.component
+package com.lavie.randochat.ui.component
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,7 +21,7 @@ fun ImageButton(
 
     IconButton(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Icon(
             painter = painterResource(vectorId),

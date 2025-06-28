@@ -1,4 +1,4 @@
-package com.example.randomchat
+package com.lavie.randochat
 
 import org.junit.Test
 

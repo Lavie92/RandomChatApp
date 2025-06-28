@@ -1,4 +1,4 @@
-package com.example.randomchat.ui.theme
+package com.lavie.randochat.ui.theme
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,4 +21,5 @@ object Dimens {
     val textFieldHeight = 52.dp
     val textFieldRadius = 24.dp
     val sendButtonWidth = 28.dp
+    val buttonRadius = 12.dp
 }

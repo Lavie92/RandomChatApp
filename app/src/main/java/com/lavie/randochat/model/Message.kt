@@ -1,4 +1,4 @@
-package com.example.randomchat.model
+package com.lavie.randochat.model
 
 data class Message(
     val id: String = "",

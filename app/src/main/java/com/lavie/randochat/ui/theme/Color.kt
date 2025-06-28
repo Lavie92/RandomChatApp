@@ -1,4 +1,4 @@
-package com.example.randomchat.ui.theme
+package com.lavie.randochat.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

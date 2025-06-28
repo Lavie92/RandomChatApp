@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.randomchat"
+    namespace = "com.lavie.randochat"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.randomchat"
+        applicationId = "com.example.randochat"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
