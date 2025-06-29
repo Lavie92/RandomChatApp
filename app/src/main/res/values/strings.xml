@@ -1,10 +1,20 @@
 <resources>
     <string name="app_name">Rando – Chat với người lạ</string>
+    <string name="default_web_client_id">"762418910163-u1fc6ijuq7b5i00i09cvt3omcpdhpjee.apps.googleusercontent.com"</string>
     <string name="lets_start_chatting">Let’s start chatting!</string>
     <string name="start_a_chat">Start a chat</string>
     <string name="good_morning">Good morning!</string>
     <string name="type_a_message">Type a message…!</string>
     <string name="login_with_facebook">Login with Facebook</string>
     <string name="login_with_google">Login with Google</string>
-    <string name="default_web_client_id">"762418910163-u1fc6ijuq7b5i00i09cvt3omcpdhpjee.apps.googleusercontent.com"</string>
+    <string name="login_error">An error occurred during login</string>
+    <string name="account_not_exist">Account does not exist</string>
+    <string name="cannot_sync_data">Cannot sync data</string>
+    <string name="network_error">Network error</string>
+    <string name="save_user_data_failed">Unable to save user data</string>
+    <string name="please_check_connection">Please check your connection</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="saving_user_data">Saving user data…</string>
+    <string name="syncing_data">Syncing data…</string>
+
 </resources>

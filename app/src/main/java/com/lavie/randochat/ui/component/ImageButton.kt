@@ -13,7 +13,8 @@ fun ImageButton(
     onClick: () -> Unit,
     vectorId: Int,
     modifier: Modifier = Modifier,
-    vectorColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    enabled: Boolean = true,
+    vectorColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     if (vectorId == 0) {
         return
@@ -22,6 +23,7 @@ fun ImageButton(
     IconButton(
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled
     ) {
         Icon(
             painter = painterResource(vectorId),

@@ -16,6 +16,7 @@ import com.lavie.randochat.ui.navigation.AppNavHost
 import com.lavie.randochat.ui.theme.RandomChatTheme
 import com.lavie.randochat.viewmodel.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
+import timber.log.Timber
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,15 +34,15 @@ class MainActivity : ComponentActivity() {
                     val account = task.getResult(ApiException::class.java)
                     val idToken = account.idToken
                     if (idToken != null) {
-                        Log.d("MainActivity", "Google Sign-In successful, idToken: ${idToken.take(20)}...")
+                        Timber.d("Google Sign-In successful, idToken: ${idToken.take(20)}...")
                         authViewModel.loginWithGoogle(idToken)
                     } else {
-                        Log.e("MainActivity", "ID Token is null")
+                        Timber.e("ID Token is null")
                     }
                 } catch (e: ApiException) {
-                    Log.e("MainActivity", "Google sign in failed", e)
+                    Timber.e(e, "Google sign in failed")
                 } catch (e: Exception) {
-                    Log.e("MainActivity", "Unexpected error during Google sign in", e)
+                    Timber.e(e, "Unexpected error during Google sign in")
                 }
             }
 

@@ -2,15 +2,23 @@ package com.lavie.randochat.ui.screen
 
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.ImageButton
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
@@ -19,14 +27,43 @@ fun LoginScreen(
     viewModel: AuthViewModel
 ) {
     val loginState by viewModel.loginState.observeAsState()
-    val errorMessage by viewModel.errorMessage.observeAsState()
+    val errorMessageId by viewModel.errorMessageId.observeAsState()
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    val progressMessageId by viewModel.progressMessageId.observeAsState()
+    val errorMsg: String? = errorMessageId?.let { stringResource(it) }
+    val progressMessage: String? = progressMessageId?.let { stringResource(it) }
+
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
+
         ImageButton(
-            onClick = { viewModel.onGoogleLoginClick() },
+            onClick = {
+                if (!isLoading) {
+                    viewModel.onGoogleLoginClick()
+                }
+            },
             vectorId = R.drawable.vector_google,
-            modifier = Modifier.align(alignment = Alignment.Center)
+            modifier = Modifier.align(alignment = Alignment.Center),
+            enabled = !isLoading
         )
+
+        if (isLoading) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(top = 100.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+                progressMessage?.let { message ->
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            }
+        }
     }
 
     LaunchedEffect(loginState) {
@@ -37,8 +74,9 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let { msg ->
+    LaunchedEffect(errorMsg) {
+        errorMsg?.let {
+            customToast(context, errorMsg)
         }
     }
 }
