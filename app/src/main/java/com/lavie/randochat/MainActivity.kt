@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
                         val googleSignInClient = GoogleSignIn.getClient(context, gso)
                         signInLauncher.launch(googleSignInClient.signInIntent)
                     } catch (e: Exception) {
-                        Log.e("MainActivity", "Error launching Google Sign-In", e)
+                        Timber.tag("MainActivity").e(e, "Error launching Google Sign-In")
                     }
                 }
             }
