@@ -1,14 +1,16 @@
 package com.lavie.randochat.repository
 
 import com.lavie.randochat.model.User
-import com.lavie.randochat.repository.UserRepositoryImpl.SaveUserResult
 
 interface UserRepository {
     suspend fun signInWithGoogle(idToken: String): User?
 
-    suspend fun saveUserToDb(user: User): SaveUserResult
+    suspend fun saveUserToDb(user: User): UserResult?
 
-    fun getCurrentUser(): User?
+    suspend fun checkUserValid(): UserResult?
 
-    suspend fun checkUserValid(): User?
+    sealed class UserResult {
+        data class Success(val user: User) : UserResult()
+        data class Error(val messageId: Int) : UserResult()
+    }
 }
