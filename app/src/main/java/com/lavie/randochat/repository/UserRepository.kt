@@ -7,8 +7,6 @@ interface UserRepository {
 
     suspend fun saveUserToDb(user: User): UserResult?
 
-    fun getCurrentUser(): User?
-
     suspend fun checkUserValid(): UserResult?
 
     sealed class UserResult {

@@ -50,23 +50,19 @@ class UserRepositoryImpl(
             try {
                 FirebaseDatabase.getInstance().goOnline()
 
-                val disabledCheck = checkUserDisabled(user.id, Constants.SAVE_USER_TIMEOUT)
-                if (disabledCheck != null) {
-                    return disabledCheck
-                }
-
-                val existingUserSnapshot = withTimeout(Constants.SAVE_USER_TIMEOUT) {
+                val userSnapshot = withTimeout(Constants.SAVE_USER_TIMEOUT) {
                     database.child(Constants.USERS).child(user.id).get().await()
                 }
 
-                val isDisabled = if (existingUserSnapshot.exists()) {
-                    val existingUserMap = existingUserSnapshot.value as? Map<*, *>
-                    existingUserMap?.get(Constants.IS_DISABLED) as? Boolean ?: false
-                } else {
-                    user.isDisabled
+                val userMap = userSnapshot.value as? Map<*, *>
+                val isDisabled = userMap?.get(Constants.IS_DISABLED) as? Boolean ?: user.isDisabled
+
+                if (isDisabled) {
+                    firebaseAuth.signOut()
+                    return UserResult.Error(R.string.account_locked_full)
                 }
 
-                val userMap = mapOf(
+                val userMapToSave = mapOf(
                     Constants.ID to user.id,
                     Constants.EMAIL to user.email,
                     Constants.NICKNAME to user.nickname,
@@ -76,51 +72,39 @@ class UserRepositoryImpl(
                 )
 
                 withTimeout(Constants.SAVE_USER_TIMEOUT) {
-                    database.child(Constants.USERS).child(user.id).setValue(userMap).await()
+                    database.child(Constants.USERS).child(user.id).setValue(userMapToSave).await()
                 }
 
                 return UserResult.Success(user.copy(isDisabled = isDisabled))
 
             } catch (e: TimeoutCancellationException) {
                 retryCount++
-
                 if (retryCount >= maxRetries) {
                     return UserResult.Error(R.string.save_user_data_failed)
                 }
-
                 delay(delayTime)
                 delayTime *= 2
 
             } catch (e: Exception) {
                 retryCount++
 
-                if (isNetworkError(e) && retryCount < maxRetries) {
-                    delay(delayTime)
-                    delayTime *= 2
-                } else {
-                    if (retryCount >= maxRetries) {
+                when {
+                    isNetworkError(e) && retryCount < maxRetries -> {
+                        delay(delayTime)
+                        delayTime *= 2
+                    }
+                    retryCount >= maxRetries -> {
                         return UserResult.Error(R.string.please_check_connection)
-                    } else {
+                    }
+                    else -> {
                         Timber.e(e)
                     }
                 }
             }
+
         }
 
         return UserResult.Error(R.string.save_user_data_failed)
-    }
-
-    override fun getCurrentUser(): User? {
-        val user = firebaseAuth.currentUser
-
-        return user?.let {
-            User(
-                id = it.uid,
-                email = it.email ?: "",
-                nickname = it.displayName ?: "",
-                isOnline = true
-            )
-        }
     }
 
     override suspend fun checkUserValid(): UserResult {
@@ -129,11 +113,6 @@ class UserRepositoryImpl(
             try {
                 withTimeout(Constants.RELOAD_USER_TIMEOUT) { user.reload().await() }
 
-                val disabledCheck = checkUserDisabled(user.uid, Constants.RELOAD_USER_TIMEOUT)
-                if (disabledCheck != null) {
-                    return disabledCheck
-                }
-
                 val userSnapshot = withTimeout(Constants.RELOAD_USER_TIMEOUT) {
                     database.child(Constants.USERS).child(user.uid).get().await()
                 }
@@ -141,6 +120,11 @@ class UserRepositoryImpl(
                 if (userSnapshot.exists()) {
                     val userMap = userSnapshot.value as? Map<*, *>
                     val isDisabled = userMap?.get(Constants.IS_DISABLED) as? Boolean ?: false
+
+                    if (isDisabled) {
+                        firebaseAuth.signOut()
+                        return UserResult.Error(R.string.account_locked_full)
+                    }
 
                     return UserResult.Success(
                         User(
@@ -163,9 +147,10 @@ class UserRepositoryImpl(
                 return UserResult.Error(R.string.network_error)
             }
         }
-
         return UserResult.Error(R.string.account_not_exist)
     }
+
+
 
     private suspend fun checkUserDisabled(userId: String, timeout: Long): UserResult? {
         return try {
