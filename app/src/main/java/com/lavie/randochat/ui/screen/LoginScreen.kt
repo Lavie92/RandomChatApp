@@ -54,7 +54,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.ImageButton
-import com.lavie.randochat.ui.component.SocialLoginRow
+import com.lavie.randochat.ui.component.IconWithText
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.RandomChatTheme
 import com.lavie.randochat.viewmodel.AuthViewModel
@@ -208,7 +208,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SocialLoginRow(
+            IconWithText(
                 onFacebookClick = { /* TODO Facebook */ },
                 onGoogleClick = {
                     if (!isLoading) {

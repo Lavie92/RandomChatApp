@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 import com.lavie.randochat.R
 
 @Composable
-fun SocialLoginRow(
+fun IconWithText(
     onFacebookClick: () -> Unit,
     onGoogleClick: () -> Unit,
     enabled: Boolean = true
