@@ -15,5 +15,7 @@
     <string name="signing_in">Đang đăng nhập…</string>
     <string name="saving_user_data">Đang lưu dữ liệu người dùng…</string>
     <string name="syncing_data">Đang đồng bộ dữ liệu…</string>
+    <string name="user_validation_failed">User validation failed</string>
+    <string name="account_locked_full">Tài khoản của bạn đã bị khoá</string>
 
 </resources>
