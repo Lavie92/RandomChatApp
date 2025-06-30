@@ -15,5 +15,6 @@
     <string name="signing_in">Đang đăng nhập…</string>
     <string name="saving_user_data">Đang lưu dữ liệu người dùng…</string>
     <string name="syncing_data">Đang đồng bộ dữ liệu…</string>
-
+    <string name="login">Đăng Nhập</string>
+    <string name="register">Đăng Ký</string>
 </resources>

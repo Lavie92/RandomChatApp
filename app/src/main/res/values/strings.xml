@@ -16,5 +16,7 @@
     <string name="signing_in">Signing in…</string>
     <string name="saving_user_data">Saving user data…</string>
     <string name="syncing_data">Syncing data…</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
 
 </resources>

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class AuthViewModel(private val userRepository: UserRepository) : ViewModel() {
+open class AuthViewModel(private val userRepository: UserRepository) : ViewModel() {
 
     private val _loginState = MutableLiveData<User?>()
     val loginState: LiveData<User?> = _loginState
