@@ -1,6 +1,7 @@
 package com.lavie.randochat.ui.screen
 
 import android.graphics.drawable.Icon
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.livedata.observeAsState
@@ -12,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Face
@@ -28,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -70,19 +74,53 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = Color(0xFFF8FAFC),
+        unfocusedContainerColor = Color(0xFFF8FAFC),
+        disabledContainerColor = Color(0xFFF8FAFC),
+        focusedBorderColor = Color(0xFFB0B0B0),
+        unfocusedBorderColor = Color(0xFFB0B0B0),
+        focusedTextColor = Color.Black,
+        unfocusedTextColor = Color.Black,
+        cursorColor = Color.Black,
+        focusedPlaceholderColor = Color.Gray,
+        unfocusedPlaceholderColor = Color.Gray
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.White,
+                border = BorderStroke(1.dp, Color.LightGray),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clickable { navController.popBackStack() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+        }
         Column(
             modifier = Modifier
                 .weight(0.8f)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(116.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = "Welcome back! Glad to see you, Again!",
@@ -96,16 +134,11 @@ fun LoginScreen(
                 onValueChange = { email = it },
                 placeholder = { Text("Enter your email") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(12.dp),
+                colors = textFieldColors
 
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF8FAFC),
-                    unfocusedContainerColor = Color(0xFFF8FAFC),
-                    disabledContainerColor = Color(0xFFF8FAFC),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                )
             )
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -115,6 +148,7 @@ fun LoginScreen(
                 placeholder = { Text("Enter your password") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
+
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = {
@@ -127,13 +161,7 @@ fun LoginScreen(
                         )
                     } },
 
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF8FAFC),
-                    unfocusedContainerColor = Color(0xFFF8FAFC),
-                    disabledContainerColor = Color(0xFFF8FAFC),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                )
+                colors = textFieldColors
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -252,7 +280,7 @@ fun LoginScreenPreview() {
     RandomChatTheme {
         LoginScreen(
             navController = rememberNavController(),
-            viewModel = FakeAuthViewModel()
+            viewModel = fakeViewModel
         )
     }
 }

@@ -1,10 +1,13 @@
 package com.lavie.randochat.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 
@@ -40,12 +43,48 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.observeAsState(false)
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = Color(0xFFF8FAFC),
+        unfocusedContainerColor = Color(0xFFF8FAFC),
+        disabledContainerColor = Color(0xFFF8FAFC),
+        focusedBorderColor = Color(0xFFB0B0B0),
+        unfocusedBorderColor = Color(0xFFB0B0B0),
+        focusedTextColor = Color.Black,
+        unfocusedTextColor = Color.Black,
+        cursorColor = Color.Black,
+        focusedPlaceholderColor = Color.Gray,
+        unfocusedPlaceholderColor = Color.Gray
+    )
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.White,
+                border = BorderStroke(1.dp, Color.LightGray),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clickable { navController.popBackStack() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -61,13 +100,7 @@ fun RegisterScreen(
             placeholder = { Text("Username") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF8FAFC),
-                unfocusedContainerColor = Color(0xFFF8FAFC),
-                disabledContainerColor = Color(0xFFF8FAFC),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            )
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -78,13 +111,7 @@ fun RegisterScreen(
             placeholder = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF8FAFC),
-                unfocusedContainerColor = Color(0xFFF8FAFC),
-                disabledContainerColor = Color(0xFFF8FAFC),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            )
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -105,13 +132,7 @@ fun RegisterScreen(
                     )
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF8FAFC),
-                unfocusedContainerColor = Color(0xFFF8FAFC),
-                disabledContainerColor = Color(0xFFF8FAFC),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            )
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -132,13 +153,7 @@ fun RegisterScreen(
                     )
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF8FAFC),
-                unfocusedContainerColor = Color(0xFFF8FAFC),
-                disabledContainerColor = Color(0xFFF8FAFC),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            )
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -214,7 +229,7 @@ fun RegisterScreenPreview() {
     RandomChatTheme {
         RegisterScreen(
             navController = rememberNavController(),
-            viewModel = FakeAuthViewModel()
+            viewModel = fakeViewModel
         )
     }
 }
