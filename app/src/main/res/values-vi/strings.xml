@@ -6,4 +6,14 @@
     <string name="type_a_message">Nhập một tin nhắn!…</string>
     <string name="login_with_facebook">Đăng nhập với Facebook</string>
     <string name="login_with_google">Đăng nhập với Google</string>
+    <string name="login_error">Đã có lỗi trong quá trình đăng nhập</string>
+    <string name="account_not_exist">Tài khoản không tồn tại</string>
+    <string name="cannot_sync_data">Không thể đồng bộ dữ liệu</string>
+    <string name="network_error">Lỗi mạng</string>
+    <string name="save_user_data_failed">Không thể lưu dữ liệu người dùng</string>
+    <string name="please_check_connection">Vui lòng kiểm tra kết nối của bạn</string>
+    <string name="signing_in">Đang đăng nhập…</string>
+    <string name="saving_user_data">Đang lưu dữ liệu người dùng…</string>
+    <string name="syncing_data">Đang đồng bộ dữ liệu…</string>
+
 </resources>
