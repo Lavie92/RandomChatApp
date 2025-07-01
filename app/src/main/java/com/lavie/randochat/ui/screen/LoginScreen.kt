@@ -1,11 +1,9 @@
 package com.lavie.randochat.ui.screen
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,9 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,7 +28,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.lavie.randochat.R
-import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.IconWithText
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.RandomChatTheme
@@ -115,6 +108,7 @@ fun LoginScreen(
                 )
             }
         }
+
         Column(
             modifier = Modifier
                 .weight(0.8f)
@@ -137,9 +131,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = textFieldColors
-
             )
-
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -188,7 +180,7 @@ fun LoginScreen(
                     contentColor = Color.White
                 )
             ) {
-                Text("Login")
+                Text(stringResource(R.string.login))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -217,7 +209,6 @@ fun LoginScreen(
                 },
                 enabled = !isLoading
             )
-
 
 
             if (isLoading) {
@@ -263,15 +254,4 @@ fun LoginScreen(
     }
 }
 
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun LoginScreenPreview() {
-    RandomChatTheme {
-        LoginScreen(
-            navController = rememberNavController(),
-            viewModel = fakeViewModel
-        )
-    }
-}
 

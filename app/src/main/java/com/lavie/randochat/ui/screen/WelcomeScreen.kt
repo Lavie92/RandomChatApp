@@ -38,7 +38,6 @@ fun WelcomeScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Image
         Image(
             painter = painterResource(id = R.drawable.vector_image),
             contentDescription = null,
@@ -50,7 +49,6 @@ fun WelcomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Logo & Text
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 painter = painterResource(id = R.drawable.vector_logo),
@@ -72,7 +70,6 @@ fun WelcomeScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Buttons
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth(0.85f)
@@ -110,13 +107,3 @@ fun WelcomeScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    RandomChatTheme {
-        WelcomeScreen(
-            onLoginClick = {},
-            onRegisterClick = {}
-        )
-    }
-}
