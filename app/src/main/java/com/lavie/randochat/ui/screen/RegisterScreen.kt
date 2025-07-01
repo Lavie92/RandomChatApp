@@ -206,5 +206,3 @@ fun RegisterScreen(
         )
     }
 }
-
-
