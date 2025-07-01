@@ -207,14 +207,4 @@ fun RegisterScreen(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun RegisterScreenPreview() {
-    RandomChatTheme {
-        RegisterScreen(
-            navController = rememberNavController(),
-            viewModel = fakeViewModel
-        )
-    }
-}
 
