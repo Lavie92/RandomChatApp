@@ -19,6 +19,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -74,5 +80,4 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.database)
     implementation (libs.play.services.auth)
-    implementation (libs.androidx.runtime.livedata)
 }

@@ -1,13 +1,13 @@
 package com.lavie.randochat.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lavie.randochat.R
 import com.lavie.randochat.model.User
 import com.lavie.randochat.repository.UserRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -16,20 +16,20 @@ class AuthViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _loginState = MutableLiveData<User?>()
-    val loginState: LiveData<User?> = _loginState
+    private val _loginState = MutableStateFlow<User?>(null)
+    val loginState: StateFlow<User?> = _loginState
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _errorMessageId = MutableLiveData<Int?>()
-    val errorMessageId: LiveData<Int?> = _errorMessageId
+    private val _errorMessageId = MutableStateFlow<Int?>(null)
+    val errorMessageId: StateFlow<Int?> = _errorMessageId
 
     private val _signInRequest = MutableSharedFlow<Unit>()
     val signInRequest = _signInRequest.asSharedFlow()
 
-    private val _progressMessageId = MutableLiveData<Int?>()
-    val progressMessageId: LiveData<Int?> = _progressMessageId
+    private val _progressMessageId = MutableStateFlow<Int?>(null)
+    val progressMessageId: StateFlow<Int?> = _progressMessageId
 
     init {
         checkInitialUserState()
@@ -50,12 +50,20 @@ class AuthViewModel(
             try {
                 Timber.d("Starting Google login...")
 
-                val user = userRepository.signInWithGoogle(idToken)
-                if (user != null) {
-                    handleSuccessfulSignIn(user)
-                } else {
-                    handleSignInFailure()
+                when (val result = userRepository.signInWithGoogle(idToken)) {
+                    is UserRepository.UserResult.Success -> {
+                        handleSuccessfulSignIn(result.user)
+                    }
+
+                    is UserRepository.UserResult.Error -> {
+                        result.messageId?.let { handleLoginError(it) }
+                    }
+
+                    else -> {
+                        handleLoginError(R.string.login_error)
+                    }
                 }
+
             } catch (e: Exception) {
                 Timber.e(e, "Login failed")
                 handleLoginError(R.string.login_error)
@@ -100,18 +108,13 @@ class AuthViewModel(
 
             is UserRepository.UserResult.Error -> {
                 Timber.e("Save user failed: messageId=${saveResult.messageId}")
-                handleLoginError(saveResult.messageId)
+                saveResult.messageId?.let { handleLoginError(it) }
             }
 
             else -> {
                 handleLoginError(R.string.login_error)
             }
         }
-    }
-
-    private fun handleSignInFailure() {
-        Timber.e("User is null after sign in")
-        handleLoginError(R.string.account_not_exist)
     }
 
     private fun handleLoginError(messageId: Int) {
