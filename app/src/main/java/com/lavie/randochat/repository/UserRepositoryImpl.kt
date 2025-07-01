@@ -20,7 +20,7 @@ class UserRepositoryImpl(
     private val database: DatabaseReference
 ) : UserRepository {
 
-    override suspend fun signInWithGoogle(idToken: String): User? {
+    override suspend fun signInWithGoogle(idToken: String): UserResult? {
         return try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val result = firebaseAuth.signInWithCredential(credential).await()
@@ -28,16 +28,23 @@ class UserRepositoryImpl(
             Timber.d("Sign in successful: ${result.user?.uid}")
 
             result.user?.let { firebaseUser ->
-                User(
-                    id = firebaseUser.uid,
-                    email = firebaseUser.email ?: "",
-                    nickname = firebaseUser.displayName ?: "",
-                    isOnline = true
+                UserResult.Success(
+                    User(
+                        id = firebaseUser.uid,
+                        email = firebaseUser.email ?: "",
+                        nickname = firebaseUser.displayName ?: "",
+                        isOnline = true
+                    )
                 )
             }
         } catch (e: Exception) {
             Timber.e(e, "Sign in failed")
-            null
+
+            if (isNetworkError(e)) {
+                UserResult.Error(R.string.network_error)
+            } else {
+                UserResult.Error(R.string.login_error)
+            }
         }
     }
 
@@ -93,9 +100,11 @@ class UserRepositoryImpl(
                         delay(delayTime)
                         delayTime *= 2
                     }
+
                     retryCount >= maxRetries -> {
                         return UserResult.Error(R.string.please_check_connection)
                     }
+
                     else -> {
                         Timber.e(e)
                     }
@@ -137,40 +146,21 @@ class UserRepositoryImpl(
                     )
                 } else {
                     firebaseAuth.signOut()
+
                     return UserResult.Error(R.string.account_not_exist)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "User validation failed")
                 if (!isNetworkError(e)) {
                     firebaseAuth.signOut()
+
+                    return UserResult.Error(R.string.login_error)
                 }
+
                 return UserResult.Error(R.string.network_error)
             }
         }
-        return UserResult.Error(R.string.account_not_exist)
-    }
 
-
-
-    private suspend fun checkUserDisabled(userId: String, timeout: Long): UserResult? {
-        return try {
-            val userSnapshot = withTimeout(timeout) {
-                database.child(Constants.USERS).child(userId).get().await()
-            }
-
-            if (userSnapshot.exists()) {
-                val userMap = userSnapshot.value as? Map<*, *>
-                val isDisabled = userMap?.get(Constants.IS_DISABLED) as? Boolean ?: false
-
-                if (isDisabled) {
-                    firebaseAuth.signOut()
-                    return UserResult.Error(R.string.account_locked_full)
-                }
-            }
-
-            null
-        } catch (e: Exception) {
-            throw e
-        }
+        return UserResult.Error(null)
     }
 }
