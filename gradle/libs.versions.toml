@@ -21,6 +21,7 @@ runtimeLivedata = "1.8.3"
 sdpAndroid = "1.1.1"
 sspAndroid = "1.1.1"
 timber = "5.0.1"
+compose = "1.5.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,7 +55,7 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 sdp-android = { module = "com.intuit.sdp:sdp-android", version.ref = "sdpAndroid" }
 ssp-android = { module = "com.intuit.ssp:ssp-android", version.ref = "sspAndroid" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-
+androidx-compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
