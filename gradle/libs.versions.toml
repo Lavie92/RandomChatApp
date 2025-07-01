@@ -21,6 +21,7 @@ runtimeLivedata = "1.8.3"
 sdpAndroid = "1.1.1"
 sspAndroid = "1.1.1"
 timber = "5.0.1"
+identityJvm = "202411.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 sdp-android = { module = "com.intuit.sdp:sdp-android", version.ref = "sdpAndroid" }
 ssp-android = { module = "com.intuit.ssp:ssp-android", version.ref = "sspAndroid" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+identity-jvm = { group = "com.android.identity", name = "identity-jvm", version.ref = "identityJvm" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

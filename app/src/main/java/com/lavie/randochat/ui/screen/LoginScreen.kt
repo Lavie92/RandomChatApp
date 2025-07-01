@@ -20,6 +20,7 @@ import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.viewmodel.AuthViewModel
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun LoginScreen(

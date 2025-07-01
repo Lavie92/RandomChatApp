@@ -5,5 +5,13 @@ data class Message(
     val senderId: String = "",
     val receiverId: String = "",
     val content: String = "",
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    val type: MessageType = MessageType.TEXT
 )
+
+enum class MessageType {
+    TEXT,
+    IMAGE,
+    VOICE
+}
+

@@ -12,4 +12,6 @@ object Constants {
     const val IS_ONLINE = "isOnline"
     const val IS_DISABLED = "isDisabled"
     const val LAST_UPDATED = "lastUpdated"
+    const val CHATS = "chats"
+    const val MESSAGES = "messages"
 }
