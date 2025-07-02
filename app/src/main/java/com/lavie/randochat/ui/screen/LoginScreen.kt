@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -25,7 +22,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +45,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomOutlinedTextField
-import com.lavie.randochat.ui.component.IconWithText
+import com.lavie.randochat.ui.component.CustomSpacer
+import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.RandomChatTheme
 import com.lavie.randochat.viewmodel.AuthViewModel
@@ -65,23 +62,11 @@ fun LoginScreen(
     val progressMessageId by viewModel.progressMessageId.collectAsState()
     val errorMsg: String? = errorMessageId?.let { stringResource(it) }
     val progressMessage: String? = progressMessageId?.let { stringResource(it) }
-
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = Color(0xFFF8FAFC),
-        unfocusedContainerColor = Color(0xFFF8FAFC),
-        disabledContainerColor = Color(0xFFF8FAFC),
-        focusedBorderColor = Color(0xFFB0B0B0),
-        unfocusedBorderColor = Color(0xFFB0B0B0),
-        focusedTextColor = Color.Black,
-        unfocusedTextColor = Color.Black,
-        cursorColor = Color.Black,
-        focusedPlaceholderColor = Color.Gray,
-        unfocusedPlaceholderColor = Color.Gray
-    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -117,14 +102,14 @@ fun LoginScreen(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(36.dp))
+            CustomSpacer(height = 36.dp)
 
             Text(
-                text = "Welcome back! Glad to see you, Again!",
+                text = stringResource(R.string.welcome_back),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            CustomSpacer(height = 24.dp)
 
             CustomOutlinedTextField(
                 value = email,
@@ -133,7 +118,7 @@ fun LoginScreen(
                 placeholder = "Enter your email"
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            CustomSpacer(height = 12.dp)
 
             CustomOutlinedTextField(
                 value = password,
@@ -151,17 +136,17 @@ fun LoginScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            CustomSpacer(height = 8.dp)
 
             Text(
-                text = "Forgot Password?",
+                text = stringResource(R.string.forgot_password),
                 modifier = Modifier
                     .align(Alignment.End)
                     .clickable { /* TODO */ },
                 color = Color.Gray
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            CustomSpacer(height = 24.dp)
 
             Button(
                 onClick = { /* TODO: your login logic */ },
@@ -177,7 +162,7 @@ fun LoginScreen(
                 Text(stringResource(R.string.login))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            CustomSpacer(height = 24.dp)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -192,18 +177,31 @@ fun LoginScreen(
                 Divider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            CustomSpacer(height = 16.dp)
 
-            IconWithText(
-                onFacebookClick = { /* TODO Facebook */ },
-                onGoogleClick = {
-                    if (!isLoading) {
-                        viewModel.onGoogleLoginClick()
-                    }
-                },
-                enabled = !isLoading
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
 
+                ImageButton(
+                    onClick = { /* TODO Facebook */ },
+                    vectorId = R.drawable.vector_facebook,
+                    enabled = !isLoading
+                )
+
+                ImageButton(
+                    onClick = {
+                        if (!isLoading) {
+                            viewModel.onGoogleLoginClick()
+                        }
+                    },
+                    vectorId = R.drawable.vector_google,
+                    enabled = !isLoading
+                )
+            }
 
             if (isLoading) {
                 Column(
@@ -224,7 +222,7 @@ fun LoginScreen(
         }
 
         Text(
-            text = "Don't have an account? Register Now",
+            text = stringResource(R.string.dont_have_account_register_now),
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .clickable { navController.navigate("register") },

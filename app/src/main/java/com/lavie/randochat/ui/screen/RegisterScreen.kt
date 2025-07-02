@@ -2,6 +2,7 @@ package com.lavie.randochat.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import com.lavie.randochat.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -42,7 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.lavie.randochat.ui.component.CustomOutlinedTextField
-import com.lavie.randochat.ui.component.IconWithText
+import com.lavie.randochat.ui.component.CustomSpacer
+import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.theme.RandomChatTheme
 import com.lavie.randochat.viewmodel.AuthViewModel
 
@@ -100,14 +104,14 @@ fun RegisterScreen(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        CustomSpacer(height = 16.dp)
 
         Text(
-            text = "Hello! Register to get started",
+            text = stringResource(R.string.hello_register_to_get_started),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        CustomSpacer(height = 24.dp)
 
         OutlinedTextField(
             value = username,
@@ -118,7 +122,7 @@ fun RegisterScreen(
             colors = textFieldColors
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        CustomSpacer(height = 12.dp)
 
         OutlinedTextField(
             value = email,
@@ -129,7 +133,7 @@ fun RegisterScreen(
             colors = textFieldColors
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        CustomSpacer(height = 12.dp)
 
         CustomOutlinedTextField(
             value = password,
@@ -146,7 +150,7 @@ fun RegisterScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        CustomSpacer(height = 12.dp)
 
         CustomOutlinedTextField(
             value = confirmPassword,
@@ -163,8 +167,7 @@ fun RegisterScreen(
             }
         )
 
-
-        Spacer(modifier = Modifier.height(24.dp))
+        CustomSpacer(height = 24.dp)
 
         Button(
             onClick = { /* TODO */ },
@@ -180,7 +183,7 @@ fun RegisterScreen(
             Text("Register")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        CustomSpacer(height = 24.dp)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -195,23 +198,35 @@ fun RegisterScreen(
             Divider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        CustomSpacer(height = 16.dp)
 
-        IconWithText(
-            onFacebookClick = { /* TODO Facebook */ },
-            onGoogleClick = {
-                if (!isLoading) {
-                    viewModel.onGoogleLoginClick()
-                }
-            },
-            enabled = !isLoading
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            ImageButton(
+                onClick = { /* TODO Facebook */ },
+                vectorId = R.drawable.vector_facebook,
+                enabled = !isLoading
+            )
 
+            ImageButton(
+                onClick = {
+                    if (!isLoading) {
+                        viewModel.onGoogleLoginClick()
+                    }
+                },
+                vectorId = R.drawable.vector_google,
+                enabled = !isLoading
+            )
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        CustomSpacer(height = 24.dp)
 
         Text(
-            text = "Already have an account? Login Now",
+            text = stringResource(R.string.already_have_account_login_now),
             modifier = Modifier
                 .clickable { navController.navigate("login") },
             style = MaterialTheme.typography.bodyMedium,

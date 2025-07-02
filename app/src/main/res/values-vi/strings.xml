@@ -17,7 +17,21 @@
     <string name="syncing_data">Đang đồng bộ dữ liệu…</string>
     <string name="user_validation_failed">User validation failed</string>
     <string name="account_locked_full">Tài khoản của bạn đã bị khoá</string>
-
     <string name="login">Đăng Nhập</string>
     <string name="register">Đăng Ký</string>
+    <string name="welcome_back">Chào mừng trở lại! Rất vui khi gặp lại bạn!</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="dont_have_account_register_now">Chưa có tài khoản? Đăng ký ngay</string>
+    <string name="create_new_password">Tạo mật khẩu mới</string>
+    <string name="new_password_must_be_unique">Mật khẩu mới của bạn phải khác với những mật khẩu đã dùng trước đó.</string>
+    <string name="verify">Xác minh</string>
+    <string name="didnt_receive_code_resend">Không nhận được mã? Gửi lại</string>
+    <string name="enter_otp_description">Nhập mã xác thực chúng tôi vừa gửi đến email của bạn.</string>
+    <string name="otp_verification">Xác thực OTP</string>
+    <string name="back_to_login">Quay lại Đăng nhập</string>
+    <string name="password_changed_successfully">Mật khẩu của bạn đã được thay đổi thành công.</string>
+    <string name="password_changed">Đã đổi mật khẩu!</string>
+    <string name="already_have_account_login_now">Đã có tài khoản? Đăng nhập ngay</string>
+    <string name="hello_register_to_get_started">Xin chào! Đăng ký để bắt đầu</string>
+
 </resources>

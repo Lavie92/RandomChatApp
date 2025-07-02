@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.withStyle
 import com.lavie.randochat.R
+import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.theme.RandomChatTheme
 
 @Composable
@@ -36,7 +37,7 @@ fun WelcomeScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        CustomSpacer(height = 16.dp)
 
         Image(
             painter = painterResource(id = R.drawable.vector_image),
@@ -47,7 +48,7 @@ fun WelcomeScreen(
                 .clip(RoundedCornerShape(12.dp))
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        CustomSpacer(height = 16.dp)
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
@@ -60,15 +61,14 @@ fun WelcomeScreen(
             Text(
                 buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Chat")
+                        append("Rando")
                     }
-                    append("random")
                 },
                 style = MaterialTheme.typography.headlineSmall
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        CustomSpacer(height = 32.dp)
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -88,7 +88,7 @@ fun WelcomeScreen(
                 Text(stringResource(R.string.login))
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            CustomSpacer(height = 12.dp)
 
             OutlinedButton(
                 onClick = onRegisterClick,

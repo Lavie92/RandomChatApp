@@ -18,6 +18,13 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         composable("chat") { ChatScreen(navController) }
 
         composable("settings") { SettingScreen(navController) }
+
+        composable("register") { RegisterScreen(navController, authViewModel)  }
+
+        composable("password_changed") {
+            PasswordChangedScreen(navController)
+        }
+
         composable("welcome") {
             WelcomeScreen(
                 onLoginClick = { navController.navigate("login") },
