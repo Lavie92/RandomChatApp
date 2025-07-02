@@ -17,5 +17,7 @@
     <string name="syncing_data">Đang đồng bộ dữ liệu…</string>
     <string name="user_validation_failed">User validation failed</string>
     <string name="account_locked_full">Tài khoản của bạn đã bị khoá</string>
+    <string name="match_success">Ghép đôi thành công!</string>
+    <string name="match_failed">Ghép đôi thất bại. Vui lòng thử lại.</string>
 
 </resources>

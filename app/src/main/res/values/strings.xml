@@ -18,5 +18,7 @@
     <string name="syncing_data">Syncing data…</string>
     <string name="user_validation_failed">User validation failed</string>
     <string name="account_locked_full">Your account has been locked</string>
+    <string name="match_success">Matched successfully!</string>
+    <string name="match_failed">Matching failed. Please try again.</string>
 
 </resources>

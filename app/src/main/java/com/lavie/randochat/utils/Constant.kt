@@ -12,4 +12,9 @@ object Constants {
     const val IS_ONLINE = "isOnline"
     const val IS_DISABLED = "isDisabled"
     const val LAST_UPDATED = "lastUpdated"
+    const val WAITING_USERS = "waiting_users"
+    const val CHAT_ROOMS = "chat_rooms"
+    const val MATCHED_WITH = "_matchedWith"
+    const val USER1 = "user1"
+    const val USER2 = "user2"
 }

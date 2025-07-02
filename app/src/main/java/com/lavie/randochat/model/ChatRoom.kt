@@ -2,9 +2,9 @@ package com.lavie.randochat.model
 
 data class ChatRoom(
     val id: String = "",
-    val user1Id: String = "",
-    val user2Id: String = "",
-    val messages: List<Message> = emptyList(),
+    val participantIds: List<String> = emptyList(),
     val createdAt: Long = 0L,
-    val status: ChatStatus
+    val lastMessage: String = "",
+    val lastUpdated: Long = 0L,
+    val isActive: Boolean = true
 )

@@ -68,9 +68,9 @@ fun LoginScreen(
 
     LaunchedEffect(loginState) {
         if (loginState != null) {
-            navController.navigate("chat") {
-                popUpTo("login") { inclusive = true }
-            }
+                navController.navigate("welcome") {
+                    popUpTo("login") { inclusive = true }
+                }
         }
     }
 
