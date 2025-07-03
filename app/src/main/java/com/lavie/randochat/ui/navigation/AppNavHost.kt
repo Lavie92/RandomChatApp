@@ -11,12 +11,27 @@ import com.lavie.randochat.viewmodel.AuthViewModel
 fun AppNavHost(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "login") {
+    NavHost(navController, startDestination = "welcome") {
 
         composable("login") { LoginScreen(navController, authViewModel) }
 
         composable("chat") { ChatScreen(navController) }
 
         composable("settings") { SettingScreen(navController) }
+
+        composable("register") { RegisterScreen(navController, authViewModel)  }
+
+        composable("password_changed") {
+            PasswordChangedScreen(navController)
+        }
+
+        composable("welcome") {
+            WelcomeScreen(
+                onLoginClick = { navController.navigate("login") },
+                onRegisterClick = { navController.navigate("register") }
+
+            )
+        }
+
     }
 }

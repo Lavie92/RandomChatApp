@@ -80,4 +80,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.database)
     implementation (libs.play.services.auth)
+    implementation(libs.androidx.compose.icons.extended)
+
 }

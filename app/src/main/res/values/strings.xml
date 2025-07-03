@@ -18,5 +18,32 @@
     <string name="syncing_data">Syncing data…</string>
     <string name="user_validation_failed">User validation failed</string>
     <string name="account_locked_full">Your account has been locked</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="welcome_back" translatable="false">Welcome back! Glad to see you, Again!</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="dont_have_account_register_now">Don\'t have an account? Register Now</string>
+    <string name="create_new_password">Create new password</string>
+    <string name="new_password_must_be_unique">Your new password must be unique from those previously used.</string>
+    <string name="verify">Verify</string>
+    <string name="didnt_receive_code_resend">Didn\'t receive code? Resend</string>
+    <string name="enter_otp_description">Enter the verification code we just sent on your email address.</string>
+    <string name="otp_verification">OTP Verification</string>
+    <string name="back_to_login">Back to Login</string>
+    <string name="password_changed_successfully">Your password has been changed successfully.</string>
+    <string name="password_changed">Password Changed!</string>
+    <string name="already_have_account_login_now">Already have an account? Login Now</string>
+    <string name="hello_register_to_get_started">Hello! Register to get started</string>
+    <string name="or_login_with">Or Login with</string>
+    <string name="or_register_with">Or Register with</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="re_enter_password">Re-enter password</string>
+    <string name="new_password">New Password</string>
 
 </resources>
