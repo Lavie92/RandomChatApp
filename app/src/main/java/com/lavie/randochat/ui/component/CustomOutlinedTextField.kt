@@ -1,10 +1,12 @@
 package com.lavie.randochat.ui.component
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.VisualTransformation
@@ -29,9 +31,14 @@ fun CustomOutlinedTextField(
         onValueChange = onValueChange,
         placeholder = { Text(placeholder) },
         modifier = modifier,
+        singleLine = true,
+        maxLines = 1,
         shape = RoundedCornerShape(shapeRadius),
         visualTransformation = visualTransformation,
         trailingIcon = trailingIcon,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Next
+        ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = containerColor,
             unfocusedContainerColor = containerColor,

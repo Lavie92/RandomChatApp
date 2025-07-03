@@ -113,25 +113,22 @@ fun RegisterScreen(
 
         CustomSpacer(height = 24.dp)
 
-        OutlinedTextField(
+        CustomOutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            placeholder = { Text("Username") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = textFieldColors
+            placeholder = "Username",
+            modifier = Modifier.fillMaxWidth()
         )
 
         CustomSpacer(height = 12.dp)
 
-        OutlinedTextField(
+        CustomOutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = textFieldColors
+            placeholder = "Email",
+            modifier = Modifier.fillMaxWidth()
         )
+
 
         CustomSpacer(height = 12.dp)
 
@@ -139,6 +136,7 @@ fun RegisterScreen(
             value = password,
             onValueChange = { password = it },
             placeholder = "Password",
+            modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -155,6 +153,7 @@ fun RegisterScreen(
         CustomOutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
+            modifier = Modifier.fillMaxWidth(),
             placeholder = "Confirm password",
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
