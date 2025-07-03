@@ -45,11 +45,19 @@ fun CustomOutlinedTextField(
             disabledContainerColor = containerColor,
             focusedBorderColor = borderColor,
             unfocusedBorderColor = borderColor,
+            disabledBorderColor = borderColor,
+            errorBorderColor = borderColor,
             focusedTextColor = textColor,
             unfocusedTextColor = textColor,
             cursorColor = cursorColor,
             focusedPlaceholderColor = placeholderColor,
-            unfocusedPlaceholderColor = placeholderColor
+            unfocusedPlaceholderColor = placeholderColor,
+            focusedLabelColor = Color.Transparent,
+            unfocusedLabelColor = Color.Transparent,
+            disabledLabelColor = Color.Transparent,
+            errorLabelColor = Color.Transparent,
         )
+
+
     )
 }

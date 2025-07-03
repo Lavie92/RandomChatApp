@@ -115,7 +115,7 @@ fun LoginScreen(
                 value = email,
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = { email = it },
-                placeholder = "Enter your email"
+                placeholder = stringResource(R.string.enter_your_email)
             )
 
             CustomSpacer(height = 12.dp)
@@ -124,7 +124,7 @@ fun LoginScreen(
                 value = password,
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = { password = it },
-                placeholder = "Enter your password",
+                placeholder = stringResource(R.string.enter_your_password),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -170,7 +170,7 @@ fun LoginScreen(
             ) {
                 Divider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
                 Text(
-                    "  Or Login with  ",
+                    stringResource(R.string.or_login_with),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
                 )

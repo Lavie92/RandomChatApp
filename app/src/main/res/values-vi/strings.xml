@@ -33,5 +33,13 @@
     <string name="password_changed">Đã đổi mật khẩu!</string>
     <string name="already_have_account_login_now">Đã có tài khoản? Đăng nhập ngay</string>
     <string name="hello_register_to_get_started">Xin chào! Đăng ký để bắt đầu</string>
+    <string name="or_login_with">Hoặc đăng nhập bằng</string>
+    <string name="or_register_with">Hoặc đăng ký bằng</string>
+    <string name="enter_your_email">Nhập email của bạn</string>
+    <string name="enter_your_password">Nhập mật khẩu của bạn</string>
+    <string name="username">Tên người dùng</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
 
 </resources>

@@ -116,7 +116,7 @@ fun RegisterScreen(
         CustomOutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            placeholder = "Username",
+            placeholder = stringResource(R.string.username),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -125,7 +125,7 @@ fun RegisterScreen(
         CustomOutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = "Email",
+            placeholder = stringResource(R.string.email),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -135,7 +135,7 @@ fun RegisterScreen(
         CustomOutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            placeholder = "Password",
+            placeholder = stringResource(R.string.password),
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
@@ -154,7 +154,7 @@ fun RegisterScreen(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = "Confirm password",
+            placeholder = stringResource(R.string.confirm_password),
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
@@ -179,7 +179,7 @@ fun RegisterScreen(
                 contentColor = Color.White
             )
         ) {
-            Text("Register")
+            Text(text = stringResource(R.string.register))
         }
 
         CustomSpacer(height = 24.dp)
@@ -190,7 +190,7 @@ fun RegisterScreen(
         ) {
             Divider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
             Text(
-                "  Or Register with  ",
+                stringResource(R.string.or_register_with),
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodyMedium
             )

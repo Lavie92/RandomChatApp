@@ -34,5 +34,13 @@
     <string name="password_changed">Password Changed!</string>
     <string name="already_have_account_login_now">Already have an account? Login Now</string>
     <string name="hello_register_to_get_started">Hello! Register to get started</string>
+    <string name="or_login_with">Or Login with</string>
+    <string name="or_register_with">Or Register with</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
 
 </resources>
