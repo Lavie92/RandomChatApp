@@ -41,5 +41,8 @@
     <string name="email">Email</string>
     <string name="password">Mật khẩu</string>
     <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="reset_password">Đặt lại mật khẩu</string>
+    <string name="re_enter_password">Nhập lại mật khẩu</string>
+    <string name="new_password">New Password</string>
 
 </resources>

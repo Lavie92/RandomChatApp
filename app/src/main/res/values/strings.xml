@@ -42,5 +42,8 @@
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="confirm_password">Confirm password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="re_enter_password">Re-enter password</string>
+    <string name="new_password">New Password</string>
 
 </resources>

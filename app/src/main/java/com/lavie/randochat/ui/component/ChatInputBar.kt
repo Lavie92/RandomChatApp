@@ -29,7 +29,7 @@ fun ChatInputBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         ImageButton(
-            onSendImage, R.drawable.vector_image, modifier = Modifier
+            onSendImage, R.drawable.vector_welcome_background, modifier = Modifier
                 .padding(Dimens.baseMargin)
                 .width(Dimens.baseIconSize)
         )

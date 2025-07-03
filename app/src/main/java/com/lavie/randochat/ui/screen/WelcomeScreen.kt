@@ -14,7 +14,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
@@ -22,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.withStyle
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomSpacer
-import com.lavie.randochat.ui.theme.RandomChatTheme
 
 @Composable
 fun WelcomeScreen(
@@ -40,7 +38,7 @@ fun WelcomeScreen(
         CustomSpacer(height = 16.dp)
 
         Image(
-            painter = painterResource(id = R.drawable.vector_image),
+            painter = painterResource(id = R.drawable.vector_welcome_background),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
