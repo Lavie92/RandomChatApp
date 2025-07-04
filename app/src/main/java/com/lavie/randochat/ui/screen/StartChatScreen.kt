@@ -17,17 +17,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomSpacer
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
+import com.lavie.randochat.utils.ChatType
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 
 @Composable
-fun WelcomeScreen(
+fun StartChatScreen(
     navController: NavController,
     matchViewModel: MatchViewModel,
     authViewModel: AuthViewModel,
@@ -37,6 +40,11 @@ fun WelcomeScreen(
     val matchState by matchViewModel.matchState.collectAsState()
 
     val myUserId = myUser?.id
+    val context = LocalContext.current
+    val isMatching = matchState is MatchViewModel.MatchState.Matching || matchState is MatchViewModel.MatchState.Waiting
+
+    //TODO Need to get value from user choice
+    val chatType: ChatType = ChatType.RANDOM
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -63,13 +71,18 @@ fun WelcomeScreen(
 
         TextButton(
             onClick = {
-                if (myUserId != null) {
-                    matchViewModel.startMatching(myUserId)
+                if (isMatching) {
+                    matchViewModel.cancelWaiting()
+                    customToast(context, R.string.match_cancelled)
+                } else {
+                    if (myUserId != null) {
+                        matchViewModel.startMatching(myUserId, chatType)
+                    }
                 }
             }
         ) {
             Text(
-                text = stringResource(R.string.start_a_chat),
+                text = if (isMatching) stringResource(R.string.stop_matching) else stringResource(R.string.start_a_chat),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF2979FF)
             )
@@ -77,6 +90,10 @@ fun WelcomeScreen(
     }
 
     LaunchedEffect(matchState) {
+        if (matchState is MatchViewModel.MatchState.Error) {
+            val errorMsg = context.getString((matchState as MatchViewModel.MatchState.Error).messageResId)
+            customToast(context, errorMsg)
+        }
         if (matchState is MatchViewModel.MatchState.Matched) {
             val matched = matchState as MatchViewModel.MatchState.Matched
             navController.navigate("chat?partnerUserId=${matched.partnerId}") {
@@ -84,5 +101,4 @@ fun WelcomeScreen(
             }
         }
     }
-
 }

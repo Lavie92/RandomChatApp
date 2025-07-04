@@ -20,5 +20,8 @@
     <string name="account_locked_full">Your account has been locked</string>
     <string name="match_success">Matched successfully!</string>
     <string name="match_failed">Matching failed. Please try again.</string>
+    <string name="match_timeout">No match found. Please try again later.</string>
+    <string name="stop_matching">Stop matching</string>
+    <string name="match_cancelled">You have cancelled matching.</string>
 
 </resources>

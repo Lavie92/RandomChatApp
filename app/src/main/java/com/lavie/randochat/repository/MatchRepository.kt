@@ -1,10 +1,21 @@
 package com.lavie.randochat.repository
 
-import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
+import com.lavie.randochat.utils.ChatType
 
 interface MatchRepository {
-    suspend fun findUserForMatch(userId: String): MatchResult
+    suspend fun findUserForMatch(userId: String, chatType: ChatType): MatchResult
+
     suspend fun cancelWaiting(userId: String)
+
+    suspend fun createChatRoom(userA: String, userB: String): MatchResult
+
+    fun observeMatchedUser(
+        userId: String,
+        onMatched: (matched: Boolean, matchedWith: String?, roomId: String?) -> Unit
+    ): ValueEventListener
+
+    fun removeMatchedListener(userId: String, listener: ValueEventListener)
 
     sealed class MatchResult {
         data class Matched(val roomId: String, val otherUserId: String) : MatchResult()
@@ -12,5 +23,4 @@ interface MatchRepository {
         data class Error(val messageId: Int) : MatchResult()
         object Cancelled : MatchResult()
     }
-
 }

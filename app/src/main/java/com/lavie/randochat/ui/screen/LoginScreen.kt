@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
+import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
@@ -26,7 +27,6 @@ fun LoginScreen(
     navController: NavController,
     viewModel: AuthViewModel
 ) {
-    val loginState by viewModel.loginState.collectAsState()
     val errorMessageId by viewModel.errorMessageId.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState(false)
     val progressMessageId by viewModel.progressMessageId.collectAsState()
@@ -66,11 +66,20 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(loginState) {
-        if (loginState != null) {
-                navController.navigate("welcome") {
-                    popUpTo("login") { inclusive = true }
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                is AuthViewModel.NavigationEvent.NavigateToStartChat -> {
+                    navController.navigate(Constants.START_CHAT_SCREEN) {
+                        popUpTo(Constants.LOGIN_SCREEN) { inclusive = true }
+                    }
                 }
+                is AuthViewModel.NavigationEvent.NavigateToChat -> {
+                    navController.navigate("${Constants.CHAT_SCREEN}?${Constants.PARTNER_USER_ID}=${event.partnerId}") {
+                        popUpTo(Constants.LOGIN_SCREEN) { inclusive = true }
+                    }
+                }
+            }
         }
     }
 
