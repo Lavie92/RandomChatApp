@@ -23,22 +23,22 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         composable(Constants.LOGIN_SCREEN) { LoginScreen(navController, authViewModel) }
 
         composable(
-            route = "chat?partnerUserId={partnerUserId}",
+            route = "${Constants.CHAT_SCREEN}?${Constants.PARTNER_USER_ID}={${Constants.PARTNER_USER_ID}}",
             arguments = listOf(
-                navArgument("partnerUserId") {
+                navArgument(Constants.PARTNER_USER_ID) {
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
                 }
             )
         ) { backStackEntry ->
-            val partnerUserId = backStackEntry.arguments?.getString("partnerUserId")
+            val partnerUserId = backStackEntry.arguments?.getString(Constants.PARTNER_USER_ID)
             ChatScreen(navController, partnerUserId, authViewModel)
         }
 
-        composable("settings") { SettingScreen(navController) }
+        composable(Constants.SETTINGS_SCREEN) { SettingScreen(navController) }
 
-        composable("welcome") { StartChatScreen(navController, matchViewModel, authViewModel) }
+        composable(Constants.WELCOME_SCREEN) { StartChatScreen(navController, matchViewModel, authViewModel) }
 
         composable(Constants.START_CHAT_SCREEN) { StartChatScreen(navController, matchViewModel, authViewModel) }
     }

@@ -29,5 +29,6 @@ object Constants {
     const val CHAT_TYPE = "chatType"
     const val ROOM_ID = "roomId"
     const val PARTNER_ID = "partnerId"
-
+    const val WELCOME_SCREEN = "welcome"
+    const val SETTINGS_SCREEN = "settings"
 }
