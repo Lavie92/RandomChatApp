@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -19,15 +22,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.withStyle
+import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomSpacer
+import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
 fun WelcomeScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val loginState by authViewModel.loginState.collectAsState()
+    val activeRoom by authViewModel.activeRoom.collectAsState()
+
+    LaunchedEffect(loginState, activeRoom) {
+        if (loginState != null) {
+            if (activeRoom != null) {
+                val myUserId = loginState!!.id
+                val partnerId = activeRoom!!.participantIds.firstOrNull { it != myUserId }
+
+                navController.navigate("${Constants.CHAT_SCREEN}/${partnerId}") {
+                    popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }
+                }
+            } else {
+                navController.navigate(Constants.START_CHAT_SCREEN) {
+                    popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }
+                }
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()

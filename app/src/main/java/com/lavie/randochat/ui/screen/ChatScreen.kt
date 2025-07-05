@@ -43,57 +43,13 @@ import com.lavie.randochat.ui.theme.messageBackground
 
 @Composable
 fun ChatScreen(
-    navController: NavController
-) {
+    navController: NavController,
+    partnerUserId: String?,
+)  {
     var chatStarted by remember { mutableStateOf(false) }
 
-    if (!chatStarted) {
-        WelcomeScreen(
-            onStartChatClick = { chatStarted = true }
-        )
-    } else {
         ConversationScreen(sampleMessages, myUserId)
-    }
-}
 
-@Composable
-fun WelcomeScreen(
-    onStartChatClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.MailOutline,
-            contentDescription = null,
-            modifier = Modifier.size(Dimens.mailIcon),
-            tint = Color(0xFFD8D8D8)
-        )
-
-        CustomSpacer(height = Dimens.baseSpacerHeight)
-
-        Text(
-            fontSize = Dimens.welcomeTextSize,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black,
-            text = stringResource(R.string.lets_start_chatting)
-        )
-
-        CustomSpacer(height = Dimens.baseSpacerHeight)
-
-        TextButton(
-            onClick = onStartChatClick
-        ) {
-            Text(
-                text = stringResource(R.string.start_a_chat),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF2979FF)
-            )
-        }
-    }
 }
 
 //TODO: just hard code to test UI

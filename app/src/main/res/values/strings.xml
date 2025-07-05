@@ -45,5 +45,10 @@
     <string name="reset_password">Reset Password</string>
     <string name="re_enter_password">Re-enter password</string>
     <string name="new_password">New Password</string>
+    <string name="match_success">Matched successfully!</string>
+    <string name="match_failed">Matching failed. Please try again.</string>
+    <string name="match_timeout">No match found. Please try again later.</string>
+    <string name="stop_matching">Stop matching</string>
+    <string name="match_cancelled">You have cancelled matching.</string>
 
 </resources>

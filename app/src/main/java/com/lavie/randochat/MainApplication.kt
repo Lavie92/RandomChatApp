@@ -20,6 +20,7 @@ class MainApplication : Application() {
 
         startKoin {
             androidContext(this@MainApplication)
-            modules(listOf(firebaseModule, repositoryModule, viewModelModule))        }
+            modules(listOf(firebaseModule, repositoryModule, viewModelModule))
+        }
     }
 }
