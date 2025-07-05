@@ -3,6 +3,7 @@ package com.lavie.randochat.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lavie.randochat.R
+import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 import com.lavie.randochat.repository.UserRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,6 +31,12 @@ class AuthViewModel(
 
     private val _progressMessageId = MutableStateFlow<Int?>(null)
     val progressMessageId: StateFlow<Int?> = _progressMessageId
+
+    private val _activeRoom = MutableStateFlow<ChatRoom?>(null)
+    val activeRoom: StateFlow<ChatRoom?> = _activeRoom
+
+    private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
+    val navigationEvent = _navigationEvent.asSharedFlow()
 
     init {
         checkInitialUserState()
@@ -79,6 +86,16 @@ class AuthViewModel(
                 is UserRepository.UserResult.Success -> {
                     _loginState.value = result.user
                     _errorMessageId.value = null
+
+                    val activeRoom = userRepository.getActiveRoomForUser(result.user.id)
+                    _activeRoom.value = activeRoom
+
+                    if (activeRoom != null) {
+                        val partnerId = activeRoom.participantIds.first { it != result.user.id }
+                        _navigationEvent.emit(NavigationEvent.NavigateToChat(partnerId))
+                    } else {
+                        _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                    }
                 }
 
                 is UserRepository.UserResult.Error -> {
@@ -104,6 +121,16 @@ class AuthViewModel(
                 _loginState.value = saveResult.user
                 _progressMessageId.value = null
                 _errorMessageId.value = null
+
+                val activeRoom = userRepository.getActiveRoomForUser(saveResult.user.id)
+                _activeRoom.value = activeRoom
+
+                if (activeRoom != null) {
+                    val partnerId = activeRoom.participantIds.first { it != saveResult.user.id }
+                    _navigationEvent.emit(NavigationEvent.NavigateToChat(partnerId))
+                } else {
+                    _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                }
             }
 
             is UserRepository.UserResult.Error -> {
@@ -159,4 +186,8 @@ class AuthViewModel(
         }
     }
 
+    sealed class NavigationEvent {
+        data object NavigateToStartChat : NavigationEvent()
+        data class NavigateToChat(val partnerId: String) : NavigationEvent()
+    }
 }

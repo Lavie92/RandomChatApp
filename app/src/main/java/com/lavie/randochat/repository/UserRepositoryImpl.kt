@@ -5,6 +5,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.lavie.randochat.R
+import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.isNetworkError
@@ -110,7 +111,6 @@ class UserRepositoryImpl(
                     }
                 }
             }
-
         }
 
         return UserResult.Error(R.string.save_user_data_failed)
@@ -162,6 +162,22 @@ class UserRepositoryImpl(
         }
 
         return UserResult.Error(null)
+    }
+
+    override suspend fun getActiveRoomForUser(userId: String): ChatRoom? {
+        val snapshot = database.child(Constants.CHAT_ROOMS)
+            .orderByChild(Constants.ACTIVE)
+            .equalTo(true)
+            .get()
+            .await()
+        for (room in snapshot.children) {
+            val chatRoom = room.getValue(ChatRoom::class.java)
+            if (chatRoom != null && chatRoom.participantIds.contains(userId)) {
+                return chatRoom
+            }
+        }
+
+        return null
     }
 
     override suspend fun registerWithEmail(email: String, password: String): UserRepository.UserResult {

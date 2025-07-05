@@ -41,5 +41,13 @@
     <string name="email">Email</string>
     <string name="password">Mật khẩu</string>
     <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="reset_password">Đặt lại mật khẩu</string>
+    <string name="re_enter_password">Nhập lại mật khẩu</string>
+    <string name="new_password">New Password</string>
+    <string name="match_success">Ghép đôi thành công!</string>
+    <string name="match_failed">Ghép đôi thất bại. Vui lòng thử lại.</string>
+    <string name="match_timeout">Không tìm thấy người ghép đôi. Vui lòng thử lại sau.</string>
+    <string name="stop_matching">Dừng ghép đôi</string>
+    <string name="match_cancelled">Bạn đã hủy ghép đôi.</string>
 
 </resources>

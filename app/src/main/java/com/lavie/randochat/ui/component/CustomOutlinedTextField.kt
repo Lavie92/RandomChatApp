@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 
 @Composable
 fun CustomOutlinedTextField(
@@ -24,10 +25,12 @@ fun CustomOutlinedTextField(
     placeholderColor: Color = Color.Gray,
     cursorColor: Color = Color.Black,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: (@Composable (() -> Unit))? = null
+    trailingIcon: (@Composable (() -> Unit))? = null,
+    imeAction: ImeAction = ImeAction.Next
 ) {
     OutlinedTextField(
         value = value,
+        textStyle = LocalTextStyle.current.copy(textDecoration = TextDecoration.None),
         onValueChange = onValueChange,
         placeholder = { Text(placeholder) },
         modifier = modifier,
@@ -37,7 +40,7 @@ fun CustomOutlinedTextField(
         visualTransformation = visualTransformation,
         trailingIcon = trailingIcon,
         keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Next
+            imeAction = imeAction
         ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = containerColor,
@@ -55,9 +58,7 @@ fun CustomOutlinedTextField(
             focusedLabelColor = Color.Transparent,
             unfocusedLabelColor = Color.Transparent,
             disabledLabelColor = Color.Transparent,
-            errorLabelColor = Color.Transparent,
+            errorLabelColor = Color.Transparent
         )
-
-
     )
 }

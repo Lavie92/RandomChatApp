@@ -157,7 +157,6 @@ fun OtpVerificationScreen(
 fun OtpVerificationScreen() {
     val navController = rememberNavController()
 
-
     RandomChatTheme {
         OtpVerificationScreen(
             navController = navController

@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -168,7 +169,8 @@ fun RegisterScreen(
                         contentDescription = null
                     )
                 }
-            }
+            },
+            imeAction = ImeAction.Done
         )
 
         CustomSpacer(height = 24.dp)

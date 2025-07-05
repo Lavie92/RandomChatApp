@@ -16,15 +16,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lavie.randochat.R
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
-import com.lavie.randochat.ui.theme.RandomChatTheme
 
 @Composable
 fun NewPasswordScreen(
@@ -55,7 +52,7 @@ fun NewPasswordScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = null,
                 tint = Color.Black,
                 modifier = Modifier.padding(10.dp)
             )
@@ -80,7 +77,7 @@ fun NewPasswordScreen(
         CustomOutlinedTextField(
             value = newPassword,
             onValueChange = { newPassword = it },
-            placeholder = "New Password",
+            placeholder = stringResource(R.string.new_password),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -97,7 +94,7 @@ fun NewPasswordScreen(
         CustomOutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            placeholder = "Confirm Password",
+            placeholder = stringResource(R.string.re_enter_password),
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
@@ -122,7 +119,7 @@ fun NewPasswordScreen(
                 contentColor = Color.White
             )
         ) {
-            Text("Reset Password")
+            Text(stringResource(R.string.reset_password))
         }
     }
 }

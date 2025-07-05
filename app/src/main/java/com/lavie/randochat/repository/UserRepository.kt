@@ -1,5 +1,6 @@
 package com.lavie.randochat.repository
 
+import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 
 interface UserRepository {
@@ -9,6 +10,8 @@ interface UserRepository {
 
     suspend fun checkUserValid(): UserResult?
 
+    suspend fun getActiveRoomForUser(userId: String): ChatRoom?
+    
     suspend fun registerWithEmail(email: String, password: String): UserResult?
 
     suspend fun loginWithEmail(email: String, password: String): UserResult?

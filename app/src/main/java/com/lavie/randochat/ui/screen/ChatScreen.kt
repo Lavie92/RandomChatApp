@@ -24,6 +24,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,69 +35,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.lavie.randochat.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.CustomSpacer
-import com.lavie.randochat.ui.theme.*
+import com.lavie.randochat.ui.theme.Dimens
+import com.lavie.randochat.ui.theme.messageBackground
 
 @Composable
 fun ChatScreen(
-    navController: NavController
-) {
+    navController: NavController,
+    partnerUserId: String?,
+)  {
     var chatStarted by remember { mutableStateOf(false) }
 
-    if (!chatStarted) {
-        WelcomeScreen(
-            onStartChatClick = { chatStarted = true }
-        )
-    } else {
         ConversationScreen(sampleMessages, myUserId)
-    }
-}
 
-@Composable
-fun WelcomeScreen(
-    onStartChatClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.MailOutline,
-            contentDescription = null,
-            modifier = Modifier.size(Dimens.mailIcon),
-            tint = Color(0xFFD8D8D8)
-        )
-
-        CustomSpacer(height = Dimens.baseSpacerHeight)
-
-        Text(
-            fontSize = Dimens.welcomeTextSize,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black,
-            text = stringResource(R.string.lets_start_chatting)
-        )
-
-        CustomSpacer(height = Dimens.baseSpacerHeight)
-
-        TextButton(
-            onClick = onStartChatClick
-        ) {
-            Text(
-                text = stringResource(R.string.start_a_chat),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF2979FF)
-            )
-        }
-    }
 }
 
 //TODO: just hard code to test UI
