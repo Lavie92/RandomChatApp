@@ -17,29 +17,45 @@ fun AppNavHost(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
 
     val matchViewModel: MatchViewModel = koinViewModel()
-
-    NavHost(navController, startDestination = Constants.LOGIN_SCREEN) {
+    NavHost(navController, startDestination = Constants.WELCOME_SCREEN) {
 
         composable(Constants.LOGIN_SCREEN) { LoginScreen(navController, authViewModel) }
 
+        composable("register") { RegisterScreen(navController, authViewModel) }
+
+        composable("password_changed") {
+            PasswordChangedScreen(navController)
+        }
+
+        composable(Constants.WELCOME_SCREEN) {
+            WelcomeScreen(
+                navController,
+                authViewModel,
+                onLoginClick = { navController.navigate(Constants.LOGIN_SCREEN) },
+                onRegisterClick = { navController.navigate(Constants.REGISTER_SCREEN) }
+            )
+        }
+
         composable(
-            route = "${Constants.CHAT_SCREEN}?${Constants.PARTNER_USER_ID}={${Constants.PARTNER_USER_ID}}",
+            route = "${Constants.CHAT_SCREEN}/{${Constants.PARTNER_USER_ID}}",
             arguments = listOf(
                 navArgument(Constants.PARTNER_USER_ID) {
                     type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
             val partnerUserId = backStackEntry.arguments?.getString(Constants.PARTNER_USER_ID)
-            ChatScreen(navController, partnerUserId, authViewModel)
+            ChatScreen(navController, partnerUserId)
         }
 
         composable(Constants.SETTINGS_SCREEN) { SettingScreen(navController) }
 
-        composable(Constants.WELCOME_SCREEN) { StartChatScreen(navController, matchViewModel, authViewModel) }
-
-        composable(Constants.START_CHAT_SCREEN) { StartChatScreen(navController, matchViewModel, authViewModel) }
+        composable(Constants.START_CHAT_SCREEN) {
+            StartChatScreen(
+                navController,
+                matchViewModel,
+                authViewModel
+            )
+        }
     }
 }

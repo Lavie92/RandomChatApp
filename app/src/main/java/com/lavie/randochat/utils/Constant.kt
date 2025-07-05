@@ -18,6 +18,7 @@ object Constants {
     const val MATCH_NOTIFICATIONS = "match_notifications"
     const val MATCH_TIMEOUT = 10000L
     const val LOGIN_SCREEN = "login"
+    const val REGISTER_SCREEN = "register"
     const val START_CHAT_SCREEN = "start_chat"
     const val CHAT_SCREEN = "chat"
     const val PARTNER_USER_ID = "partnerUserId"

@@ -26,6 +26,7 @@ import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.ChatType
+import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 
@@ -96,8 +97,8 @@ fun StartChatScreen(
         }
         if (matchState is MatchViewModel.MatchState.Matched) {
             val matched = matchState as MatchViewModel.MatchState.Matched
-            navController.navigate("chat?partnerUserId=${matched.partnerId}") {
-                popUpTo("welcome") { inclusive = true }
+            navController.navigate("${Constants.CHAT_SCREEN}/${matched.partnerId}") {
+                popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }
             }
         }
     }

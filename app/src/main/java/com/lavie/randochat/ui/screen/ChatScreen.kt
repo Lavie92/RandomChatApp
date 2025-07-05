@@ -24,6 +24,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,22 +35,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.lavie.randochat.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.CustomSpacer
-import com.lavie.randochat.ui.theme.*
-import com.lavie.randochat.viewmodel.AuthViewModel
+import com.lavie.randochat.ui.theme.Dimens
+import com.lavie.randochat.ui.theme.messageBackground
 
 @Composable
 fun ChatScreen(
     navController: NavController,
     partnerUserId: String?,
-    authViewModel: AuthViewModel
 )  {
     var chatStarted by remember { mutableStateOf(false) }
 
