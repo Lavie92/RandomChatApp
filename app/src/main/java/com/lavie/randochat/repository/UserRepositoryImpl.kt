@@ -163,4 +163,68 @@ class UserRepositoryImpl(
 
         return UserResult.Error(null)
     }
+
+    override suspend fun registerWithEmail(email: String, password: String): UserRepository.UserResult {
+        return try {
+            val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user
+
+            if (firebaseUser != null) {
+                Timber.d("Register success: ${firebaseUser.uid}")
+
+                val userMap = mapOf(
+                    "id" to firebaseUser.uid,
+                    "email" to email,
+                    "nickname" to "",
+                    "isOnline" to true,
+                    "lastUpdated" to System.currentTimeMillis(),
+                    "isDisabled" to false
+                )
+
+                database.child(Constants.USERS).child(firebaseUser.uid).setValue(userMap).await()
+
+                UserResult.Success(
+                    User(
+                        id = firebaseUser.uid,
+                        email = email,
+                        nickname = "",
+                        isOnline = true
+                    )
+                )
+            } else {
+                UserResult.Error(R.string.account_not_exist)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Register failed")
+            UserResult.Error(R.string.login_error)
+        }
+    }
+
+    override suspend fun loginWithEmail(email: String, password: String): UserResult? {
+        return try {
+            val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user
+
+            if (firebaseUser != null) {
+                val user = User(
+                    id = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    nickname = firebaseUser.displayName ?: "",
+                    isOnline = true
+                )
+                UserResult.Success(user)
+            } else {
+                UserResult.Error(R.string.login_error)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Login with email failed")
+            if (isNetworkError(e)) {
+                UserResult.Error(R.string.network_error)
+            } else {
+                UserResult.Error(R.string.login_error)
+            }
+        }
+    }
+
+
 }

@@ -1,5 +1,6 @@
 package com.lavie.randochat.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.RandomChatTheme
+import com.lavie.randochat.utils.InputValidator
 import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
@@ -149,7 +151,18 @@ fun LoginScreen(
             CustomSpacer(height = 24.dp)
 
             Button(
-                onClick = { /* TODO: your login logic */ },
+                onClick = {
+                    when {
+                    !InputValidator.isValidEmail(email) -> {
+                        Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
+                    }
+                    !InputValidator.isValidPassword(password) -> {
+                        Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        viewModel.loginWithEmail(email, password)
+                    }
+                } },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

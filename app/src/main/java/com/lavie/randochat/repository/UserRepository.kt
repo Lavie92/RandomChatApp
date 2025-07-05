@@ -9,6 +9,10 @@ interface UserRepository {
 
     suspend fun checkUserValid(): UserResult?
 
+    suspend fun registerWithEmail(email: String, password: String): UserResult?
+
+    suspend fun loginWithEmail(email: String, password: String): UserResult?
+
     sealed class UserResult {
         data class Success(val user: User) : UserResult()
         data class Error(val messageId: Int?) : UserResult()

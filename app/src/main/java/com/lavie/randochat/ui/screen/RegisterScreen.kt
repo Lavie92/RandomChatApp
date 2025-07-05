@@ -1,5 +1,6 @@
 package com.lavie.randochat.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -48,6 +50,7 @@ import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.theme.RandomChatTheme
+import com.lavie.randochat.utils.InputValidator
 import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
@@ -63,6 +66,8 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState(false)
+    val context = LocalContext.current
+
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedContainerColor = Color(0xFFF8FAFC),
         unfocusedContainerColor = Color(0xFFF8FAFC),
@@ -169,7 +174,20 @@ fun RegisterScreen(
         CustomSpacer(height = 24.dp)
 
         Button(
-            onClick = { /* TODO */ },
+            onClick = { when {
+                !InputValidator.isValidEmail(email) -> {
+                    Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
+                }
+                !InputValidator.isValidPassword(password) -> {
+                    Toast.makeText(context, "Password must be at least 6 characters with letters and numbers", Toast.LENGTH_SHORT).show()
+                }
+                password != confirmPassword -> {
+                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    viewModel.registerWithEmail(email, password)
+                }
+            } },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
