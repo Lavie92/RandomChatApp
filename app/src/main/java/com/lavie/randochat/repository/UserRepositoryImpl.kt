@@ -1,6 +1,7 @@
 package com.lavie.randochat.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -210,11 +211,15 @@ class UserRepositoryImpl(
             } else {
                 UserResult.Error(R.string.account_not_exist)
             }
+        } catch (e: FirebaseAuthUserCollisionException) {
+            Timber.e(e, "Email already registered")
+            UserResult.Error(R.string.account_already_registered)
         } catch (e: Exception) {
             Timber.e(e, "Register failed")
             UserResult.Error(R.string.login_error)
         }
     }
+
 
     override suspend fun loginWithEmail(email: String, password: String): UserResult? {
         return try {

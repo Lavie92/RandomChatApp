@@ -29,6 +29,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,7 @@ import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.theme.RandomChatTheme
+import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.InputValidator
 import com.lavie.randochat.viewmodel.AuthViewModel
 
@@ -68,6 +70,8 @@ fun RegisterScreen(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState(false)
     val context = LocalContext.current
+    val loginState by viewModel.loginState.collectAsState()
+    val errorMessageId by viewModel.errorMessageId.collectAsState()
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedContainerColor = Color(0xFFF8FAFC),
@@ -201,6 +205,22 @@ fun RegisterScreen(
         ) {
             Text(text = stringResource(R.string.register))
         }
+
+        LaunchedEffect(loginState) {
+            if (loginState != null) {
+                Toast.makeText(context, "Register success!", Toast.LENGTH_SHORT).show()
+                navController.navigate(Constants.LOGIN_SCREEN) {
+                    popUpTo(Constants.REGISTER_SCREEN) { inclusive = true }
+                }
+            }
+        }
+
+        LaunchedEffect(errorMessageId) {
+            errorMessageId?.let { msgId ->
+                Toast.makeText(context, context.getString(msgId), Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
         CustomSpacer(height = 24.dp)
 

@@ -49,5 +49,6 @@
     <string name="match_timeout">Không tìm thấy người ghép đôi. Vui lòng thử lại sau.</string>
     <string name="stop_matching">Dừng ghép đôi</string>
     <string name="match_cancelled">Bạn đã hủy ghép đôi.</string>
+    <string name="account_already_registered">Email này đã được đăng ký.</string>
 
 </resources>
