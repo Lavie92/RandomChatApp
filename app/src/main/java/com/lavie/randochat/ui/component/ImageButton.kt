@@ -14,7 +14,7 @@ fun ImageButton(
     vectorId: Int,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    vectorColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    vectorColor: Color = Color.Unspecified,
 ) {
     if (vectorId == 0) {
         return

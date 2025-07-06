@@ -17,5 +17,37 @@
     <string name="syncing_data">Đang đồng bộ dữ liệu…</string>
     <string name="user_validation_failed">User validation failed</string>
     <string name="account_locked_full">Tài khoản của bạn đã bị khoá</string>
+    <string name="login">Đăng Nhập</string>
+    <string name="register">Đăng Ký</string>
+    <string name="welcome_back">Chào mừng trở lại! Rất vui khi gặp lại bạn!</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="dont_have_account_register_now">Chưa có tài khoản? Đăng ký ngay</string>
+    <string name="create_new_password">Tạo mật khẩu mới</string>
+    <string name="new_password_must_be_unique">Mật khẩu mới của bạn phải khác với những mật khẩu đã dùng trước đó.</string>
+    <string name="verify">Xác minh</string>
+    <string name="didnt_receive_code_resend">Không nhận được mã? Gửi lại</string>
+    <string name="enter_otp_description">Nhập mã xác thực chúng tôi vừa gửi đến email của bạn.</string>
+    <string name="otp_verification">Xác thực OTP</string>
+    <string name="back_to_login">Quay lại Đăng nhập</string>
+    <string name="password_changed_successfully">Mật khẩu của bạn đã được thay đổi thành công.</string>
+    <string name="password_changed">Đã đổi mật khẩu!</string>
+    <string name="already_have_account_login_now">Đã có tài khoản? Đăng nhập ngay</string>
+    <string name="hello_register_to_get_started">Xin chào! Đăng ký để bắt đầu</string>
+    <string name="or_login_with">Hoặc đăng nhập bằng</string>
+    <string name="or_register_with">Hoặc đăng ký bằng</string>
+    <string name="enter_your_email">Nhập email của bạn</string>
+    <string name="enter_your_password">Nhập mật khẩu của bạn</string>
+    <string name="username">Tên người dùng</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="reset_password">Đặt lại mật khẩu</string>
+    <string name="re_enter_password">Nhập lại mật khẩu</string>
+    <string name="new_password">New Password</string>
+    <string name="match_success">Ghép đôi thành công!</string>
+    <string name="match_failed">Ghép đôi thất bại. Vui lòng thử lại.</string>
+    <string name="match_timeout">Không tìm thấy người ghép đôi. Vui lòng thử lại sau.</string>
+    <string name="stop_matching">Dừng ghép đôi</string>
+    <string name="match_cancelled">Bạn đã hủy ghép đôi.</string>
 
 </resources>

@@ -1,5 +1,7 @@
 package com.lavie.randochat.di
 
+import com.lavie.randochat.repository.MatchRepository
+import com.lavie.randochat.repository.MatchRepositoryImpl
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ChatRepositoryImpl
 import com.lavie.randochat.repository.UserRepository
@@ -8,5 +10,6 @@ import org.koin.dsl.module
 
 val repositoryModule = module {
     single<UserRepository> { UserRepositoryImpl(get(), get()) }
+    single<MatchRepository> { MatchRepositoryImpl(get()) }
     single<ChatRepository> { ChatRepositoryImpl(get()) }
 }
