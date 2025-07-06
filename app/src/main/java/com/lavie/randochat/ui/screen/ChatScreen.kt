@@ -2,92 +2,48 @@ package com.lavie.randochat.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MailOutline
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.navigation.NavController
-import com.lavie.randochat.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.lavie.randochat.model.Message
-import com.lavie.randochat.model.MessageType
 import com.lavie.randochat.ui.component.ChatInputBar
-import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.theme.*
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.lavie.randochat.utils.MessageType
 
 @Composable
 fun ChatScreen(
-    navController: NavController,
-    viewModel: ChatViewModel,
+    chatViewModel: ChatViewModel,
     authViewModel: AuthViewModel,
-    partnerUserId: String
+    roomId: String
 ) {
-    var chatStarted by remember { mutableStateOf(false) }
-
     val myUser by authViewModel.loginState.collectAsState()
-
     val myUserId = myUser?.id ?: return
+    val messages by chatViewModel.messages.collectAsState()
 
-    val conversationId = remember(myUserId, partnerUserId) {
-        listOf(myUserId, partnerUserId).sorted().joinToString("_")
+    DisposableEffect(roomId) {
+        val listener = chatViewModel.startListening(roomId)
+        onDispose { chatViewModel.removeMessageListener(roomId, listener) }
     }
 
-    val messages by viewModel.messages.collectAsState()
-
-    LaunchedEffect(conversationId) {
-        if (chatStarted) {
-            viewModel.startListening(conversationId)
-        }
-    }
-
-//    if (!chatStarted) {
-//        WelcomeScreen(
-//            onStartChatClick = { chatStarted = true }
-//        )
-//    } else {
     ConversationScreen(
         messages = messages,
         myUserId = myUserId,
         onSendText = { text ->
-            viewModel.sendTextMessage(conversationId, myUserId, partnerUserId, text)
+            chatViewModel.sendTextMessage(roomId, myUserId, text)
         },
         onSendImage = { imageUrl ->
-            viewModel.sendImageMessage(conversationId, myUserId, partnerUserId, imageUrl)
+            chatViewModel.sendImageMessage(roomId, myUserId, imageUrl)
         },
         onSendVoice = { audioUrl ->
-            viewModel.sendVoiceMessage(conversationId, myUserId, partnerUserId, audioUrl)
-//            }
-//        )
+            chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
         }
     )
 }
@@ -101,7 +57,26 @@ fun ConversationScreen(
     onSendVoice: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
+
+    var shouldScrollToBottom by remember { mutableStateOf(false) }
+    var isFirstLoad by remember { mutableStateOf(true) }
+
+    LaunchedEffect(messages.isNotEmpty()) {
+        if (isFirstLoad && messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+            isFirstLoad = false
+        }
+    }
+
+    LaunchedEffect(shouldScrollToBottom) {
+        if (shouldScrollToBottom && messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+            shouldScrollToBottom = false
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -110,11 +85,13 @@ fun ConversationScreen(
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
-                .padding(/*...*/),
-            verticalArrangement = Arrangement.spacedBy(Dimens.baseMargin),
-            reverseLayout = true
+                .padding()
+                .fillMaxSize(),
+            state = listState,
+            verticalArrangement = Arrangement.Bottom,
+            contentPadding = PaddingValues(bottom = Dimens.baseMargin),
         ) {
-            items(messages.asReversed()) { message ->
+            items(messages) { message ->
                 val isMe = message.senderId == myUserId
                 MessageBubble(
                     content = message.content,
@@ -123,15 +100,18 @@ fun ConversationScreen(
                 )
             }
         }
+
         ChatInputBar(
             value = messageText,
             onValueChange = { messageText = it },
-            onSendImage = { /* mở picker, upload, xong gọi onSendImage(imageUrl) */ },
-            onVoiceRecord = { /* mở ghi âm, upload, xong gọi onSendVoice(audioUrl) */ },
+            onSendImage = {
+            },
+            onVoiceRecord = { },
             onSend = {
                 if (messageText.trim().isNotBlank()) {
                     onSendText(messageText)
                     messageText = ""
+                    shouldScrollToBottom = true
                 }
             },
             modifier = Modifier
@@ -149,7 +129,8 @@ fun MessageBubble(
     type: MessageType
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .padding(vertical = Dimens.smallMargin),
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
         Surface(
@@ -176,11 +157,9 @@ fun MessageBubble(
                         .widthIn(max = Dimens.messageMaxSizeable)
                 )
 
-                MessageType.IMAGE -> {/* Show Image from content = url */
-                }
+                MessageType.IMAGE -> {}
 
-                MessageType.VOICE -> {/* Show audio player */
-                }
+                MessageType.VOICE -> {}
             }
         }
     }

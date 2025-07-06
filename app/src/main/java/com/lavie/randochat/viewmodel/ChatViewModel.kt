@@ -4,8 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.identity.util.UUID
 import com.lavie.randochat.model.Message
-import com.lavie.randochat.model.MessageType
 import com.lavie.randochat.repository.ChatRepository
+import com.google.firebase.database.ValueEventListener
+import com.lavie.randochat.utils.MessageType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,39 +18,41 @@ class ChatViewModel(
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
 
-    fun startListening(conversationId: String) {
-        chatRepository.listenForMessages(conversationId) { newMessages ->
+    fun startListening(roomId: String): ValueEventListener {
+        return chatRepository.listenForMessages(roomId) { newMessages ->
             _messages.value = newMessages.sortedBy { it.timestamp }
         }
     }
 
-    fun sendTextMessage(conversationId: String, senderId: String, receiverId: String, content: String) {
-        sendMessage(conversationId, senderId, receiverId, content, MessageType.TEXT)
+    fun removeMessageListener(roomId: String, listener: ValueEventListener) {
+        chatRepository.removeMessageListener(roomId, listener)
     }
 
-    fun sendImageMessage(conversationId: String, senderId: String, receiverId: String, imageUrl: String) {
-        sendMessage(conversationId, senderId, receiverId, imageUrl, MessageType.IMAGE)
+    fun sendTextMessage(roomId: String, senderId: String, content: String) {
+        sendMessage(roomId, senderId, content, MessageType.TEXT)
     }
 
-    fun sendVoiceMessage(conversationId: String, senderId: String, receiverId: String, audioUrl: String) {
-        sendMessage(conversationId, senderId, receiverId, audioUrl, MessageType.VOICE)
+    fun sendImageMessage(roomId: String, senderId: String, imageUrl: String) {
+        sendMessage(roomId, senderId, imageUrl, MessageType.IMAGE)
+    }
+
+    fun sendVoiceMessage(roomId: String, senderId: String, audioUrl: String) {
+        sendMessage(roomId, senderId, audioUrl, MessageType.VOICE)
     }
 
     private fun sendMessage(
-        conversationId: String,
+        roomId: String,
         senderId: String,
-        receiverId: String,
         content: String,
         type: MessageType
     ) {
         val message = Message(
             id = UUID.randomUUID().toString(),
             senderId = senderId,
-            receiverId = receiverId,
             content = content,
             timestamp = System.currentTimeMillis(),
             type = type
         )
-        viewModelScope.launch { chatRepository.sendMessage(conversationId, message) }
+        viewModelScope.launch { chatRepository.sendMessage(roomId, message) }
     }
 }

@@ -49,7 +49,6 @@ import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
-import androidx.compose.runtime.collectAsState
 
 @Composable
 fun LoginScreen(
@@ -240,7 +239,7 @@ fun LoginScreen(
                     }
                 }
                 is AuthViewModel.NavigationEvent.NavigateToChat -> {
-                    navController.navigate("${Constants.CHAT_SCREEN}/${event.partnerId}") {
+                    navController.navigate("${Constants.CHAT_SCREEN}/${event.roomId}") {
                         popUpTo(Constants.LOGIN_SCREEN) { inclusive = true }
                     }
                 }
