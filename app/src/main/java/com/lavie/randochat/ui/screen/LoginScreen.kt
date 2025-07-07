@@ -1,6 +1,5 @@
 package com.lavie.randochat.ui.screen
 
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +47,6 @@ import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
-import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 
