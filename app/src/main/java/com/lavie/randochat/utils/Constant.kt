@@ -22,7 +22,6 @@ object Constants {
     const val REGISTER_SCREEN = "register"
     const val START_CHAT_SCREEN = "start_chat"
     const val CHAT_SCREEN = "chat"
-    const val PARTNER_USER_ID = "partnerUserId"
     const val STATUS = "status"
     const val STATUS_WAITING = "waiting"
     const val STATUS_MATCHED = "matched"
@@ -33,6 +32,11 @@ object Constants {
     const val PARTNER_ID = "partnerId"
     const val WELCOME_SCREEN = "welcome"
     const val SETTINGS_SCREEN = "settings"
-    const val CHATS = "chats"
     const val MESSAGES = "messages"
+    const val DD_MM_YYYY_HH_MM = "dd/MM/yyyy HH:mm"
+    const val HH_MM = "HH:mm"
+    const val DD_MM_HH_MM = "dd/MM HH:mm"
+    const val EEEE_HH_MM = "EEEE HH:mm"
+    const val VI = "vi"
+    const val TIME_GAP_MINUTES = 60
 }
