@@ -35,7 +35,9 @@ fun ChatInputBar(
         )
 
         ImageButton(
-            onVoiceRecord, R.drawable.vector_voice, modifier = Modifier
+            onVoiceRecord, R.drawable.vector_voice,
+            vectorColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
                 .padding(Dimens.baseMargin)
                 .width(Dimens.baseIconSize)
         )
@@ -47,7 +49,6 @@ fun ChatInputBar(
             onValueChange = onValueChange,
             modifier = Modifier
                 .weight(1f)
-                .padding(vertical = Dimens.smallMargin)
         )
 
         Spacer(modifier = Modifier.width(Dimens.smallMargin))
@@ -55,6 +56,7 @@ fun ChatInputBar(
         ImageButton(
             onSend,
             R.drawable.vector_send,
+            vectorColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .width(Dimens.sendButtonWidth)
                 .padding(end = Dimens.baseMargin)

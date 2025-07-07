@@ -13,6 +13,7 @@ object Constants {
     const val ACTIVE = "active"
     const val IS_DISABLED = "isDisabled"
     const val LAST_UPDATED = "lastUpdated"
+    const val LAST_MESSAGE = "lastMessage"
     const val WAITING_USERS = "waiting_users"
     const val CHAT_ROOMS = "chat_rooms"
     const val MATCH_NOTIFICATIONS = "match_notifications"
@@ -32,4 +33,6 @@ object Constants {
     const val PARTNER_ID = "partnerId"
     const val WELCOME_SCREEN = "welcome"
     const val SETTINGS_SCREEN = "settings"
+    const val CHATS = "chats"
+    const val MESSAGES = "messages"
 }

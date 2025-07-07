@@ -5,3 +5,9 @@ enum class ChatType {
     AGE,
     LOCATION
 }
+
+enum class MessageType {
+    TEXT,
+    IMAGE,
+    VOICE
+}

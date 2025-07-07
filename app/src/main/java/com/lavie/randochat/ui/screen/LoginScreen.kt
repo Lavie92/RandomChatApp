@@ -239,7 +239,7 @@ fun LoginScreen(
                     }
                 }
                 is AuthViewModel.NavigationEvent.NavigateToChat -> {
-                    navController.navigate("${Constants.CHAT_SCREEN}/${event.partnerId}") {
+                    navController.navigate("${Constants.CHAT_SCREEN}/${event.roomId}") {
                         popUpTo(Constants.LOGIN_SCREEN) { inclusive = true }
                     }
                 }

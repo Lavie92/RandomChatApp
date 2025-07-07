@@ -16,7 +16,7 @@ val Typography = Typography(
     labelSmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Light,
-        fontSize = Dimens.smallTestSize,
+        fontSize = Dimens.smallTextSize,
         lineHeight = Dimens.baseTextSize
     ),
     // Username in chat
@@ -37,7 +37,7 @@ val Typography = Typography(
     bodySmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = Dimens.smallTestSize,
+        fontSize = Dimens.smallTextSize,
         lineHeight = Dimens.baseTextSize
     )
 )
