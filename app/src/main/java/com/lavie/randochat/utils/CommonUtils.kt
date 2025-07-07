@@ -5,6 +5,10 @@ import kotlinx.coroutines.TimeoutCancellationException
 import timber.log.Timber
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -77,6 +81,76 @@ object CommonUtils {
 
             encryptedText
         }
+    }
+
+    //INPUT VALIDATOR
+    private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
+    private val PASSWORD_REGEX = Regex("^(?=.*[A-Za-z])(?=.*\\d).{6,}$")
+
+    fun isValidEmail(email: String): Boolean {
+        return EMAIL_REGEX.matches(email)
+    }
+
+    fun isValidPassword(password: String): Boolean {
+        return PASSWORD_REGEX.matches(password)
+    }
+    //DATE TIME FORMAT
+
+    fun formatToTime(timestamp: Long): String {
+        val sdf = SimpleDateFormat(Constants.HH_MM, Locale.getDefault())
+        return sdf.format(Date(timestamp))
+    }
+
+    fun formatToDateTimeDetailed(timestamp: Long): String {
+        val calendar = Calendar.getInstance()
+        val messageCalendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+
+        val isToday = calendar.get(Calendar.DAY_OF_YEAR) == messageCalendar.get(Calendar.DAY_OF_YEAR) &&
+                calendar.get(Calendar.YEAR) == messageCalendar.get(Calendar.YEAR)
+
+        return when {
+            isToday -> {
+                val timeFormat = SimpleDateFormat(Constants.HH_MM, Locale.getDefault())
+                timeFormat.format(Date(timestamp))
+            }
+
+            isThisWeek(timestamp) -> {
+                val dayFormat = SimpleDateFormat(Constants.EEEE_HH_MM, Locale.forLanguageTag(Constants.VI))
+                dayFormat.format(Date(timestamp))
+            }
+
+            isThisYear(timestamp) -> {
+                val dateFormat = SimpleDateFormat(Constants.DD_MM_HH_MM, Locale.getDefault())
+                dateFormat.format(Date(timestamp))
+            }
+
+            else -> {
+                val dateFormat = SimpleDateFormat(Constants.DD_MM_YYYY_HH_MM, Locale.getDefault())
+                dateFormat.format(Date(timestamp))
+            }
+        }
+    }
+
+    private fun isThisWeek(timestamp: Long): Boolean {
+        val calendar = Calendar.getInstance()
+        val currentWeek = calendar.get(Calendar.WEEK_OF_YEAR)
+        val currentYear = calendar.get(Calendar.YEAR)
+
+        calendar.timeInMillis = timestamp
+        val messageWeek = calendar.get(Calendar.WEEK_OF_YEAR)
+        val messageYear = calendar.get(Calendar.YEAR)
+
+        return currentWeek == messageWeek && currentYear == messageYear
+    }
+
+    private fun isThisYear(timestamp: Long): Boolean {
+        val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR)
+
+        calendar.timeInMillis = timestamp
+        val messageYear = calendar.get(Calendar.YEAR)
+
+        return currentYear == messageYear
     }
 }
 

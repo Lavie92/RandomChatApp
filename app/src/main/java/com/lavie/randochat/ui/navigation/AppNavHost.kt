@@ -31,7 +31,7 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         }
         composable(Constants.LOGIN_SCREEN) { LoginScreen(navController, authViewModel) }
 
-        composable("register") { RegisterScreen(navController, authViewModel) }
+        composable(Constants.REGISTER_SCREEN) { RegisterScreen(navController, authViewModel) }
 
         composable("password_changed") {
             PasswordChangedScreen(navController)
