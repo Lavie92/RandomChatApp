@@ -35,4 +35,6 @@ object Constants {
     const val SETTINGS_SCREEN = "settings"
     const val CHATS = "chats"
     const val MESSAGES = "messages"
+    const val SPLASH_SCREEN = "splash"
+
 }

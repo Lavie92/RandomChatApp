@@ -19,8 +19,16 @@ fun AppNavHost(authViewModel: AuthViewModel) {
     val matchViewModel: MatchViewModel = koinViewModel()
     val chatViewmodel: ChatViewModel = koinViewModel()
 
-    NavHost(navController, startDestination = Constants.WELCOME_SCREEN) {
+//    NavHost(navController, startDestination = Constants.WELCOME_SCREEN) {
+    NavHost(navController, startDestination = Constants.SPLASH_SCREEN) {
 
+        composable(Constants.SPLASH_SCREEN) {
+            SplashScreen(
+                navController = navController,
+                lottieFileName = "processing-cat.json",
+                navigateTo = Constants.WELCOME_SCREEN
+            )
+        }
         composable(Constants.LOGIN_SCREEN) { LoginScreen(navController, authViewModel) }
 
         composable("register") { RegisterScreen(navController, authViewModel) }
