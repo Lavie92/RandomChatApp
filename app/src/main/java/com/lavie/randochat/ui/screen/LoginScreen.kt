@@ -87,7 +87,7 @@ fun LoginScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = "",
                     tint = Color.Black,
                     modifier = Modifier.padding(10.dp)
                 )
@@ -148,7 +148,9 @@ fun LoginScreen(
             CustomSpacer(height = 24.dp)
 
             Button(
-                onClick = { /* TODO: your login logic */ },
+                onClick = {
+                    viewModel.loginWithEmail(email, password)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -224,7 +226,7 @@ fun LoginScreen(
             text = stringResource(R.string.dont_have_account_register_now),
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .clickable { navController.navigate("register") },
+                .clickable { navController.navigate(Constants.REGISTER_SCREEN) },
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF00BFA6)
         )

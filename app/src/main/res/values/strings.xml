@@ -50,5 +50,10 @@
     <string name="match_timeout">No match found. Please try again later.</string>
     <string name="stop_matching">Stop matching</string>
     <string name="match_cancelled">You have cancelled matching.</string>
+    <string name="account_already_registered">This email has already been registered.</string>
+    <string name="invalid_email">Invalid email format</string>
+    <string name="invalid_password">Password must be at least 6 characters with letters and numbers</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="register_success">Register success!</string>
 
 </resources>

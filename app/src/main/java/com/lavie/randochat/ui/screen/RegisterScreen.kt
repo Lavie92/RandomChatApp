@@ -1,11 +1,11 @@
 package com.lavie.randochat.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,15 +19,14 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
-import com.lavie.randochat.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,19 +35,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
-import com.lavie.randochat.ui.theme.RandomChatTheme
+import com.lavie.randochat.ui.component.customToast
+import com.lavie.randochat.utils.CommonUtils
+import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
@@ -64,6 +65,10 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState(false)
+    val context = LocalContext.current
+    val loginState by viewModel.loginState.collectAsState()
+    val errorMessageId by viewModel.errorMessageId.collectAsState()
+
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedContainerColor = Color(0xFFF8FAFC),
         unfocusedContainerColor = Color(0xFFF8FAFC),
@@ -171,7 +176,20 @@ fun RegisterScreen(
         CustomSpacer(height = 24.dp)
 
         Button(
-            onClick = { /* TODO */ },
+            onClick = { when {
+                !CommonUtils.isValidEmail(email) -> {
+                    customToast(context, R.string.invalid_email)
+                }
+                !CommonUtils.isValidPassword(password) -> {
+                    customToast(context, R.string.invalid_password)
+                }
+                password != confirmPassword -> {
+                    customToast(context, R.string.password_mismatch)
+                }
+                else -> {
+                    viewModel.registerWithEmail(email, password)
+                }
+            } },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -183,6 +201,22 @@ fun RegisterScreen(
         ) {
             Text(text = stringResource(R.string.register))
         }
+
+        LaunchedEffect(loginState) {
+            if (loginState != null) {
+                customToast(context, R.string.register_success)
+                navController.navigate(Constants.LOGIN_SCREEN) {
+                    popUpTo(Constants.REGISTER_SCREEN) { inclusive = true }
+                }
+            }
+        }
+
+        LaunchedEffect(errorMessageId) {
+            errorMessageId?.let { msgId ->
+                Toast.makeText(context, context.getString(msgId), Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
         CustomSpacer(height = 24.dp)
 
@@ -229,7 +263,7 @@ fun RegisterScreen(
         Text(
             text = stringResource(R.string.already_have_account_login_now),
             modifier = Modifier
-                .clickable { navController.navigate("login") },
+                .clickable { navController.navigate(Constants.LOGIN_SCREEN) },
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF00BFA6)
         )

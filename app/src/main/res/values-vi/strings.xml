@@ -49,5 +49,10 @@
     <string name="match_timeout">Không tìm thấy người ghép đôi. Vui lòng thử lại sau.</string>
     <string name="stop_matching">Dừng ghép đôi</string>
     <string name="match_cancelled">Bạn đã hủy ghép đôi.</string>
+    <string name="account_already_registered">Email này đã được đăng ký.</string>
+    <string name="invalid_email">Email không hợp lệ</string>
+    <string name="invalid_password">Mật khẩu phải có ít nhất 6 ký tự gồm chữ và số</string>
+    <string name="password_mismatch">Mật khẩu không khớp</string>
+    <string name="register_success">Đăng ký thành công!</string>
 
 </resources>

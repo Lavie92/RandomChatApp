@@ -1,6 +1,7 @@
 package com.lavie.randochat.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -71,18 +72,7 @@ class UserRepositoryImpl(
                     return UserResult.Error(R.string.account_locked_full)
                 }
 
-                val userMapToSave = mapOf(
-                    Constants.ID to user.id,
-                    Constants.EMAIL to user.email,
-                    Constants.NICKNAME to user.nickname,
-                    Constants.IS_ONLINE to user.isOnline,
-                    Constants.LAST_UPDATED to System.currentTimeMillis(),
-                    Constants.IS_DISABLED to isDisabled
-                )
-
-                withTimeout(Constants.SAVE_USER_TIMEOUT) {
-                    database.child(Constants.USERS).child(user.id).setValue(userMapToSave).await()
-                }
+                saveUserMapToFirebase(user, isDisabled)
 
                 return UserResult.Success(user.copy(isDisabled = isDisabled))
 
@@ -179,6 +169,78 @@ class UserRepositoryImpl(
         }
 
         return null
+    }
+
+    override suspend fun registerWithEmail(email: String, password: String): UserResult {
+        return try {
+            val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user
+
+            if (firebaseUser != null) {
+                Timber.d("Register success: ${firebaseUser.uid}")
+
+                val user = User(
+                    id = firebaseUser.uid,
+                    email = email,
+                    nickname = "",
+                    isOnline = true
+                )
+
+                saveUserMapToFirebase(user, isDisabled = false)
+
+                UserResult.Success(user)
+            } else {
+                UserResult.Error(R.string.account_not_exist)
+            }
+        } catch (e: FirebaseAuthUserCollisionException) {
+            Timber.e(e, "Email already registered")
+            UserResult.Error(R.string.account_already_registered)
+        } catch (e: Exception) {
+            Timber.e(e, "Register failed")
+            UserResult.Error(R.string.login_error)
+        }
+    }
+
+
+    override suspend fun loginWithEmail(email: String, password: String): UserResult? {
+        return try {
+            val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user
+
+            if (firebaseUser != null) {
+                val user = User(
+                    id = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    nickname = firebaseUser.displayName ?: "",
+                    isOnline = true
+                )
+                UserResult.Success(user)
+            } else {
+                UserResult.Error(R.string.login_error)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Login with email failed")
+            if (isNetworkError(e)) {
+                UserResult.Error(R.string.network_error)
+            } else {
+                UserResult.Error(R.string.login_error)
+            }
+        }
+    }
+
+    private suspend fun saveUserMapToFirebase(user: User, isDisabled: Boolean = false) {
+        val userMapToSave = mapOf(
+            Constants.ID to user.id,
+            Constants.EMAIL to user.email,
+            Constants.NICKNAME to user.nickname,
+            Constants.IS_ONLINE to user.isOnline,
+            Constants.LAST_UPDATED to System.currentTimeMillis(),
+            Constants.IS_DISABLED to isDisabled
+        )
+
+        withTimeout(Constants.SAVE_USER_TIMEOUT) {
+            database.child(Constants.USERS).child(user.id).setValue(userMapToSave).await()
+        }
     }
 
 }
