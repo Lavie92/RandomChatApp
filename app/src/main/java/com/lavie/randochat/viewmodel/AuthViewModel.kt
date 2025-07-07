@@ -150,6 +150,42 @@ class AuthViewModel(
         _progressMessageId.value = null
     }
 
+    fun registerWithEmail(email: String, password: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessageId.value = null
+            _progressMessageId.value = R.string.signing_in
+
+            when (val result = userRepository.registerWithEmail(email, password)) {
+                is UserRepository.UserResult.Success -> handleSuccessfulSignIn(result.user)
+                is UserRepository.UserResult.Error -> result.messageId?.let { handleLoginError(it) }
+                else -> handleLoginError(R.string.login_error)
+            }
+
+            _isLoading.value = false
+        }
+    }
+
+    fun loginWithEmail(email: String, password: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessageId.value = null
+            _progressMessageId.value = R.string.signing_in
+
+            when (val result = userRepository.loginWithEmail(email, password)) {
+                is UserRepository.UserResult.Success -> {
+                    handleSuccessfulSignIn(result.user)
+                }
+                is UserRepository.UserResult.Error -> {
+                    result.messageId?.let { handleLoginError(it) }
+                }
+                else -> handleLoginError(R.string.login_error)
+            }
+
+            _isLoading.value = false
+        }
+    }
+
     sealed class NavigationEvent {
         data object NavigateToStartChat : NavigationEvent()
         data class NavigateToChat(val roomId: String) : NavigationEvent()
