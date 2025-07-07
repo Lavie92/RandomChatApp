@@ -7,7 +7,7 @@ object Dimens {
     val baseMargin = 8.dp
     val smallMargin = 4.dp
     val baseMarginDouble = 16.dp
-    val baseIconSize = 20.dp
+    val baseIconSize = 28.dp
     val baseTextSize = 16.sp
     val smallTestSize = 12.sp
     val largeTextSize = 20.sp
@@ -20,6 +20,6 @@ object Dimens {
     val baseSpacerHeight = 28.dp
     val textFieldHeight = 52.dp
     val textFieldRadius = 24.dp
-    val sendButtonWidth = 28.dp
+    val sendButtonWidth = 32.dp
     val buttonRadius = 12.dp
 }

@@ -42,7 +42,6 @@ class ChatRepositoryImpl(
         }
     }
 
-
     override fun listenForMessages(
         roomId: String,
         onNewMessages: (List<Message>) -> Unit
@@ -61,17 +60,20 @@ class ChatRepositoryImpl(
                         msg.copy(content = decryptedContent)
                     }
                 }
+
                 onNewMessages(messages)
             }
+
             override fun onCancelled(error: DatabaseError) {}
         }
+
         msgRef.addValueEventListener(listener)
         listeners[roomId] = listener
         return listener
     }
 
     override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
-        database.child(Constants.CHATS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
         listeners.remove(roomId)
     }
 }

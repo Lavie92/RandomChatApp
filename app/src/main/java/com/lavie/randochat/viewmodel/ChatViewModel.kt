@@ -2,7 +2,6 @@ package com.lavie.randochat.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.identity.util.UUID
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.google.firebase.database.ValueEventListener
@@ -10,6 +9,7 @@ import com.lavie.randochat.utils.MessageType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class ChatViewModel(
     private val chatRepository: ChatRepository

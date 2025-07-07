@@ -60,17 +60,9 @@ fun ConversationScreen(
     val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
 
-    var shouldScrollToBottom by remember { mutableStateOf(false) }
-    var isFirstLoad by remember { mutableStateOf(true) }
+    var shouldScrollToBottom by remember { mutableStateOf(true) }
 
-    LaunchedEffect(messages.isNotEmpty()) {
-        if (isFirstLoad && messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
-            isFirstLoad = false
-        }
-    }
-
-    LaunchedEffect(shouldScrollToBottom) {
+    LaunchedEffect(messages.size, shouldScrollToBottom) {
         if (shouldScrollToBottom && messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
             shouldScrollToBottom = false
@@ -104,9 +96,8 @@ fun ConversationScreen(
         ChatInputBar(
             value = messageText,
             onValueChange = { messageText = it },
-            onSendImage = {
-            },
-            onVoiceRecord = { },
+            onSendImage = {onSendImage },
+            onVoiceRecord = { onSendVoice },
             onSend = {
                 if (messageText.trim().isNotBlank()) {
                     onSendText(messageText)
@@ -130,11 +121,11 @@ fun MessageBubble(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth()
-            .padding(vertical = Dimens.smallMargin),
+            .padding(vertical = Dimens.smallMargin, horizontal = Dimens.baseMarginDouble),
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            color = if (isMe) messageBackground else Color.Transparent,
+            color = if (isMe) MessageBackground else Color.Transparent,
             shape = RoundedCornerShape(
                 topStart = Dimens.baseMarginDouble,
                 topEnd = Dimens.baseMarginDouble,
@@ -151,7 +142,7 @@ fun MessageBubble(
                 MessageType.TEXT -> Text(
                     text = content,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = if (isMe) Color.White else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
                         .widthIn(max = Dimens.messageMaxSizeable)
