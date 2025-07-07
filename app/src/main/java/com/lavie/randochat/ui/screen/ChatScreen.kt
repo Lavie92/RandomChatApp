@@ -2,135 +2,73 @@ package com.lavie.randochat.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MailOutline
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.navigation.NavController
-import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.ui.component.ChatInputBar
-import com.lavie.randochat.ui.component.CustomSpacer
-import com.lavie.randochat.ui.theme.Dimens
-import com.lavie.randochat.ui.theme.messageBackground
+import com.lavie.randochat.ui.theme.*
+import com.lavie.randochat.viewmodel.AuthViewModel
+import com.lavie.randochat.viewmodel.ChatViewModel
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.lavie.randochat.utils.MessageType
 
 @Composable
 fun ChatScreen(
-    navController: NavController,
-    partnerUserId: String?,
-)  {
-    var chatStarted by remember { mutableStateOf(false) }
+    chatViewModel: ChatViewModel,
+    authViewModel: AuthViewModel,
+    roomId: String
+) {
+    val myUser by authViewModel.loginState.collectAsState()
+    val myUserId = myUser?.id ?: return
+    val messages by chatViewModel.messages.collectAsState()
 
-        ConversationScreen(sampleMessages, myUserId)
+    DisposableEffect(roomId) {
+        val listener = chatViewModel.startListening(roomId)
+        onDispose { chatViewModel.removeMessageListener(roomId, listener) }
+    }
 
+    ConversationScreen(
+        messages = messages,
+        myUserId = myUserId,
+        onSendText = { text ->
+            chatViewModel.sendTextMessage(roomId, myUserId, text)
+        },
+        onSendImage = { imageUrl ->
+            chatViewModel.sendImageMessage(roomId, myUserId, imageUrl)
+        },
+        onSendVoice = { audioUrl ->
+            chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
+        }
+    )
 }
-
-//TODO: just hard code to test UI
-val myUserId = "user_1"
-val sampleMessages = listOf(
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!"),
-    Message(id = "1", senderId = "user_2", receiverId = "user_1", content = "Hello!"),
-    Message(id = "2", senderId = "user_1", receiverId = "user_2", content = "Hi!"),
-    Message(id = "3", senderId = "user_2", receiverId = "user_1", content = "How are you?"),
-    Message(id = "4", senderId = "user_1", receiverId = "user_2", content = "I'm good, thanks!")
-)
 
 @Composable
 fun ConversationScreen(
     messages: List<Message>,
     myUserId: String,
+    onSendText: (String) -> Unit,
+    onSendImage: (String) -> Unit,
+    onSendVoice: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
+
+    var shouldScrollToBottom by remember { mutableStateOf(true) }
+
+    LaunchedEffect(messages.size, shouldScrollToBottom) {
+        if (shouldScrollToBottom && messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+            shouldScrollToBottom = false
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -138,17 +76,19 @@ fun ConversationScreen(
     ) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
                 .weight(1f)
-                .padding(top = Dimens.baseMargin, start = Dimens.baseMarginDouble, end = Dimens.baseMarginDouble),
-            verticalArrangement = Arrangement.spacedBy(Dimens.baseMargin),
-            reverseLayout = true
+                .padding()
+                .fillMaxSize(),
+            state = listState,
+            verticalArrangement = Arrangement.Bottom,
+            contentPadding = PaddingValues(bottom = Dimens.baseMargin),
         ) {
-            items(messages.asReversed()) { message ->
+            items(messages) { message ->
                 val isMe = message.senderId == myUserId
                 MessageBubble(
                     content = message.content,
-                    isMe = isMe
+                    isMe = isMe,
+                    type = message.type
                 )
             }
         }
@@ -156,9 +96,15 @@ fun ConversationScreen(
         ChatInputBar(
             value = messageText,
             onValueChange = { messageText = it },
-            onVoiceRecord = { /* TODO: Handle voice */ },
-            onSendImage = {/* TODO: Handle send image */ },
-            onSend = { messageText /*TODO: Handle send */ },
+            onSendImage = {onSendImage },
+            onVoiceRecord = { onSendVoice },
+            onSend = {
+                if (messageText.trim().isNotBlank()) {
+                    onSendText(messageText)
+                    messageText = ""
+                    shouldScrollToBottom = true
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(WindowInsets.navigationBars.asPaddingValues())
@@ -170,30 +116,42 @@ fun ConversationScreen(
 @Composable
 fun MessageBubble(
     content: String,
-    isMe: Boolean
+    isMe: Boolean,
+    type: MessageType
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .padding(vertical = Dimens.smallMargin, horizontal = Dimens.baseMarginDouble),
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            color = if (isMe) messageBackground else Color.Transparent,
+            color = if (isMe) MessageBackground else Color.Transparent,
             shape = RoundedCornerShape(
                 topStart = Dimens.baseMarginDouble,
                 topEnd = Dimens.baseMarginDouble,
                 bottomEnd = if (isMe) Dimens.emptySize else Dimens.baseMarginDouble,
                 bottomStart = if (isMe) Dimens.baseMarginDouble else Dimens.emptySize
             ),
-            border = if (!isMe) BorderStroke(Dimens.smallBorderStrokeWidth, Color.LightGray) else null
-        ) {
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
-                    .widthIn(max = Dimens.messageMaxSizeable)
-            )
+            border = if (!isMe) BorderStroke(
+                Dimens.smallBorderStrokeWidth,
+                Color.LightGray
+            ) else null
+        )
+        {
+            when (type) {
+                MessageType.TEXT -> Text(
+                    text = content,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (isMe) Color.White else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
+                        .widthIn(max = Dimens.messageMaxSizeable)
+                )
+
+                MessageType.IMAGE -> {}
+
+                MessageType.VOICE -> {}
+            }
         }
     }
 }

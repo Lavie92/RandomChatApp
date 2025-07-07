@@ -44,9 +44,9 @@ fun WelcomeScreen(
         if (loginState != null) {
             if (activeRoom != null) {
                 val myUserId = loginState!!.id
-                val partnerId = activeRoom!!.participantIds.firstOrNull { it != myUserId }
+                val roomId = activeRoom!!.id
 
-                navController.navigate("${Constants.CHAT_SCREEN}/${partnerId}") {
+                navController.navigate("${Constants.CHAT_SCREEN}/${roomId}") {
                     popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }
                 }
             } else {

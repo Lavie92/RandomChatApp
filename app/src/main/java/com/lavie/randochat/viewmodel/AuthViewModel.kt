@@ -91,8 +91,8 @@ class AuthViewModel(
                     _activeRoom.value = activeRoom
 
                     if (activeRoom != null) {
-                        val partnerId = activeRoom.participantIds.first { it != result.user.id }
-                        _navigationEvent.emit(NavigationEvent.NavigateToChat(partnerId))
+                        val roomId = activeRoom.id
+                        _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
                     } else {
                         _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                     }
@@ -126,8 +126,8 @@ class AuthViewModel(
                 _activeRoom.value = activeRoom
 
                 if (activeRoom != null) {
-                    val partnerId = activeRoom.participantIds.first { it != saveResult.user.id }
-                    _navigationEvent.emit(NavigationEvent.NavigateToChat(partnerId))
+                    val roomId = activeRoom.id
+                    _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
                 } else {
                     _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                 }
@@ -188,6 +188,6 @@ class AuthViewModel(
 
     sealed class NavigationEvent {
         data object NavigateToStartChat : NavigationEvent()
-        data class NavigateToChat(val partnerId: String) : NavigationEvent()
+        data class NavigateToChat(val roomId: String) : NavigationEvent()
     }
 }

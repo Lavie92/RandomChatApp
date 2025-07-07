@@ -97,7 +97,7 @@ fun StartChatScreen(
         }
         if (matchState is MatchViewModel.MatchState.Matched) {
             val matched = matchState as MatchViewModel.MatchState.Matched
-            navController.navigate("${Constants.CHAT_SCREEN}/${matched.partnerId}") {
+            navController.navigate("${Constants.CHAT_SCREEN}/${matched.roomId}") {
                 popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }
             }
         }

@@ -9,13 +9,14 @@ import com.lavie.randochat.R
 import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 import com.lavie.randochat.utils.Constants
-import com.lavie.randochat.utils.isNetworkError
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import com.lavie.randochat.repository.UserRepository.UserResult
+import com.lavie.randochat.utils.CommonUtils
+import com.lavie.randochat.utils.CommonUtils.isNetworkError
 
 class UserRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,

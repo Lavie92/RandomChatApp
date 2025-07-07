@@ -9,14 +9,16 @@ import androidx.navigation.navArgument
 import com.lavie.randochat.ui.screen.*
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
+import com.lavie.randochat.viewmodel.ChatViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppNavHost(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
-
     val matchViewModel: MatchViewModel = koinViewModel()
+    val chatViewmodel: ChatViewModel = koinViewModel()
+
     NavHost(navController, startDestination = Constants.WELCOME_SCREEN) {
 
         composable(Constants.LOGIN_SCREEN) { LoginScreen(navController, authViewModel) }
@@ -37,15 +39,17 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         }
 
         composable(
-            route = "${Constants.CHAT_SCREEN}/{${Constants.PARTNER_USER_ID}}",
+            route = "${Constants.CHAT_SCREEN}/{${Constants.ROOM_ID}}",
             arguments = listOf(
-                navArgument(Constants.PARTNER_USER_ID) {
+                navArgument(Constants.ROOM_ID) {
                     type = NavType.StringType
                 }
             )
         ) { backStackEntry ->
-            val partnerUserId = backStackEntry.arguments?.getString(Constants.PARTNER_USER_ID)
-            ChatScreen(navController, partnerUserId)
+            val roomId = backStackEntry.arguments?.getString(Constants.ROOM_ID)
+            if (roomId != null) {
+                ChatScreen(chatViewmodel, authViewModel, roomId)
+            }
         }
 
         composable(Constants.SETTINGS_SCREEN) { SettingScreen(navController) }
