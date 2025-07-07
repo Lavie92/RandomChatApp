@@ -9,7 +9,7 @@ object Dimens {
     val baseMarginDouble = 16.dp
     val baseIconSize = 28.dp
     val baseTextSize = 16.sp
-    val smallTestSize = 12.sp
+    val smallTextSize = 12.sp
     val largeTextSize = 20.sp
     val messageMaxSizeable = 260.dp
     val welcomeTextSize = 24.sp
