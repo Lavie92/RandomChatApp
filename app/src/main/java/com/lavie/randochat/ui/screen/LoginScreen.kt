@@ -48,8 +48,7 @@ import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.customToast
-import com.lavie.randochat.ui.theme.RandomChatTheme
-import com.lavie.randochat.utils.InputValidator
+import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 
@@ -90,7 +89,7 @@ fun LoginScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = "",
                     tint = Color.Black,
                     modifier = Modifier.padding(10.dp)
                 )
@@ -152,17 +151,8 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    when {
-                    !InputValidator.isValidEmail(email) -> {
-                        Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
-                    }
-                    !InputValidator.isValidPassword(password) -> {
-                        Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {
-                        viewModel.loginWithEmail(email, password)
-                    }
-                } },
+                    viewModel.loginWithEmail(email, password)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -238,7 +228,7 @@ fun LoginScreen(
             text = stringResource(R.string.dont_have_account_register_now),
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .clickable { navController.navigate("register") },
+                .clickable { navController.navigate(Constants.REGISTER_SCREEN) },
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF00BFA6)
         )

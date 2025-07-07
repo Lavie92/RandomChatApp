@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,11 +19,9 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
-import com.lavie.randochat.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,16 +41,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomOutlinedTextField
 import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.component.ImageButton
-import com.lavie.randochat.ui.theme.RandomChatTheme
+import com.lavie.randochat.ui.component.customToast
+import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
-import com.lavie.randochat.utils.InputValidator
 import com.lavie.randochat.viewmodel.AuthViewModel
 
 @Composable
@@ -181,14 +177,14 @@ fun RegisterScreen(
 
         Button(
             onClick = { when {
-                !InputValidator.isValidEmail(email) -> {
-                    Toast.makeText(context, "Invalid email format", Toast.LENGTH_SHORT).show()
+                !CommonUtils.isValidEmail(email) -> {
+                    customToast(context, R.string.invalid_email)
                 }
-                !InputValidator.isValidPassword(password) -> {
-                    Toast.makeText(context, "Password must be at least 6 characters with letters and numbers", Toast.LENGTH_SHORT).show()
+                !CommonUtils.isValidPassword(password) -> {
+                    customToast(context, R.string.invalid_password)
                 }
                 password != confirmPassword -> {
-                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                    customToast(context, R.string.password_mismatch)
                 }
                 else -> {
                     viewModel.registerWithEmail(email, password)
@@ -208,7 +204,7 @@ fun RegisterScreen(
 
         LaunchedEffect(loginState) {
             if (loginState != null) {
-                Toast.makeText(context, "Register success!", Toast.LENGTH_SHORT).show()
+                customToast(context, R.string.register_success)
                 navController.navigate(Constants.LOGIN_SCREEN) {
                     popUpTo(Constants.REGISTER_SCREEN) { inclusive = true }
                 }
@@ -267,7 +263,7 @@ fun RegisterScreen(
         Text(
             text = stringResource(R.string.already_have_account_login_now),
             modifier = Modifier
-                .clickable { navController.navigate("login") },
+                .clickable { navController.navigate(Constants.LOGIN_SCREEN) },
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF00BFA6)
         )

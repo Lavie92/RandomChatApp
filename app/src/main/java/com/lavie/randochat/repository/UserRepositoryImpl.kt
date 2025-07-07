@@ -72,18 +72,7 @@ class UserRepositoryImpl(
                     return UserResult.Error(R.string.account_locked_full)
                 }
 
-                val userMapToSave = mapOf(
-                    Constants.ID to user.id,
-                    Constants.EMAIL to user.email,
-                    Constants.NICKNAME to user.nickname,
-                    Constants.IS_ONLINE to user.isOnline,
-                    Constants.LAST_UPDATED to System.currentTimeMillis(),
-                    Constants.IS_DISABLED to isDisabled
-                )
-
-                withTimeout(Constants.SAVE_USER_TIMEOUT) {
-                    database.child(Constants.USERS).child(user.id).setValue(userMapToSave).await()
-                }
+                saveUserMapToFirebase(user, isDisabled)
 
                 return UserResult.Success(user.copy(isDisabled = isDisabled))
 
@@ -182,7 +171,7 @@ class UserRepositoryImpl(
         return null
     }
 
-    override suspend fun registerWithEmail(email: String, password: String): UserRepository.UserResult {
+    override suspend fun registerWithEmail(email: String, password: String): UserResult {
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user
@@ -190,25 +179,16 @@ class UserRepositoryImpl(
             if (firebaseUser != null) {
                 Timber.d("Register success: ${firebaseUser.uid}")
 
-                val userMap = mapOf(
-                    "id" to firebaseUser.uid,
-                    "email" to email,
-                    "nickname" to "",
-                    "isOnline" to true,
-                    "lastUpdated" to System.currentTimeMillis(),
-                    "isDisabled" to false
+                val user = User(
+                    id = firebaseUser.uid,
+                    email = email,
+                    nickname = "",
+                    isOnline = true
                 )
 
-                database.child(Constants.USERS).child(firebaseUser.uid).setValue(userMap).await()
+                saveUserMapToFirebase(user, isDisabled = false)
 
-                UserResult.Success(
-                    User(
-                        id = firebaseUser.uid,
-                        email = email,
-                        nickname = "",
-                        isOnline = true
-                    )
-                )
+                UserResult.Success(user)
             } else {
                 UserResult.Error(R.string.account_not_exist)
             }
@@ -248,5 +228,19 @@ class UserRepositoryImpl(
         }
     }
 
+    private suspend fun saveUserMapToFirebase(user: User, isDisabled: Boolean = false) {
+        val userMapToSave = mapOf(
+            Constants.ID to user.id,
+            Constants.EMAIL to user.email,
+            Constants.NICKNAME to user.nickname,
+            Constants.IS_ONLINE to user.isOnline,
+            Constants.LAST_UPDATED to System.currentTimeMillis(),
+            Constants.IS_DISABLED to isDisabled
+        )
+
+        withTimeout(Constants.SAVE_USER_TIMEOUT) {
+            database.child(Constants.USERS).child(user.id).setValue(userMapToSave).await()
+        }
+    }
 
 }
