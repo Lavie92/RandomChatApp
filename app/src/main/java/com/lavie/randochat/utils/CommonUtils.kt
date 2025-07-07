@@ -93,7 +93,7 @@ object CommonUtils {
 
     fun isValidPassword(password: String): Boolean {
         return PASSWORD_REGEX.matches(password)
-        
+    }
     //DATE TIME FORMAT
 
     fun formatToTime(timestamp: Long): String {
@@ -113,14 +113,17 @@ object CommonUtils {
                 val timeFormat = SimpleDateFormat(Constants.HH_MM, Locale.getDefault())
                 timeFormat.format(Date(timestamp))
             }
+
             isThisWeek(timestamp) -> {
                 val dayFormat = SimpleDateFormat(Constants.EEEE_HH_MM, Locale.forLanguageTag(Constants.VI))
                 dayFormat.format(Date(timestamp))
             }
+
             isThisYear(timestamp) -> {
                 val dateFormat = SimpleDateFormat(Constants.DD_MM_HH_MM, Locale.getDefault())
                 dateFormat.format(Date(timestamp))
             }
+
             else -> {
                 val dateFormat = SimpleDateFormat(Constants.DD_MM_YYYY_HH_MM, Locale.getDefault())
                 dateFormat.format(Date(timestamp))
