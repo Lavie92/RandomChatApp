@@ -3,6 +3,7 @@ package com.lavie.randochat.ui.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -92,8 +93,12 @@ fun ConversationScreen(
             verticalArrangement = Arrangement.Bottom,
             contentPadding = PaddingValues(bottom = Dimens.baseMargin),
         ) {
-            items(chatItems) { item ->
-
+            items(chatItems, key = { item ->
+                when (item) {
+                    is ChatItem.MessageItem -> item.message.id
+                    is ChatItem.TimestampItem -> "timestamp_${item.timestamp}"
+                }
+            }) { item ->
                 when (item) {
                     is ChatItem.MessageItem -> {
                         val message = item.message
@@ -114,7 +119,6 @@ fun ConversationScreen(
 
                     is ChatItem.TimestampItem -> {
                         TimestampHeader(timestamp = item.timestamp)
-
                     }
                 }
             }
@@ -153,7 +157,10 @@ fun MessageBubble(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Dimens.smallMargin, horizontal = Dimens.baseMarginDouble)
-            .clickable { onClick() },
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onClick() },
         horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
     ) {
         Surface(
