@@ -96,7 +96,7 @@ fun ConversationScreen(
             items(chatItems, key = { item ->
                 when (item) {
                     is ChatItem.MessageItem -> item.message.id
-                    is ChatItem.TimestampItem -> "timestamp_${item.timestamp}"
+                    is ChatItem.TimestampItem -> "${Constants.TIMESTAMP}${item.timestamp}"
                 }
             }) { item ->
                 when (item) {

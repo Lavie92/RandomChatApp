@@ -34,7 +34,6 @@ object Constants {
     const val SETTINGS_SCREEN = "settings"
     const val MESSAGES = "messages"
     const val DD_MM_YYYY_HH_MM = "dd/MM/yyyy HH:mm"
-    const val DD_MM_YYYY = "dd/MM/yyyy"
     const val HH_MM = "HH:mm"
     const val DD_MM_HH_MM = "dd/MM HH:mm"
     const val EEEE_HH_MM = "EEEE HH:mm"
