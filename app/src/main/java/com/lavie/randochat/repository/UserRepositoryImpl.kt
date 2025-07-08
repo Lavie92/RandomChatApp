@@ -200,7 +200,6 @@ class UserRepositoryImpl(
         }
     }
 
-
     override suspend fun loginWithEmail(email: String, password: String): UserResult? {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -215,14 +214,14 @@ class UserRepositoryImpl(
                 )
                 UserResult.Success(user)
             } else {
-                UserResult.Error(R.string.login_error)
+                UserResult.Error(R.string.account_not_exist)
             }
         } catch (e: Exception) {
             Timber.e(e, "Login with email failed")
             if (isNetworkError(e)) {
                 UserResult.Error(R.string.network_error)
             } else {
-                UserResult.Error(R.string.login_error)
+                UserResult.Error(R.string.invalid_credentials)
             }
         }
     }

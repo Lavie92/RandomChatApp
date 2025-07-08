@@ -17,7 +17,7 @@ object Constants {
     const val WAITING_USERS = "waiting_users"
     const val CHAT_ROOMS = "chat_rooms"
     const val MATCH_NOTIFICATIONS = "match_notifications"
-    const val MATCH_TIMEOUT = 10000L
+    const val MATCH_TIMEOUT = 60000L
     const val LOGIN_SCREEN = "login"
     const val REGISTER_SCREEN = "register"
     const val START_CHAT_SCREEN = "start_chat"
@@ -39,6 +39,12 @@ object Constants {
     const val EEEE_HH_MM = "EEEE HH:mm"
     const val VI = "vi"
     const val TIME_GAP_MINUTES = 60
-    const val MATCHING_LOADING_SCREEN = "matching_loading"
+    const val CHECK_USER_TIMEOUT = 800L
+    const val SPLASH_SCREEN = "splash"
+    const val SPLASH_SCREEN_LOGIN = "splash_login"
+    const val SPLASH_MODE_LOGIN = "splash_login"
+    const val SPLASH_MODE_MATCHING = "splash_matching"
+    const val MODE = "mode"
+    const val MESSAGE_ID = "messageId"
 
 }

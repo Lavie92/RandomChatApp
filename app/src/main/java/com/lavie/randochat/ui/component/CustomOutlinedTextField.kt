@@ -7,9 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextDecoration
 
 @Composable
@@ -26,7 +29,8 @@ fun CustomOutlinedTextField(
     cursorColor: Color = Color.Black,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: (@Composable (() -> Unit))? = null,
-    imeAction: ImeAction = ImeAction.Next
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     OutlinedTextField(
         value = value,
@@ -40,7 +44,8 @@ fun CustomOutlinedTextField(
         visualTransformation = visualTransformation,
         trailingIcon = trailingIcon,
         keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = imeAction
+            imeAction = imeAction,
+            keyboardType = keyboardType
         ),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = containerColor,

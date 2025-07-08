@@ -57,5 +57,7 @@
     <string name="register_success">Register success!</string>
     <string name="matching">Matching…</string>
     <string name="loading_json_failed">Loading JSON failed</string>
+    <string name="invalid_credentials">Incorrect email or password</string>
+    <string name="splash_connecting">Connecting…</string>
 
 </resources>

@@ -56,5 +56,7 @@
     <string name="register_success">Đăng ký thành công!</string>
     <string name="matching">Đang ghép đôi…</string>
     <string name="loading_json_failed">Tải JSON thất bại</string>
+    <string name="invalid_credentials">Email hoặc mật khẩu không chính xác</string>
+    <string name="splash_connecting">Đang kết nối…</string>
 
 </resources>
