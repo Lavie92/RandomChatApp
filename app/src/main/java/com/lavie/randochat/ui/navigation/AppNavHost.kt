@@ -1,12 +1,22 @@
 package com.lavie.randochat.ui.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.lavie.randochat.R
+import com.lavie.randochat.ui.component.CustomSpacer
 import com.lavie.randochat.ui.screen.*
+import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
@@ -62,5 +72,38 @@ fun AppNavHost(authViewModel: AuthViewModel) {
                 authViewModel
             )
         }
-    }
+
+           composable(Constants.MATCHING_LOADING_SCREEN) {
+               SplashScreen(
+                   navController = navController,
+                   matchViewModel = matchViewModel,
+                   contentAlignment = Alignment.BottomCenter,
+                   content = {
+                       Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                           Text(
+                               text = stringResource(R.string.matching),
+                               style = MaterialTheme.typography.titleMedium,
+                               color = Color(0xFF2979FF)
+                           )
+
+                           CustomSpacer(height = Dimens.baseSpacerHeight)
+
+                           TextButton(onClick = {
+                               matchViewModel.cancelWaiting()
+                               navController.popBackStack()
+                           }) {
+                               Text(
+                                   text = stringResource(R.string.stop_matching),
+                                   style = MaterialTheme.typography.titleMedium,
+                                   color = Color(0xFF2979FF)
+                               )
+                           }
+                       }
+                   }
+               )
+           }
+
+
+
+       }
 }

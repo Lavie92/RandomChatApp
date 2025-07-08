@@ -77,11 +77,13 @@ fun StartChatScreen(
                     customToast(context, R.string.match_cancelled)
                 } else {
                     if (myUserId != null) {
+                        navController.navigate(Constants.MATCHING_LOADING_SCREEN)
                         matchViewModel.startMatching(myUserId, chatType)
                     }
                 }
             }
-        ) {
+        )
+        {
             Text(
                 text = if (isMatching) stringResource(R.string.stop_matching) else stringResource(R.string.start_a_chat),
                 style = MaterialTheme.typography.titleMedium,

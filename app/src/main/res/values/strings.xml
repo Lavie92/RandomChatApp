@@ -55,5 +55,7 @@
     <string name="invalid_password">Password must be at least 6 characters with letters and numbers</string>
     <string name="password_mismatch">Passwords do not match</string>
     <string name="register_success">Register success!</string>
+    <string name="matching">Matching…</string>
+    <string name="loading_json_failed">Loading JSON failed</string>
 
 </resources>

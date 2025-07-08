@@ -39,6 +39,6 @@ object Constants {
     const val EEEE_HH_MM = "EEEE HH:mm"
     const val VI = "vi"
     const val TIME_GAP_MINUTES = 60
-    const val SPLASH_SCREEN = "splash"
+    const val MATCHING_LOADING_SCREEN = "matching_loading"
 
 }
