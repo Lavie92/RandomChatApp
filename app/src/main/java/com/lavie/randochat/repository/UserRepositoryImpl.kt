@@ -243,4 +243,11 @@ class UserRepositoryImpl(
         }
     }
 
+    override suspend fun updateFcmToken(userId: String, token: String) {
+        database.child(Constants.USERS)
+            .child(userId)
+            .child("fcmToken")
+            .setValue(token)
+            .await()
+    }
 }

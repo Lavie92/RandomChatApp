@@ -94,8 +94,8 @@ object CommonUtils {
     fun isValidPassword(password: String): Boolean {
         return PASSWORD_REGEX.matches(password)
     }
-    //DATE TIME FORMAT
 
+    //DATE TIME FORMAT
     fun formatToTime(timestamp: Long): String {
         val sdf = SimpleDateFormat(Constants.HH_MM, Locale.getDefault())
         return sdf.format(Date(timestamp))

@@ -55,5 +55,8 @@
     <string name="invalid_password">Password must be at least 6 characters with letters and numbers</string>
     <string name="password_mismatch">Passwords do not match</string>
     <string name="register_success">Register success!</string>
+    <string name="fcm_channel_id">chat_message</string>
+    <string name="fcm_channel_name">Chat Message</string>
+    <string name="fcm_channel_desc">New message notification</string>
 
 </resources>

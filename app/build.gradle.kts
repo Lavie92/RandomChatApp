@@ -81,5 +81,6 @@ dependencies {
     implementation(libs.firebase.database)
     implementation (libs.play.services.auth)
     implementation(libs.androidx.compose.icons.extended)
+    implementation (libs.firebase.messaging)
 
 }
