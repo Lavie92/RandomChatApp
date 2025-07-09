@@ -24,6 +24,7 @@ sspAndroid = "1.1.1"
 timber = "5.0.1"
 compose = "1.5.1"
 identityJvm = "202411.1"
+firebaseMessagingKtx = "24.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +61,8 @@ ssp-android = { module = "com.intuit.ssp:ssp-android", version.ref = "sspAndroid
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 androidx-compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose" }
 identity-jvm = { group = "com.android.identity", name = "identity-jvm", version.ref = "identityJvm" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version = "6.4.0" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

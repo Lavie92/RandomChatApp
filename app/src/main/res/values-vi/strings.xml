@@ -54,7 +54,15 @@
     <string name="invalid_password">Mật khẩu phải có ít nhất 6 ký tự gồm chữ và số</string>
     <string name="password_mismatch">Mật khẩu không khớp</string>
     <string name="register_success">Đăng ký thành công!</string>
+    <string name="matching">Đang ghép đôi…</string>
+    <string name="loading_json_failed">Tải JSON thất bại</string>
+    <string name="invalid_credentials">Email hoặc mật khẩu không chính xác</string>
+    <string name="splash_connecting">Đang kết nối…</string>
     <string name="fcm_channel_id">chat_message</string>
     <string name="fcm_channel_name">Chat Message</string>
     <string name="fcm_channel_desc">Thông báo tin nhắn mới</string>
+    <string name="new_message_text">Bạn có tin nhắn mới</string>
+    <string name="new_message_image">Đã gửi một hình ảnh</string>
+    <string name="new_message_voice">Đã gửi một tin nhắn thoại</string>
+
 </resources>

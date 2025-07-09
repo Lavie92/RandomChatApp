@@ -22,4 +22,5 @@ object Dimens {
     val textFieldRadius = 24.dp
     val sendButtonWidth = 32.dp
     val buttonRadius = 12.dp
+    val processingAnimationHeight = 250.dp
 }

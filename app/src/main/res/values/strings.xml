@@ -55,8 +55,15 @@
     <string name="invalid_password">Password must be at least 6 characters with letters and numbers</string>
     <string name="password_mismatch">Passwords do not match</string>
     <string name="register_success">Register success!</string>
+    <string name="matching">Matching…</string>
+    <string name="loading_json_failed">Loading JSON failed</string>
+    <string name="invalid_credentials">Incorrect email or password</string>
+    <string name="splash_connecting">Connecting…</string>
     <string name="fcm_channel_id">chat_message</string>
     <string name="fcm_channel_name">Chat Message</string>
     <string name="fcm_channel_desc">New message notification</string>
+    <string name="new_message_text">You have a new message</string>
+    <string name="new_message_image">Sent a photo</string>
+    <string name="new_message_voice">Sent a voice message</string>
 
 </resources>

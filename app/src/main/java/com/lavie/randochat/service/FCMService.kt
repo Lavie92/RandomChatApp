@@ -16,67 +16,49 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageType
 import timber.log.Timber
+import androidx.core.content.edit
 
 class FCMService : FirebaseMessagingService() {
-
-    companion object {
-        private const val CHANNEL_ID = "chat_messages"
-    }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Timber.d("onNewToken: $token")
-        // Lưu tạm token vào SharedPreferences để ViewModel sử dụng khi user login/register
-        val sharedPrefs = getSharedPreferences("fcm_prefs", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putString("pending_fcm_token", token).apply()
+        val prefs by lazy { SharedPreferencesService(this) }
+        prefs.putString(Constants.FCM_TOKEN, token)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         Timber.d("onMessageReceived data: ${remoteMessage.data}")
 
-        // Xử lý "data message" - ưu tiên data để handle notification mọi trạng thái app
         if (remoteMessage.data.isNotEmpty()) {
             handleDataMessage(remoteMessage.data)
-        }
-
-        // Nếu server gửi notification message thì xử lý hiển thị luôn
-        remoteMessage.notification?.let {
-            showNotification(
-                it.title ?: getString(R.string.app_name),
-                it.body ?: "",
-                remoteMessage.data["roomId"]
-            )
         }
     }
 
     private fun handleDataMessage(data: Map<String, String>) {
-        val messageType = data["type"]
-        val encryptedContent = data["content"]
-        val roomId = data["roomId"]
-        val senderId = data["senderId"]
-        val key = CommonUtils.generateMessageKey(roomId ?: "", senderId ?: "")
-        val content = if (encryptedContent != null && roomId != null && senderId != null) {
-            CommonUtils.decryptMessage(encryptedContent, key)
-        } else encryptedContent
 
-        val title = senderId ?: getString(R.string.app_name)
-        val body = when (messageType) {
-            MessageType.TEXT.name -> content ?: "Bạn có tin nhắn mới"
-            MessageType.IMAGE.name -> "Đã gửi một hình ảnh"
-            MessageType.VOICE.name -> "Đã gửi một tin nhắn thoại"
-            else -> content ?: "Bạn có tin nhắn mới"
+        if (!CommonUtils.isAppInForeground(this)) {
+            val messageType = data[Constants.TYPE]
+            val decryptedContent = data[Constants.CONTENT]
+
+            val title = getString(R.string.app_name)
+            val body = when (messageType) {
+                MessageType.TEXT.name -> decryptedContent ?: getString(R.string.new_message_text)
+                MessageType.IMAGE.name -> getString(R.string.new_message_image)
+                MessageType.VOICE.name -> getString(R.string.new_message_voice)
+                else -> decryptedContent ?: getString(R.string.new_message_text)
+            }
+
+            showNotification(title, body)
         }
-
-        showNotification(title, body, roomId)
     }
 
-    private fun showNotification(title: String, body: String, roomId: String?) {
+    private fun showNotification(title: String, body: String) {
         createNotificationChannel()
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            roomId?.let { putExtra("roomId", it) }
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -84,7 +66,7 @@ class FCMService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(this, Constants.CHANNEL_ID)
             .setSmallIcon(R.drawable.vector_logo)
             .setContentTitle(title)
             .setContentText(body)
@@ -101,11 +83,11 @@ class FCMService : FirebaseMessagingService() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Chat Messages",
+                Constants.CHANNEL_ID,
+                Constants.CHAT_MESSAGE,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications for chat messages"
+                description = null
             }
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)

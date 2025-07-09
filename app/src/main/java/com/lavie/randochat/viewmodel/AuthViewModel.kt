@@ -15,7 +15,8 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class AuthViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val firebaseMessaging: FirebaseMessaging
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<User?>(null)
@@ -191,7 +192,7 @@ class AuthViewModel(
 
     private fun updateFcmTokenForCurrentUser() {
         val userId = loginState.value!!.id
-        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+        firebaseMessaging.token.addOnSuccessListener { token ->
             viewModelScope.launch {
                 userRepository.updateFcmToken(userId, token)
             }

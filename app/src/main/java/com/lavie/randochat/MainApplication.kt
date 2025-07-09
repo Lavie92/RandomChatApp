@@ -12,6 +12,7 @@ import android.os.Build
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import com.lavie.randochat.di.prefsModule
 
 class MainApplication : Application() {
     override fun onCreate() {
@@ -24,7 +25,7 @@ class MainApplication : Application() {
 
         startKoin {
             androidContext(this@MainApplication)
-            modules(listOf(firebaseModule, repositoryModule, viewModelModule))
+            modules(listOf(firebaseModule, repositoryModule, viewModelModule, prefsModule))
         }
 
         createNotificationChannel()

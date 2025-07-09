@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -118,8 +119,9 @@ fun LoginScreen(
             CustomOutlinedTextField(
                 value = email,
                 modifier = Modifier.fillMaxWidth(),
-                onValueChange = { email = it },
-                placeholder = stringResource(R.string.enter_your_email)
+                onValueChange = { email = it.trim() },
+                placeholder = stringResource(R.string.enter_your_email),
+                keyboardType = KeyboardType.Email
             )
 
             CustomSpacer(height = 12.dp)
@@ -138,7 +140,8 @@ fun LoginScreen(
                         )
                     }
                 },
-                imeAction = ImeAction.Done
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Password
             )
 
             CustomSpacer(height = 8.dp)
@@ -156,6 +159,7 @@ fun LoginScreen(
             Button(
                 onClick = {
                     viewModel.loginWithEmail(email, password)
+                    navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_LOGIN}/${R.string.signing_in}")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,6 +206,7 @@ fun LoginScreen(
                 ImageButton(
                     onClick = {
                         if (!isLoading) {
+                            navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_LOGIN}/${R.string.signing_in}")
                             viewModel.onGoogleLoginClick()
                         }
                     },
@@ -236,23 +241,6 @@ fun LoginScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF00BFA6)
         )
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is AuthViewModel.NavigationEvent.NavigateToStartChat -> {
-                    navController.navigate(Constants.START_CHAT_SCREEN) {
-                        popUpTo(Constants.LOGIN_SCREEN) { inclusive = true }
-                    }
-                }
-                is AuthViewModel.NavigationEvent.NavigateToChat -> {
-                    navController.navigate("${Constants.CHAT_SCREEN}/${event.roomId}") {
-                        popUpTo(Constants.LOGIN_SCREEN) { inclusive = true }
-                    }
-                }
-            }
-        }
     }
 
     LaunchedEffect(errorMsg) {
