@@ -23,7 +23,7 @@ class FCMService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Timber.d("onNewToken: $token")
-        val prefs by lazy { SharedPreferencesService(this) }
+        val prefs = SharedPreferencesService(this)
         prefs.putString(Constants.FCM_TOKEN, token)
     }
 
@@ -37,7 +37,6 @@ class FCMService : FirebaseMessagingService() {
     }
 
     private fun handleDataMessage(data: Map<String, String>) {
-
         if (!CommonUtils.isAppInForeground(this)) {
             val messageType = data[Constants.TYPE]
             val decryptedContent = data[Constants.CONTENT]
@@ -55,8 +54,6 @@ class FCMService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String) {
-        createNotificationChannel()
-
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -66,7 +63,7 @@ class FCMService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificationBuilder = NotificationCompat.Builder(this, Constants.CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(this, getString(R.string.channel_id))
             .setSmallIcon(R.drawable.vector_logo)
             .setContentTitle(title)
             .setContentText(body)
@@ -78,19 +75,5 @@ class FCMService : FirebaseMessagingService() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationId = System.currentTimeMillis().toInt()
         notificationManager.notify(notificationId, notificationBuilder.build())
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                Constants.CHANNEL_ID,
-                Constants.CHAT_MESSAGE,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = null
-            }
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
     }
 }

@@ -64,5 +64,7 @@
     <string name="new_message_text">Bạn có tin nhắn mới</string>
     <string name="new_message_image">Đã gửi một hình ảnh</string>
     <string name="new_message_voice">Đã gửi một tin nhắn thoại</string>
+    <string name="notification_permission_required">Bạn cần cấp quyền thông báo để nhận tin nhắn mới</string>
+    <string name="channel_id">chat_messages</string>
 
 </resources>

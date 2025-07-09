@@ -65,5 +65,7 @@
     <string name="new_message_text">You have a new message</string>
     <string name="new_message_image">Sent a photo</string>
     <string name="new_message_voice">Sent a voice message</string>
+    <string name="notification_permission_required">You need to allow notifications to receive new messages</string>
+    <string name="channel_id">chat_messages</string>
 
 </resources>

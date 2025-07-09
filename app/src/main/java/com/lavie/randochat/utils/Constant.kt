@@ -48,7 +48,6 @@ object Constants {
     const val MESSAGE_ID = "messageId"
     const val APP_PREFS = "app_prefs"
     const val FCM_TOKEN = "fcm_token"
-    const val CHANNEL_ID = "chat_messages"
     const val CHAT_MESSAGE = "Chat Message"
     const val TYPE = "type"
     const val CONTENT = "content"

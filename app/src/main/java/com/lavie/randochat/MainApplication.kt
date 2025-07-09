@@ -27,7 +27,6 @@ class MainApplication : Application() {
             androidContext(this@MainApplication)
             modules(listOf(firebaseModule, repositoryModule, viewModelModule, prefsModule))
         }
-
         createNotificationChannel()
     }
 
