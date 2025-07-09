@@ -54,5 +54,9 @@
     <string name="invalid_password">Mật khẩu phải có ít nhất 6 ký tự gồm chữ và số</string>
     <string name="password_mismatch">Mật khẩu không khớp</string>
     <string name="register_success">Đăng ký thành công!</string>
+    <string name="matching">Đang ghép đôi…</string>
+    <string name="loading_json_failed">Tải JSON thất bại</string>
+    <string name="invalid_credentials">Email hoặc mật khẩu không chính xác</string>
+    <string name="splash_connecting">Đang kết nối…</string>
 
 </resources>

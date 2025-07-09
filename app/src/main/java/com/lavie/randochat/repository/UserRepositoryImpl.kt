@@ -8,15 +8,14 @@ import com.google.firebase.database.FirebaseDatabase
 import com.lavie.randochat.R
 import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
+import com.lavie.randochat.repository.UserRepository.UserResult
+import com.lavie.randochat.utils.CommonUtils.isNetworkError
 import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
-import com.lavie.randochat.repository.UserRepository.UserResult
-import com.lavie.randochat.utils.CommonUtils
-import com.lavie.randochat.utils.CommonUtils.isNetworkError
 
 class UserRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
@@ -201,7 +200,6 @@ class UserRepositoryImpl(
         }
     }
 
-
     override suspend fun loginWithEmail(email: String, password: String): UserResult? {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -216,14 +214,14 @@ class UserRepositoryImpl(
                 )
                 UserResult.Success(user)
             } else {
-                UserResult.Error(R.string.login_error)
+                UserResult.Error(R.string.account_not_exist)
             }
         } catch (e: Exception) {
             Timber.e(e, "Login with email failed")
             if (isNetworkError(e)) {
                 UserResult.Error(R.string.network_error)
             } else {
-                UserResult.Error(R.string.login_error)
+                UserResult.Error(R.string.invalid_credentials)
             }
         }
     }

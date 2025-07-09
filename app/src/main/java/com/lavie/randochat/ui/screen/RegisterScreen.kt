@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -130,9 +131,10 @@ fun RegisterScreen(
 
         CustomOutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { email = it.trim() },
             placeholder = stringResource(R.string.email),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            keyboardType = KeyboardType.Email
         )
 
 
@@ -151,7 +153,8 @@ fun RegisterScreen(
                         contentDescription = null
                     )
                 }
-            }
+            },
+            keyboardType = KeyboardType.Password
         )
 
         CustomSpacer(height = 12.dp)
@@ -170,14 +173,15 @@ fun RegisterScreen(
                     )
                 }
             },
-            imeAction = ImeAction.Done
+            imeAction = ImeAction.Done,
+            keyboardType = KeyboardType.Password
         )
 
         CustomSpacer(height = 24.dp)
 
         Button(
             onClick = { when {
-                !CommonUtils.isValidEmail(email) -> {
+                !CommonUtils.isValidEmail(email.trim()) -> {
                     customToast(context, R.string.invalid_email)
                 }
                 !CommonUtils.isValidPassword(password) -> {
@@ -204,8 +208,7 @@ fun RegisterScreen(
 
         LaunchedEffect(loginState) {
             if (loginState != null) {
-                customToast(context, R.string.register_success)
-                navController.navigate(Constants.LOGIN_SCREEN) {
+                navController.navigate(Constants.START_CHAT_SCREEN) {
                     popUpTo(Constants.REGISTER_SCREEN) { inclusive = true }
                 }
             }

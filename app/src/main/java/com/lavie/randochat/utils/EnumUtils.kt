@@ -11,3 +11,8 @@ enum class MessageType {
     IMAGE,
     VOICE
 }
+
+enum class SplashType {
+    LOGIN_CHECK,
+    MATCHING
+}

@@ -72,16 +72,13 @@ fun StartChatScreen(
 
         TextButton(
             onClick = {
-                if (isMatching) {
-                    matchViewModel.cancelWaiting()
-                    customToast(context, R.string.match_cancelled)
-                } else {
-                    if (myUserId != null) {
-                        matchViewModel.startMatching(myUserId, chatType)
-                    }
+                if (myUserId != null) {
+                    navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_MATCHING}/${R.string.matching}")
+                    matchViewModel.startMatching(myUserId, chatType)
                 }
             }
-        ) {
+        )
+        {
             Text(
                 text = if (isMatching) stringResource(R.string.stop_matching) else stringResource(R.string.start_a_chat),
                 style = MaterialTheme.typography.titleMedium,
