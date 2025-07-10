@@ -32,7 +32,7 @@ class MainApplication : Application() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = getString(R.string.fcm_channel_id)
+            val channelId = getString(R.string.channel_id)
             val channelName = getString(R.string.fcm_channel_name)
             val channel = NotificationChannel(
                 channelId,
