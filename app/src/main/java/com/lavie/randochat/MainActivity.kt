@@ -1,5 +1,7 @@
 package com.lavie.randochat
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.navigation.AppNavHost
 import com.lavie.randochat.ui.theme.RandomChatTheme
 import com.lavie.randochat.viewmodel.AuthViewModel
@@ -21,6 +24,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         setContent {
             val authViewModel: AuthViewModel = koinViewModel()
             val context = LocalContext.current
@@ -64,5 +72,11 @@ class MainActivity : ComponentActivity() {
                 AppNavHost(authViewModel)
             }
         }
+    }
+
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) customToast(this, this.getString(R.string.notification_permission_required))
     }
 }

@@ -1,5 +1,6 @@
 package com.lavie.randochat.utils
 
+import android.content.Context
 import android.util.Base64
 import kotlinx.coroutines.TimeoutCancellationException
 import timber.log.Timber
@@ -94,8 +95,8 @@ object CommonUtils {
     fun isValidPassword(password: String): Boolean {
         return PASSWORD_REGEX.matches(password)
     }
-    //DATE TIME FORMAT
 
+    //DATE TIME FORMAT
     fun formatToTime(timestamp: Long): String {
         val sdf = SimpleDateFormat(Constants.HH_MM, Locale.getDefault())
         return sdf.format(Date(timestamp))
@@ -151,6 +152,22 @@ object CommonUtils {
         val messageYear = calendar.get(Calendar.YEAR)
 
         return currentYear == messageYear
+    }
+
+    //CHECK APP IS IN FOREGROUND
+    fun isAppInForeground(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val appProcesses = activityManager.runningAppProcesses ?: return false
+        val packageName = context.packageName
+        for (appProcess in appProcesses) {
+            if (appProcess.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                && appProcess.processName == packageName
+            ) {
+                return true
+            }
+        }
+
+        return false
     }
 }
 

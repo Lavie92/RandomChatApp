@@ -2,6 +2,7 @@ package com.lavie.randochat.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
 import com.lavie.randochat.R
 import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
@@ -14,7 +15,8 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class AuthViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val firebaseMessaging: FirebaseMessaging
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<User?>(null)
@@ -142,6 +144,8 @@ class AuthViewModel(
                 handleLoginError(R.string.login_error)
             }
         }
+
+        updateFcmTokenForCurrentUser()
     }
 
     private fun handleLoginError(messageId: Int) {
@@ -183,6 +187,15 @@ class AuthViewModel(
             }
 
             _isLoading.value = false
+        }
+    }
+
+    private fun updateFcmTokenForCurrentUser() {
+        val userId = loginState.value!!.id
+        firebaseMessaging.token.addOnSuccessListener { token ->
+            viewModelScope.launch {
+                userRepository.updateFcmToken(userId, token)
+            }
         }
     }
 

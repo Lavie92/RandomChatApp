@@ -7,7 +7,7 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { AuthViewModel(get()) }
+    viewModel { AuthViewModel(get(), get()) }
     viewModel { MatchViewModel(get()) }
     viewModel { ChatViewModel(get()) }
 }

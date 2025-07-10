@@ -58,5 +58,12 @@
     <string name="loading_json_failed">Tải JSON thất bại</string>
     <string name="invalid_credentials">Email hoặc mật khẩu không chính xác</string>
     <string name="splash_connecting">Đang kết nối…</string>
+    <string name="fcm_channel_name">Chat Message</string>
+    <string name="fcm_channel_desc">Thông báo tin nhắn mới</string>
+    <string name="new_message_text">Bạn có tin nhắn mới</string>
+    <string name="new_message_image">Đã gửi một hình ảnh</string>
+    <string name="new_message_voice">Đã gửi một tin nhắn thoại</string>
+    <string name="notification_permission_required">Bạn cần cấp quyền thông báo để nhận tin nhắn mới</string>
+    <string name="channel_id">chat_messages</string>
 
 </resources>

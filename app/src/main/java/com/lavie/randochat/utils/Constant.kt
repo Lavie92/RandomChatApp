@@ -46,5 +46,9 @@ object Constants {
     const val SPLASH_MODE_MATCHING = "splash_matching"
     const val MODE = "mode"
     const val MESSAGE_ID = "messageId"
-
+    const val APP_PREFS = "app_prefs"
+    const val FCM_TOKEN = "fcm_token"
+    const val CHAT_MESSAGE = "Chat Message"
+    const val TYPE = "type"
+    const val CONTENT = "content"
 }
