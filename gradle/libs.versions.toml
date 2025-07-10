@@ -1,7 +1,7 @@
 [versions]
 agp = "8.10.0"
-firebaseBom = "33.16.0"
-firebaseUiAuth = "9.0.0"
+firebaseBom = "32.7.0"
+firebaseUiAuth = "8.0.2"
 koinAndroidVersion = "3.5.3"
 koinAndroidxCompose = "3.5.3"
 kotlin = "2.0.21"
@@ -13,10 +13,10 @@ kotlinxCoroutinesAndroid = "1.7.3"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
-playServicesAuth = "21.3.0"
+playServicesAuth = "20.7.0"
 timber = "5.0.1"
 compose = "1.5.1"
-firebaseMessagingKtx = "24.1.2"
+firebaseMessagingKtx = "23.4.0"
 navigationRuntimeAndroid = "2.9.1"
 
 [libraries]
@@ -54,4 +54,3 @@ androidx-navigation-runtime-android = { group = "androidx.navigation", name = "n
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
