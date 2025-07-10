@@ -166,26 +166,6 @@ class MatchRepositoryImpl(
             }
     }
 
-    override suspend fun createChatRoom(userA: String, userB: String): MatchRepository.MatchResult {
-        val chatRoomsRef = database.child(Constants.CHAT_ROOMS)
-        return try {
-            val roomId = chatRoomsRef.push().key
-                ?: return MatchRepository.MatchResult.Error(R.string.match_failed)
-            val chatRoom = ChatRoom(
-                id = roomId,
-                participantIds = listOf(userA, userB),
-                createdAt = System.currentTimeMillis(),
-                lastUpdated = System.currentTimeMillis(),
-                isActive = true
-            )
-
-            chatRoomsRef.child(roomId).setValue(chatRoom).await()
-            MatchRepository.MatchResult.Matched(roomId, userB)
-        } catch (e: Exception) {
-            MatchRepository.MatchResult.Error(R.string.match_failed)
-        }
-    }
-
     override suspend fun cancelWaiting(userId: String) {
         database.child(Constants.WAITING_USERS).child(userId).removeValue().await()
     }

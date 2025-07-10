@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class MatchViewModel(
     private val matchRepository: MatchRepository,
+    private val chatViewModel: ChatViewModel,
 ) : ViewModel() {
 
     private var timeoutJob: Job? = null
@@ -45,6 +46,7 @@ class MatchViewModel(
             when (val result = matchRepository.findUserForMatch(myUserId, chatType)) {
                 is MatchRepository.MatchResult.Matched -> {
                     _matchState.value = MatchState.Matched(result.roomId, result.otherUserId)
+                    chatViewModel.sendWelcomeMessage(result.roomId)
                     removeMatchedListener()
                 }
                 is MatchRepository.MatchResult.Waiting -> {

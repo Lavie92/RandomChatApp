@@ -16,3 +16,9 @@ enum class SplashType {
     LOGIN_CHECK,
     MATCHING
 }
+
+enum class MessageStatus {
+    SENDING,
+    SENT,
+    SEEN
+}

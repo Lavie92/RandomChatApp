@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.google.firebase.database.ValueEventListener
+import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
+import com.lavie.randochat.R
+import com.lavie.randochat.utils.Constants
 
 class ChatViewModel(
     private val chatRepository: ChatRepository
@@ -17,6 +20,7 @@ class ChatViewModel(
 
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
+    private val sentWelcomeMessages = mutableSetOf<String>()
 
     fun startListening(roomId: String): ValueEventListener {
         return chatRepository.listenForMessages(roomId) { newMessages ->
@@ -44,15 +48,55 @@ class ChatViewModel(
         roomId: String,
         senderId: String,
         content: String,
-        type: MessageType
+        type: MessageType,
+        status: MessageStatus = MessageStatus.SENDING
     ) {
+        val messageId = UUID.randomUUID().toString()
         val message = Message(
-            id = UUID.randomUUID().toString(),
+            id = messageId,
             senderId = senderId,
             content = content,
             timestamp = System.currentTimeMillis(),
-            type = type
+            type = type,
+            status = status
         )
-        viewModelScope.launch { chatRepository.sendMessage(roomId, message) }
+        _messages.value = _messages.value + message
+        viewModelScope.launch {
+            val result = chatRepository.sendMessage(roomId, message)
+            if (result.isSuccess) {
+                chatRepository.updateMessageStatus(roomId, message.id, MessageStatus.SENT)
+                _messages.value = _messages.value.map {
+                    if (it.id == message.id) it.copy(status = MessageStatus.SENT) else it
+                }
+            }
+        }
     }
+
+    fun markMessagesAsSeen(roomId: String, myUserId: String, messages: List<Message>) {
+        viewModelScope.launch {
+            messages
+                .filter { it.senderId != myUserId && it.status == MessageStatus.SENT }
+                .forEach { msg ->
+                    chatRepository.updateMessageStatus(roomId, msg.id, MessageStatus.SEEN)
+                }
+        }
+    }
+
+    fun sendWelcomeMessage(roomId: String) {
+        if (roomId !in sentWelcomeMessages) {
+            val welcomeMsg = Message(
+                id = UUID.randomUUID().toString(),
+                senderId = Constants.SYSTEM,
+                contentResId = R.string.welcome_notice,
+                timestamp = System.currentTimeMillis(),
+                type = MessageType.TEXT,
+                status = MessageStatus.SENT
+            )
+            viewModelScope.launch {
+                chatRepository.sendMessage(roomId, welcomeMsg)
+                sentWelcomeMessages.add(roomId)
+            }
+        }
+    }
+
 }

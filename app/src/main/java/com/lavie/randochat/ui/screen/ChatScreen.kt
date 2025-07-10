@@ -22,10 +22,13 @@ import com.lavie.randochat.viewmodel.ChatViewModel
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
+import com.lavie.randochat.R
 
 @Composable
 fun ChatScreen(
@@ -42,6 +45,12 @@ fun ChatScreen(
 
     BackHandler {
         activity?.finish()
+    }
+
+    LaunchedEffect(messages) {
+        if (CommonUtils.isAppInForeground(context)) {
+            chatViewModel.markMessagesAsSeen(roomId, myUserId, messages)
+        }
     }
 
     DisposableEffect(roomId) {
@@ -113,12 +122,17 @@ fun ConversationScreen(
                     is ChatItem.MessageItem -> {
                         val message = item.message
                         val isMe = message.senderId == myUserId
+                        val lastMessageId = messages.lastOrNull()?.id
 
                         MessageBubble(
-                            content = message.content,
+                            content = if (message.isSystemMessage() && message.contentResId != null) {
+                                stringResource(message.contentResId)
+                            } else message.content,
                             isMe = isMe,
                             type = message.type,
                             time = message.timestamp,
+                            status = message.status,
+                            showStatus = isMe && message.id == lastMessageId,
                             isSelected = selectedMessageId == message.id,
                             onClick = {
                                 selectedMessageId =
@@ -137,7 +151,7 @@ fun ConversationScreen(
         ChatInputBar(
             value = messageText,
             onValueChange = { messageText = it },
-            onSendImage = {onSendImage },
+            onSendImage = { onSendImage },
             onVoiceRecord = { onSendVoice },
             onSend = {
                 if (messageText.trim().isNotBlank()) {
@@ -160,6 +174,8 @@ fun MessageBubble(
     isMe: Boolean,
     type: MessageType,
     time: Long,
+    status: MessageStatus,
+    showStatus: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -210,6 +226,22 @@ fun MessageBubble(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = Dimens.smallMargin, end = Dimens.baseMarginDouble)
             )
+        } else {
+            if (showStatus) {
+                Text(
+                    text = when (status) {
+                        MessageStatus.SENT -> stringResource(R.string.message_sent)
+                        MessageStatus.SEEN -> stringResource(R.string.message_seen)
+                        MessageStatus.SENDING -> stringResource(R.string.message_sending)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(
+                        top = Dimens.smallMargin,
+                        end = Dimens.baseMarginDouble
+                    )
+                )
+            }
         }
     }
 }
