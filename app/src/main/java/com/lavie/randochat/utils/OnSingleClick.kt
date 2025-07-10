@@ -5,7 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun onSingleClick(
+fun singleClickHandler(
     debounceTime: Long = Constants.SINGLE_CLICK_TIMEOUT,
     onClick: () -> Unit
 ): () -> Unit {

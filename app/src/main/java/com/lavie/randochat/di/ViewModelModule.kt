@@ -8,6 +8,6 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { AuthViewModel(get(), get()) }
-    viewModel { MatchViewModel(get()) }
+    viewModel { MatchViewModel(get(), get()) }
     viewModel { ChatViewModel(get()) }
 }

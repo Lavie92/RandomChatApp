@@ -29,7 +29,7 @@ import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.ChatType
 import com.lavie.randochat.utils.Constants
-import com.lavie.randochat.utils.onSingleClick
+import com.lavie.randochat.utils.singleClickHandler
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 
@@ -44,7 +44,6 @@ fun StartChatScreen(
 
     val myUserId = myUser?.id
     val context = LocalContext.current
-    val isMatching = matchState is MatchViewModel.MatchState.Matching || matchState is MatchViewModel.MatchState.Waiting
 
     //TODO Need to get value from user choice
     val chatType: ChatType = ChatType.RANDOM
@@ -79,7 +78,7 @@ fun StartChatScreen(
         CustomSpacer(height = Dimens.baseSpacerHeight)
 
         TextButton(
-            onClick = onSingleClick {
+            onClick = singleClickHandler {
                 if (myUserId != null) {
                     navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_MATCHING}/${R.string.matching}")
                     matchViewModel.startMatching(myUserId, chatType)

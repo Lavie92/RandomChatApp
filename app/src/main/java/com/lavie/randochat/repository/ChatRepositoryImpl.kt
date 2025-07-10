@@ -4,6 +4,7 @@ import com.google.firebase.database.*
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.utils.MessageStatus
 import kotlinx.coroutines.tasks.await
 
 class ChatRepositoryImpl(
@@ -75,5 +76,19 @@ class ChatRepositoryImpl(
     override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
         database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
         listeners.remove(roomId)
+    }
+
+    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
+        return try {
+            val statusRef = database.child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.MESSAGES)
+                .child(messageId)
+                .child(Constants.STATUS)
+            statusRef.setValue(status.name).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

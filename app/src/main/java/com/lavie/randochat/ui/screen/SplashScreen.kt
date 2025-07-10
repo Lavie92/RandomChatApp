@@ -33,7 +33,7 @@ import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.shape.RoundedCornerShape
-import com.lavie.randochat.utils.onSingleClick
+import com.lavie.randochat.utils.singleClickHandler
 
 @Composable
 fun SplashScreen(
@@ -199,7 +199,7 @@ private fun SplashContent(
 
         if (cancelButtonText != null && onCancelClick != null) {
             Button(
-                onClick = onSingleClick { onCancelClick.invoke()
+                onClick = singleClickHandler { onCancelClick.invoke()
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
