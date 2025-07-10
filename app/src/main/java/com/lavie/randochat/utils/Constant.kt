@@ -39,7 +39,7 @@ object Constants {
     const val EEEE_HH_MM = "EEEE HH:mm"
     const val VI = "vi"
     const val TIME_GAP_MINUTES = 60
-    const val CHECK_USER_TIMEOUT = 800L
+    const val CHECK_USER_TIMEOUT = 1000L
     const val SPLASH_SCREEN = "splash"
     const val SPLASH_SCREEN_LOGIN = "splash_login"
     const val SPLASH_MODE_LOGIN = "splash_login"
@@ -48,7 +48,7 @@ object Constants {
     const val MESSAGE_ID = "messageId"
     const val APP_PREFS = "app_prefs"
     const val FCM_TOKEN = "fcm_token"
-    const val CHAT_MESSAGE = "Chat Message"
     const val TYPE = "type"
     const val CONTENT = "content"
+    const val SINGLE_CLICK_TIMEOUT = 600L
 }
