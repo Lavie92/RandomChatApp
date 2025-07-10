@@ -1,5 +1,7 @@
 package com.lavie.randochat.ui.screen
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +21,7 @@ import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
@@ -33,6 +36,13 @@ fun ChatScreen(
     val myUser by authViewModel.loginState.collectAsState()
     val myUserId = myUser?.id ?: return
     val messages by chatViewModel.messages.collectAsState()
+
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    BackHandler {
+        activity?.finish()
+    }
 
     DisposableEffect(roomId) {
         val listener = chatViewModel.startListening(roomId)
