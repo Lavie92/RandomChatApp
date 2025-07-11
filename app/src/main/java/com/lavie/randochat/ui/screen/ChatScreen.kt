@@ -53,9 +53,12 @@ fun ChatScreen(
         }
     }
 
+    LaunchedEffect(roomId) {
+        chatViewModel.loadInitialMessages(roomId)
+    }
+
     DisposableEffect(roomId) {
-        val listener = chatViewModel.startListening(roomId)
-        onDispose { chatViewModel.removeMessageListener(roomId, listener) }
+        onDispose { chatViewModel.removeMessageListener() }
     }
 
     ConversationScreen(
@@ -69,7 +72,8 @@ fun ChatScreen(
         },
         onSendVoice = { audioUrl ->
             chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
-        }
+        },
+        onLoadMore = { chatViewModel.loadMoreMessages() }
     )
 }
 
@@ -80,6 +84,7 @@ fun ConversationScreen(
     onSendText: (String) -> Unit,
     onSendImage: (String) -> Unit,
     onSendVoice: (String) -> Unit,
+    onLoadMore: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -96,6 +101,12 @@ fun ConversationScreen(
         if (shouldScrollToBottom && messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
             shouldScrollToBottom = false
+        }
+    }
+
+    LaunchedEffect(remember { derivedStateOf { listState.firstVisibleItemIndex } }) {
+        if (listState.firstVisibleItemIndex == 0) {
+            onLoadMore()
         }
     }
 

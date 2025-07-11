@@ -21,15 +21,47 @@ class ChatViewModel(
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
     private val sentWelcomeMessages = mutableSetOf<String>()
+    private var isLoading = false
+    private var isEndReached = false
+    private var oldestTimestamp: Long? = null
+    private var currentRoomId: String? = null
+    private val pageSize = Constants.PAGE_SIZE_MESSAGES
+    private var messagesListener: ValueEventListener? = null
 
-    fun startListening(roomId: String): ValueEventListener {
-        return chatRepository.listenForMessages(roomId) { newMessages ->
-            _messages.value = newMessages.sortedBy { it.timestamp }
-        }
+    fun loadInitialMessages(roomId: String) {
+        currentRoomId = roomId
+        isEndReached = false
+        oldestTimestamp = null
+        _messages.value = emptyList()
+        listenForMessages(roomId, limit = pageSize, startAfter = null)
     }
 
-    fun removeMessageListener(roomId: String, listener: ValueEventListener) {
-        chatRepository.removeMessageListener(roomId, listener)
+    fun loadMoreMessages() {
+        if (isLoading || isEndReached || currentRoomId == null) return
+        listenForMessages(
+            currentRoomId!!,
+            limit = pageSize,
+            startAfter = oldestTimestamp
+        )
+    }
+
+    private fun listenForMessages(roomId: String, limit: Int, startAfter: Long?) {
+        isLoading = true
+        messagesListener?.let {
+            chatRepository.removeMessageListener(roomId, it)
+        }
+
+        messagesListener = chatRepository.listenForMessages(roomId, limit, startAfter) { newMessages ->
+            isLoading = false
+            if (newMessages.isEmpty() || newMessages.size < limit) isEndReached = true
+            val sorted = newMessages.sortedBy { it.timestamp }
+            if (startAfter == null) {
+                _messages.value = sorted
+            } else {
+                _messages.value = (sorted + _messages.value).distinctBy { it.id }
+            }
+            oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+        }
     }
 
     fun sendTextMessage(roomId: String, senderId: String, content: String) {
@@ -99,4 +131,10 @@ class ChatViewModel(
         }
     }
 
+    fun removeMessageListener() {
+        currentRoomId?.let { roomId ->
+            messagesListener?.let { chatRepository.removeMessageListener(roomId, it) }
+        }
+        messagesListener = null
+    }
 }

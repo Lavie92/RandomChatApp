@@ -45,13 +45,28 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(
         roomId: String,
+        limit: Int,
+        startAfter: Long?,
         onNewMessages: (List<Message>) -> Unit
     ): ValueEventListener {
-        val msgRef = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES)
+        val msgRef = database.child(Constants.CHAT_ROOMS)
+            .child(roomId)
+            .child(Constants.MESSAGES)
+
+        val query = if (startAfter == null) {
+            msgRef.orderByChild("timestamp")
+                .limitToLast(limit)
+        } else {
+            msgRef.orderByChild("timestamp")
+                .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit)
+        }
+
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val messages = snapshot.children.mapNotNull {val msg = it.getValue(Message::class.java)
-                    msg?.let {
+                val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                    .sortedBy { it.timestamp }
+                    .map { msg ->
                         val key = CommonUtils.generateMessageKey(roomId, msg.senderId)
                         val decryptedContent = try {
                             CommonUtils.decryptMessage(msg.content, key)
@@ -60,7 +75,6 @@ class ChatRepositoryImpl(
                         }
                         msg.copy(content = decryptedContent)
                     }
-                }
 
                 onNewMessages(messages)
             }
@@ -68,7 +82,7 @@ class ChatRepositoryImpl(
             override fun onCancelled(error: DatabaseError) {}
         }
 
-        msgRef.addValueEventListener(listener)
+        query.addValueEventListener(listener)
         listeners[roomId] = listener
         return listener
     }
