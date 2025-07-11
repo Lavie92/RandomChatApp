@@ -1,10 +1,15 @@
 package com.lavie.randochat.viewmodel
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.storage
 import com.lavie.randochat.utils.MessageType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,4 +60,23 @@ class ChatViewModel(
         )
         viewModelScope.launch { chatRepository.sendMessage(roomId, message) }
     }
+
+    fun sendImage(roomId: String, senderId: String, uri: Uri) {
+        val fileName = UUID.randomUUID().toString()
+        val storageRef = Firebase.storage.reference.child("chat_images/$fileName")
+
+        storageRef.putFile(uri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    sendImageMessage(roomId, senderId, downloadUri.toString())
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatViewModel", "Upload image failed: ${e.message}")
+            }
+    }
+
+
+
+
 }
