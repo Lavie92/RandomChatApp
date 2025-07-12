@@ -24,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
@@ -43,6 +46,7 @@ fun ChatScreen(
 
     val context = LocalContext.current
     val activity = context as? Activity
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     BackHandler {
         activity?.finish()
@@ -56,14 +60,26 @@ fun ChatScreen(
 
     DisposableEffect(roomId) {
         val listener = chatViewModel.startListening(roomId)
-        onDispose { chatViewModel.removeMessageListener(roomId, listener) }
-    }
-
-    DisposableEffect(roomId) {
         val typingListener = chatViewModel.startTypingListener(roomId, myUserId)
+
         onDispose {
+            chatViewModel.removeMessageListener(roomId, listener)
             chatViewModel.updateTypingStatus(roomId, myUserId, false)
             chatViewModel.removeTypingListener(roomId, typingListener)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                chatViewModel.updateTypingStatus(roomId, myUserId, false)
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
