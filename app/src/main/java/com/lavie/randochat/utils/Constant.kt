@@ -52,5 +52,5 @@ object Constants {
     const val CONTENT = "content"
     const val SINGLE_CLICK_TIMEOUT = 600L
     const val SYSTEM = "system"
-    const val PAGE_SIZE_MESSAGES = 20
+    const val PAGE_SIZE_MESSAGES = 50
 }
