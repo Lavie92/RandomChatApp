@@ -22,6 +22,9 @@ class ChatViewModel(
     val messages: StateFlow<List<Message>> = _messages
     private val sentWelcomeMessages = mutableSetOf<String>()
 
+    private val _isTyping = MutableStateFlow(false)
+    val isTyping: StateFlow<Boolean> = _isTyping
+
     fun startListening(roomId: String): ValueEventListener {
         return chatRepository.listenForMessages(roomId) { newMessages ->
             _messages.value = newMessages.sortedBy { it.timestamp }
@@ -30,6 +33,22 @@ class ChatViewModel(
 
     fun removeMessageListener(roomId: String, listener: ValueEventListener) {
         chatRepository.removeMessageListener(roomId, listener)
+    }
+
+    fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean) {
+        viewModelScope.launch {
+            chatRepository.updateTypingStatus(roomId, userId, isTyping)
+        }
+    }
+
+    fun startTypingListener(roomId: String, myUserId: String): ValueEventListener {
+        return chatRepository.listenForTyping(roomId, myUserId) { typing ->
+            _isTyping.value = typing
+        }
+    }
+
+    fun removeTypingListener(roomId: String, listener: ValueEventListener) {
+        chatRepository.removeTypingListener(roomId, listener)
     }
 
     fun sendTextMessage(roomId: String, senderId: String, content: String) {

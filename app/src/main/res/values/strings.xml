@@ -69,6 +69,7 @@
     <string name="message_sending">Sending…</string>
     <string name="message_sent">Sent</string>
     <string name="message_seen">Seen</string>
+    <string name="typing">Typing…</string>
     <string name="welcome_notice">
         Welcome to Rando Chat! You are about to chat with strangers. For your safety, do not share sensitive personal information and always respect your chat partner. Any inappropriate or abusive behavior is strictly prohibited.
     </string>

@@ -39,6 +39,7 @@ fun ChatScreen(
     val myUser by authViewModel.loginState.collectAsState()
     val myUserId = myUser?.id ?: return
     val messages by chatViewModel.messages.collectAsState()
+    val isTyping by chatViewModel.isTyping.collectAsState()
 
     val context = LocalContext.current
     val activity = context as? Activity
@@ -58,11 +59,24 @@ fun ChatScreen(
         onDispose { chatViewModel.removeMessageListener(roomId, listener) }
     }
 
+    DisposableEffect(roomId) {
+        val typingListener = chatViewModel.startTypingListener(roomId, myUserId)
+        onDispose {
+            chatViewModel.updateTypingStatus(roomId, myUserId, false)
+            chatViewModel.removeTypingListener(roomId, typingListener)
+        }
+    }
+
     ConversationScreen(
         messages = messages,
         myUserId = myUserId,
+        isTyping = isTyping,
+        onTypingStatusChanged = { typing ->
+            chatViewModel.updateTypingStatus(roomId, myUserId, typing)
+        },
         onSendText = { text ->
             chatViewModel.sendTextMessage(roomId, myUserId, text)
+            chatViewModel.updateTypingStatus(roomId, myUserId, false)
         },
         onSendImage = { imageUrl ->
             chatViewModel.sendImageMessage(roomId, myUserId, imageUrl)
@@ -77,6 +91,8 @@ fun ChatScreen(
 fun ConversationScreen(
     messages: List<Message>,
     myUserId: String,
+    isTyping: Boolean,
+    onTypingStatusChanged: (Boolean) -> Unit,
     onSendText: (String) -> Unit,
     onSendImage: (String) -> Unit,
     onSendVoice: (String) -> Unit,
@@ -148,9 +164,23 @@ fun ConversationScreen(
             }
         }
 
+        if (isTyping) {
+            Text(
+                text = stringResource(R.string.typing),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = Dimens.baseMarginDouble)
+            )
+        }
+
         ChatInputBar(
             value = messageText,
-            onValueChange = { messageText = it },
+            onValueChange = {
+                messageText = it
+                onTypingStatusChanged(it.isNotBlank())
+            },
             onSendImage = { onSendImage },
             onVoiceRecord = { onSendVoice },
             onSend = {

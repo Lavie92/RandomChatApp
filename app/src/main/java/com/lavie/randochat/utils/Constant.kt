@@ -52,4 +52,5 @@ object Constants {
     const val CONTENT = "content"
     const val SINGLE_CLICK_TIMEOUT = 600L
     const val SYSTEM = "system"
+    const val TYPING = "typing"
 }
