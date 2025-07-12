@@ -6,6 +6,7 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class ChatRepositoryImpl(
     private val database: DatabaseReference
@@ -45,22 +46,31 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(
         roomId: String,
+        limit: Int,
+        startAfter: Long?,
         onNewMessages: (List<Message>) -> Unit
     ): ValueEventListener {
-        val msgRef = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES)
+        val msgRef = database.child(Constants.CHAT_ROOMS)
+            .child(roomId)
+            .child(Constants.MESSAGES)
+
+        val query = if (startAfter == null) {
+            msgRef.orderByChild(Constants.TIMESTAMP)
+                .limitToLast(limit)
+        } else {
+            msgRef.orderByChild(Constants.TIMESTAMP)
+                .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit)
+        }
+
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val messages = snapshot.children.mapNotNull {val msg = it.getValue(Message::class.java)
-                    msg?.let {
-                        val key = CommonUtils.generateMessageKey(roomId, msg.senderId)
-                        val decryptedContent = try {
-                            CommonUtils.decryptMessage(msg.content, key)
-                        } catch (e: Exception) {
-                            msg.content
-                        }
+                val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                    .sortedBy { it.timestamp }
+                    .map { msg ->
+                        val decryptedContent = decryptedMessage(msg, roomId)
                         msg.copy(content = decryptedContent)
                     }
-                }
 
                 onNewMessages(messages)
             }
@@ -68,7 +78,7 @@ class ChatRepositoryImpl(
             override fun onCancelled(error: DatabaseError) {}
         }
 
-        msgRef.addValueEventListener(listener)
+        query.addValueEventListener(listener)
         listeners[roomId] = listener
         return listener
     }
@@ -89,6 +99,44 @@ class ChatRepositoryImpl(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun getPreviousMessages(
+        roomId: String,
+        limit: Int,
+        startAfter: Long
+    ): List<Message> {
+        val msgRef = database.child(Constants.CHAT_ROOMS)
+            .child(roomId)
+            .child(Constants.MESSAGES)
+
+        return try {
+            val snapshot = msgRef.orderByChild(Constants.TIMESTAMP)
+                .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit)
+                .get()
+                .await()
+
+            snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                .sortedBy { it.timestamp }
+                .map { msg ->
+                    val decryptedContent = decryptedMessage(msg, roomId)
+                    msg.copy(content = decryptedContent)
+                }
+        } catch (e: Exception) {
+            Timber.d(e)
+            emptyList()
+        }
+    }
+
+    private fun decryptedMessage(message: Message, roomId: String) : String {
+        val key = CommonUtils.generateMessageKey(roomId, message.senderId)
+
+        return try {
+            CommonUtils.decryptMessage(message.content, key)
+        } catch (e: Exception) {
+            message.content
         }
     }
 }
