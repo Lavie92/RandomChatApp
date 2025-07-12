@@ -5,6 +5,7 @@ import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class ChatRepositoryImpl(
     private val database: DatabaseReference
@@ -14,7 +15,7 @@ class ChatRepositoryImpl(
 
     override suspend fun sendMessage(roomId: String, message: Message): Result<Unit> {
         return try {
-
+            Timber.d("message: ${message}")
             val key = CommonUtils.generateMessageKey(roomId, message.senderId)
 
             val encryptedContent = CommonUtils.encryptMessage(message.content, key)

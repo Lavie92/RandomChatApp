@@ -53,7 +53,7 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         ) { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString(Constants.ROOM_ID)
             if (roomId != null) {
-                ChatScreen(chatViewModel, authViewModel, roomId)
+                ChatScreen(navController, chatViewModel, authViewModel, roomId)
             }
         }
 
@@ -100,5 +100,14 @@ fun AppNavHost(authViewModel: AuthViewModel) {
                 matchViewModel = matchViewModel
             )
         }
+
+        composable("imagePreview/{imageUrl}") { backStackEntry ->
+            val imageUrl = backStackEntry.arguments?.getString("imageUrl")
+            imageUrl?.let {
+                ImagePreviewScreen(imageUrl = it, navController = navController)
+            }
+        }
+
+
     }
 }
