@@ -6,6 +6,7 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class ChatRepositoryImpl(
     private val database: DatabaseReference
@@ -103,6 +104,39 @@ class ChatRepositoryImpl(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun getPreviousMessages(
+        roomId: String,
+        limit: Int,
+        startAfter: Long
+    ): List<Message> {
+        val msgRef = database.child(Constants.CHAT_ROOMS)
+            .child(roomId)
+            .child(Constants.MESSAGES)
+
+        return try {
+            val snapshot = msgRef.orderByChild(Constants.TIMESTAMP)
+                .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit)
+                .get()
+                .await()
+
+            snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                .sortedBy { it.timestamp }
+                .map { msg ->
+                    val key = CommonUtils.generateMessageKey(roomId, msg.senderId)
+                    val decryptedContent = try {
+                        CommonUtils.decryptMessage(msg.content, key)
+                    } catch (e: Exception) {
+                        msg.content
+                    }
+                    msg.copy(content = decryptedContent)
+                }
+        } catch (e: Exception) {
+            Timber.d(e)
+            emptyList()
         }
     }
 }

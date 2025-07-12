@@ -19,4 +19,11 @@ interface ChatRepository {
         messageId: String,
         status: MessageStatus
     ): Result<Unit>
+
+    suspend fun getPreviousMessages(
+        roomId: String,
+        limit: Int,
+        startAfter: Long
+    ): List<Message>
+
 }
