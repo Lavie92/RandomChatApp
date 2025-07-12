@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import com.lavie.randochat.R
 import com.lavie.randochat.utils.Constants
+import timber.log.Timber
 
 class ChatViewModel(
     private val chatRepository: ChatRepository
@@ -31,14 +32,12 @@ class ChatViewModel(
 
 
     fun loadInitialMessages(roomId: String) {
+        removeMessageListener()
+
         currentRoomId = roomId
         isEndReached = false
         oldestTimestamp = null
         _messages.value = emptyList()
-
-        messagesListener?.let {
-            chatRepository.removeMessageListener(roomId, it)
-        }
 
         messagesListener = chatRepository.listenForMessages(
             roomId, limit = pageSize, startAfter = null
@@ -64,11 +63,15 @@ class ChatViewModel(
 
                 val added = sorted.size
 
-                _messages.value = (sorted + _messages.value).associateBy { it.id }.values.toList()
+                _messages.value = (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
                 oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
 
                 onLoaded(added)
-            } finally {
+            }
+            catch (e: Exception) {
+                Timber.d(e)
+            }
+            finally {
                 _isLoadingMore.value = false
             }
         }

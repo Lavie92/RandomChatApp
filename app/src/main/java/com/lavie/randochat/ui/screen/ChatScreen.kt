@@ -205,8 +205,9 @@ fun ConversationScreen(
             onSendImage = { onSendImage },
             onVoiceRecord = { onSendVoice },
             onSend = {
-                if (messageText.trim().isNotBlank()) {
-                    onSendText(messageText)
+                val messageTrimmed = messageText.trim()
+                if (messageTrimmed.isNotBlank()) {
+                    onSendText(messageTrimmed)
                     messageText = ""
                     shouldScrollToBottom = true
                 }

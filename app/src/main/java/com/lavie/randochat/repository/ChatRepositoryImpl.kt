@@ -55,10 +55,10 @@ class ChatRepositoryImpl(
             .child(Constants.MESSAGES)
 
         val query = if (startAfter == null) {
-            msgRef.orderByChild("timestamp")
+            msgRef.orderByChild(Constants.TIMESTAMP)
                 .limitToLast(limit)
         } else {
-            msgRef.orderByChild("timestamp")
+            msgRef.orderByChild(Constants.TIMESTAMP)
                 .endAt(startAfter.toDouble() - 1)
                 .limitToLast(limit)
         }
@@ -68,12 +68,7 @@ class ChatRepositoryImpl(
                 val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
                     .sortedBy { it.timestamp }
                     .map { msg ->
-                        val key = CommonUtils.generateMessageKey(roomId, msg.senderId)
-                        val decryptedContent = try {
-                            CommonUtils.decryptMessage(msg.content, key)
-                        } catch (e: Exception) {
-                            msg.content
-                        }
+                        val decryptedContent = decryptedMessage(msg, roomId)
                         msg.copy(content = decryptedContent)
                     }
 
@@ -126,17 +121,22 @@ class ChatRepositoryImpl(
             snapshot.children.mapNotNull { it.getValue(Message::class.java) }
                 .sortedBy { it.timestamp }
                 .map { msg ->
-                    val key = CommonUtils.generateMessageKey(roomId, msg.senderId)
-                    val decryptedContent = try {
-                        CommonUtils.decryptMessage(msg.content, key)
-                    } catch (e: Exception) {
-                        msg.content
-                    }
+                    val decryptedContent = decryptedMessage(msg, roomId)
                     msg.copy(content = decryptedContent)
                 }
         } catch (e: Exception) {
             Timber.d(e)
             emptyList()
+        }
+    }
+
+    private fun decryptedMessage(message: Message, roomId: String) : String {
+        val key = CommonUtils.generateMessageKey(roomId, message.senderId)
+
+        return try {
+            CommonUtils.decryptMessage(message.content, key)
+        } catch (e: Exception) {
+            message.content
         }
     }
 }
