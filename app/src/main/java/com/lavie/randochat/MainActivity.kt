@@ -17,6 +17,7 @@ import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.navigation.AppNavHost
 import com.lavie.randochat.ui.theme.RandomChatTheme
 import com.lavie.randochat.viewmodel.AuthViewModel
+import com.lavie.randochat.utils.Constants
 import org.koin.androidx.compose.koinViewModel
 import timber.log.Timber
 
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val authViewModel: AuthViewModel = koinViewModel()
             val context = LocalContext.current
+            val startRoomId = intent.getStringExtra(Constants.ROOM_ID)
 
             val signInLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.StartActivityForResult()
@@ -69,7 +71,7 @@ class MainActivity : ComponentActivity() {
             }
 
             RandomChatTheme {
-                AppNavHost(authViewModel)
+                AppNavHost(authViewModel, startRoomId)
             }
         }
     }

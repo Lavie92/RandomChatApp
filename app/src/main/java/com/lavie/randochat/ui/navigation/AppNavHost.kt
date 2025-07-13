@@ -1,6 +1,7 @@
 package com.lavie.randochat.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,10 +18,18 @@ import com.lavie.randochat.viewmodel.MatchViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AppNavHost(authViewModel: AuthViewModel) {
+fun AppNavHost(authViewModel: AuthViewModel, startRoomId: String? = null) {
     val navController = rememberNavController()
     val matchViewModel: MatchViewModel = koinViewModel()
     val chatViewModel: ChatViewModel = koinViewModel()
+
+    LaunchedEffect(startRoomId) {
+        if (startRoomId != null) {
+            navController.navigate("${Constants.CHAT_SCREEN}/$startRoomId") {
+                popUpTo(0)
+            }
+        }
+    }
 
     NavHost(navController = navController, startDestination = Constants.WELCOME_SCREEN) {
 

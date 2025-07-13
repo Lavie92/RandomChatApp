@@ -1,6 +1,10 @@
 package com.lavie.randochat.ui.screen
 
 import android.app.Activity
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -9,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -48,6 +53,7 @@ import com.lavie.randochat.ui.theme.MessageBackground
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.lavie.randochat.service.ChatHeadService
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
@@ -127,7 +133,22 @@ fun ChatScreen(
             chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
         },
         onLoadMore = { chatViewModel.loadMoreMessages() },
-        isLoadingMore = isLoadingMore
+        isLoadingMore = isLoadingMore,
+        onMinimize = {
+            val intent = Intent(context, ChatHeadService::class.java).apply {
+                putExtra(Constants.ROOM_ID, roomId)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) {
+                val permIntent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${context.packageName}")
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(permIntent)
+            } else {
+                context.startService(intent)
+                activity?.finish()
+            }
+        }
     )
 }
 
@@ -142,6 +163,7 @@ fun ConversationScreen(
     onSendVoice: (String) -> Unit,
     onLoadMore: () -> Unit,
     isLoadingMore: Boolean,
+    onMinimize: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -175,6 +197,18 @@ fun ConversationScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Dimens.baseMargin),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = stringResource(R.string.minimize),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onMinimize() }
+            )
+        }
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
