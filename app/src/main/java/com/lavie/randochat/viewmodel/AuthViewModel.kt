@@ -7,6 +7,8 @@ import com.lavie.randochat.R
 import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 import com.lavie.randochat.repository.UserRepository
+import com.lavie.randochat.service.PreferencesService
+import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ import timber.log.Timber
 
 class AuthViewModel(
     private val userRepository: UserRepository,
-    private val firebaseMessaging: FirebaseMessaging
+    private val firebaseMessaging: FirebaseMessaging,
+    private val prefs: PreferencesService
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<User?>(null)
@@ -87,6 +90,7 @@ class AuthViewModel(
             when (val result = userRepository.checkUserValid()) {
                 is UserRepository.UserResult.Success -> {
                     _loginState.value = result.user
+                    cacheUser(result.user)
                     _errorMessageId.value = null
 
                     val activeRoom = userRepository.getActiveRoomForUser(result.user.id)
@@ -101,8 +105,19 @@ class AuthViewModel(
                 }
 
                 is UserRepository.UserResult.Error -> {
-                    _loginState.value = null
-                    _errorMessageId.value = result.messageId
+                    if (result.messageId == R.string.network_error) {
+                        val cached = getCachedUser()
+                        if (cached != null) {
+                            _loginState.value = cached
+                            _errorMessageId.value = null
+                        } else {
+                            _loginState.value = null
+                            _errorMessageId.value = result.messageId
+                        }
+                    } else {
+                        _loginState.value = null
+                        _errorMessageId.value = result.messageId
+                    }
                 }
 
                 else -> {
@@ -121,6 +136,7 @@ class AuthViewModel(
             is UserRepository.UserResult.Success -> {
                 Timber.d("User saved to database successfully")
                 _loginState.value = saveResult.user
+                cacheUser(saveResult.user)
                 _progressMessageId.value = null
                 _errorMessageId.value = null
 
@@ -197,6 +213,19 @@ class AuthViewModel(
                 userRepository.updateFcmToken(userId, token)
             }
         }
+    }
+
+    private fun cacheUser(user: User) {
+        prefs.putString(Constants.CACHED_USER_ID, user.id)
+        prefs.putString(Constants.CACHED_USER_EMAIL, user.email)
+        prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
+    }
+
+    private fun getCachedUser(): User? {
+        val id = prefs.getString(Constants.CACHED_USER_ID, null) ?: return null
+        val email = prefs.getString(Constants.CACHED_USER_EMAIL, "") ?: ""
+        val nickname = prefs.getString(Constants.CACHED_USER_NICKNAME, "") ?: ""
+        return User(id = id, email = email, nickname = nickname, isOnline = false)
     }
 
     sealed class NavigationEvent {
