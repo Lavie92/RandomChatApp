@@ -45,7 +45,8 @@ class AuthViewModel(
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     init {
-        checkInitialUserState()
+        val hasCached = restoreCachedUser()
+        checkInitialUserState(navigateOnResult = !hasCached)
     }
 
     fun onGoogleLoginClick() {
@@ -86,7 +87,7 @@ class AuthViewModel(
         }
     }
 
-    private fun checkInitialUserState() {
+    private fun checkInitialUserState(navigateOnResult: Boolean) {
         viewModelScope.launch {
             when (val result = userRepository.checkUserValid()) {
                 is UserRepository.UserResult.Success -> {
@@ -98,25 +99,20 @@ class AuthViewModel(
                     _activeRoom.value = activeRoom
                     cacheActiveRoom(activeRoom)
 
-                    if (activeRoom != null) {
-                        val roomId = activeRoom.id
-                        _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
-                    } else {
-                        _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                    if (navigateOnResult) {
+                        if (activeRoom != null) {
+                            val roomId = activeRoom.id
+                            _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
+                        } else {
+                            _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                        }
                     }
                 }
 
                 is UserRepository.UserResult.Error -> {
                     if (result.messageId == R.string.network_error) {
-                        val cached = getCachedUser()
-                        if (cached != null) {
-                            _loginState.value = cached
+                        if (_loginState.value != null) {
                             _errorMessageId.value = null
-                            val cachedRoom = getCachedActiveRoom()
-                            _activeRoom.value = cachedRoom
-                            cachedRoom?.let {
-                                _navigationEvent.emit(NavigationEvent.NavigateToChat(it.id))
-                            }
                         } else {
                             _loginState.value = null
                             _errorMessageId.value = result.messageId
@@ -227,6 +223,25 @@ class AuthViewModel(
         prefs.putString(Constants.CACHED_USER_ID, user.id)
         prefs.putString(Constants.CACHED_USER_EMAIL, user.email)
         prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
+    }
+
+    private fun restoreCachedUser(): Boolean {
+        val cachedUser = getCachedUser()
+        if (cachedUser != null) {
+            _loginState.value = cachedUser
+            _errorMessageId.value = null
+            val cachedRoom = getCachedActiveRoom()
+            _activeRoom.value = cachedRoom
+            viewModelScope.launch {
+                if (cachedRoom != null) {
+                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                } else {
+                    _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                }
+            }
+            return true
+        }
+        return false
     }
 
     private fun getCachedUser(): User? {
