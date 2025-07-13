@@ -53,7 +53,7 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         ) { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString(Constants.ROOM_ID)
             if (roomId != null) {
-                ChatScreen(chatViewModel, authViewModel, roomId)
+                ChatScreen(navController, chatViewModel, authViewModel, roomId)
             }
         }
 

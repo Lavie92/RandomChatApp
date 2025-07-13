@@ -21,10 +21,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -54,9 +60,11 @@ import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
+import androidx.navigation.NavController
 
 @Composable
 fun ChatScreen(
+    navController: NavController,
     chatViewModel: ChatViewModel,
     authViewModel: AuthViewModel,
     roomId: String
@@ -66,6 +74,8 @@ fun ChatScreen(
     val messages by chatViewModel.messages.collectAsState()
     val isLoadingMore by chatViewModel.isLoadingMore.collectAsState()
     val isTyping by chatViewModel.isTyping.collectAsState()
+
+    var messageText by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val activity = context as? Activity
@@ -109,26 +119,46 @@ fun ChatScreen(
         }
     }
 
-    ConversationScreen(
-        messages = messages,
-        myUserId = myUserId,
-        isTyping = isTyping,
-        onTypingStatusChanged = { typing ->
-            chatViewModel.updateTypingStatus(roomId, myUserId, typing)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.chat_random)) },
+                actions = {
+                    IconButton(onClick = { navController.navigate(Constants.SETTINGS_SCREEN) }) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                    }
+                }
+            )
         },
-        onSendText = { text ->
-            chatViewModel.sendTextMessage(roomId, myUserId, text)
-            chatViewModel.updateTypingStatus(roomId, myUserId, false)
-        },
-        onSendImage = { imageUrl ->
-            chatViewModel.sendImageMessage(roomId, myUserId, imageUrl)
-        },
-        onSendVoice = { audioUrl ->
-            chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
-        },
-        onLoadMore = { chatViewModel.loadMoreMessages() },
-        isLoadingMore = isLoadingMore
-    )
+        bottomBar = {
+            ChatInputBar(
+                value = messageText,
+                onValueChange = {
+                    messageText = it
+                    chatViewModel.updateTypingStatus(roomId, myUserId, it.isNotBlank())
+                },
+                onSendImage = {},
+                onVoiceRecord = {},
+                onSend = {
+                    val messageTrimmed = messageText.trim()
+                    if (messageTrimmed.isNotBlank()) {
+                        chatViewModel.sendTextMessage(roomId, myUserId, messageTrimmed)
+                        chatViewModel.updateTypingStatus(roomId, myUserId, false)
+                        messageText = ""
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        ConversationScreen(
+            messages = messages,
+            myUserId = myUserId,
+            isTyping = isTyping,
+            onLoadMore = { chatViewModel.loadMoreMessages() },
+            isLoadingMore = isLoadingMore,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
 }
 
 @Composable
@@ -136,28 +166,20 @@ fun ConversationScreen(
     messages: List<Message>,
     myUserId: String,
     isTyping: Boolean,
-    onTypingStatusChanged: (Boolean) -> Unit,
-    onSendText: (String) -> Unit,
-    onSendImage: (String) -> Unit,
-    onSendVoice: (String) -> Unit,
     onLoadMore: () -> Unit,
     isLoadingMore: Boolean,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
-    var messageText by remember { mutableStateOf("") }
     var selectedMessageId by remember { mutableStateOf<String?>(null) }
-
-    var shouldScrollToBottom by remember { mutableStateOf(true) }
 
     val chatItems = remember(messages) {
         createChatItemsWithTimestamps(messages)
     }
 
-    LaunchedEffect(messages.size, shouldScrollToBottom) {
-        if (shouldScrollToBottom && messages.isNotEmpty()) {
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
-            shouldScrollToBottom = false
         }
     }
 
@@ -242,28 +264,6 @@ fun ConversationScreen(
                     .padding(start = Dimens.baseMarginDouble)
             )
         }
-
-        ChatInputBar(
-            value = messageText,
-            onValueChange = {
-                messageText = it
-                onTypingStatusChanged(it.isNotBlank())
-            },
-            onSendImage = { onSendImage },
-            onVoiceRecord = { onSendVoice },
-            onSend = {
-                val messageTrimmed = messageText.trim()
-                if (messageTrimmed.isNotBlank()) {
-                    onSendText(messageTrimmed)
-                    messageText = ""
-                    shouldScrollToBottom = true
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(WindowInsets.navigationBars.asPaddingValues())
-                .padding(top = Dimens.smallMargin)
-        )
     }
 }
 
