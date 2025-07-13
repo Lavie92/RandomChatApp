@@ -7,9 +7,18 @@ import com.lavie.randochat.utils.MessageStatus
 interface ChatRepository {
     suspend fun sendMessage(roomId: String, message: Message): Result<Unit>
 
-    fun listenForMessages(roomId: String, onNewMessages: (List<Message>) -> Unit): ValueEventListener
+    fun listenForMessages(
+        roomId: String, limit: Int,
+        startAfter: Long? = null, onNewMessages: (List<Message>) -> Unit
+    ): ValueEventListener
 
     fun removeMessageListener(roomId: String, listener: ValueEventListener)
+
+    suspend fun getPreviousMessages(
+        roomId: String,
+        limit: Int,
+        startAfter: Long
+    ): List<Message>
 
     suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit>
 

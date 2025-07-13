@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import com.lavie.randochat.R
 import com.lavie.randochat.utils.Constants
+import timber.log.Timber
 
 class ChatViewModel(
     private val chatRepository: ChatRepository
@@ -21,18 +22,61 @@ class ChatViewModel(
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
     private val sentWelcomeMessages = mutableSetOf<String>()
-
+    private var isEndReached = false
+    private var oldestTimestamp: Long? = null
+    private var currentRoomId: String? = null
+    private val pageSize = Constants.PAGE_SIZE_MESSAGES
+    private var messagesListener: ValueEventListener? = null
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
     private val _isTyping = MutableStateFlow(false)
     val isTyping: StateFlow<Boolean> = _isTyping
 
-    fun startListening(roomId: String): ValueEventListener {
-        return chatRepository.listenForMessages(roomId) { newMessages ->
-            _messages.value = newMessages.sortedBy { it.timestamp }
+
+    fun loadInitialMessages(roomId: String) {
+        removeMessageListener()
+
+        currentRoomId = roomId
+        isEndReached = false
+        oldestTimestamp = null
+        _messages.value = emptyList()
+
+        messagesListener = chatRepository.listenForMessages(
+            roomId, limit = pageSize, startAfter = null
+        ) { newMessages ->
+            val sorted = newMessages.sortedBy { it.timestamp }
+            _messages.value = sorted
+            oldestTimestamp = sorted.minByOrNull { it.timestamp }?.timestamp
+            isEndReached = sorted.size < pageSize
         }
     }
 
-    fun removeMessageListener(roomId: String, listener: ValueEventListener) {
-        chatRepository.removeMessageListener(roomId, listener)
+    fun loadMoreMessages(onLoaded: (addedCount: Int) -> Unit = {}) {
+        if (_isLoadingMore.value || isEndReached || currentRoomId == null || oldestTimestamp == null) return
+
+        _isLoadingMore.value = true
+        viewModelScope.launch {
+            try {
+                val result = chatRepository.getPreviousMessages(
+                    currentRoomId!!, pageSize, oldestTimestamp!!
+                )
+                val sorted = result.sortedBy { it.timestamp }
+                if (result.size < pageSize) isEndReached = true
+
+                val added = sorted.size
+
+                _messages.value = (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
+                oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+
+                onLoaded(added)
+            }
+            catch (e: Exception) {
+                Timber.d(e)
+            }
+            finally {
+                _isLoadingMore.value = false
+            }
+        }
     }
 
     fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean) {
@@ -118,4 +162,10 @@ class ChatViewModel(
         }
     }
 
+    fun removeMessageListener() {
+        currentRoomId?.let { roomId ->
+            messagesListener?.let { chatRepository.removeMessageListener(roomId, it) }
+        }
+        messagesListener = null
+    }
 }
