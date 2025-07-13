@@ -239,8 +239,10 @@ class AuthViewModel(
                     _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                 }
             }
+
             return true
         }
+
         return false
     }
 

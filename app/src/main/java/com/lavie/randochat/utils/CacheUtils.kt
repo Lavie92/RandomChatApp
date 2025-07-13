@@ -10,15 +10,15 @@ object CacheUtils {
         val arr = JSONArray()
         messages.forEach { msg ->
             val obj = JSONObject()
-            obj.put("id", msg.id)
-            obj.put("senderId", msg.senderId)
-            obj.put("content", msg.content)
-            msg.contentResId?.let { obj.put("contentResId", it) }
-            obj.put("timestamp", msg.timestamp)
-            obj.put("type", msg.type.name)
-            obj.put("status", msg.status.name)
+            obj.put(Constants.ID, msg.id)
+            obj.put(Constants.SENDER_ID, msg.senderId)
+            obj.put(Constants.CONTENT, msg.content)
+            obj.put(Constants.TIMESTAMP, msg.timestamp)
+            obj.put(Constants.TYPE, msg.type.name)
+            obj.put(Constants.STATUS, msg.status.name)
             arr.put(obj)
         }
+
         return arr.toString()
     }
 
@@ -30,13 +30,12 @@ object CacheUtils {
             val obj = arr.getJSONObject(i)
             list.add(
                 Message(
-                    id = obj.optString("id"),
-                    senderId = obj.optString("senderId"),
-                    content = obj.optString("content"),
-                    contentResId = if (obj.has("contentResId")) obj.getInt("contentResId") else null,
-                    timestamp = obj.optLong("timestamp"),
-                    type = MessageType.valueOf(obj.optString("type", MessageType.TEXT.name)),
-                    status = MessageStatus.valueOf(obj.optString("status", MessageStatus.SENT.name))
+                    id = obj.optString(Constants.ID),
+                    senderId = obj.optString(Constants.SENDER_ID),
+                    content = obj.optString(Constants.CONTENT),
+                    timestamp = obj.optLong(Constants.TIMESTAMP),
+                    type = MessageType.valueOf(obj.optString(Constants.TYPE, MessageType.TEXT.name)),
+                    status = MessageStatus.valueOf(obj.optString(Constants.STATUS, MessageStatus.SENT.name))
                 )
             )
         }
@@ -45,15 +44,12 @@ object CacheUtils {
 
     fun chatRoomToJson(room: ChatRoom): String {
         val obj = JSONObject()
-        obj.put("id", room.id)
+        obj.put(Constants.ID, room.id)
         val participants = JSONArray()
         room.participantIds.forEach { participants.put(it) }
-        obj.put("participantIds", participants)
-        obj.put("createdAt", room.createdAt)
-        obj.put("lastMessage", room.lastMessage)
-        obj.put("lastUpdated", room.lastUpdated)
-        obj.put("isActive", room.isActive)
-        obj.put("chatType", room.chatType.name)
+        obj.put(Constants.PARTICIPANTS_ID, participants)
+        obj.put(Constants.IS_ACTIVE, room.isActive)
+        obj.put(Constants.CHAT_TYPE, room.chatType.name)
         return obj.toString()
     }
 
@@ -61,20 +57,17 @@ object CacheUtils {
         if (json.isNullOrEmpty()) return null
         val obj = JSONObject(json)
         val participants = mutableListOf<String>()
-        val arr = obj.optJSONArray("participantIds")
+        val arr = obj.optJSONArray(Constants.PARTICIPANTS_ID)
         if (arr != null) {
             for (i in 0 until arr.length()) {
                 participants.add(arr.getString(i))
             }
         }
         return ChatRoom(
-            id = obj.optString("id"),
+            id = obj.optString(Constants.ID),
             participantIds = participants,
-            createdAt = obj.optLong("createdAt"),
-            lastMessage = obj.optString("lastMessage"),
-            lastUpdated = obj.optLong("lastUpdated"),
-            isActive = obj.optBoolean("isActive"),
-            chatType = ChatType.valueOf(obj.optString("chatType", ChatType.RANDOM.name))
+            isActive = obj.optBoolean(Constants.IS_ACTIVE),
+            chatType = ChatType.valueOf(obj.optString(Constants.CHAT_TYPE, ChatType.RANDOM.name))
         )
     }
 }
