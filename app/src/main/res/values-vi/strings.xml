@@ -65,5 +65,9 @@
     <string name="new_message_voice">Đã gửi một tin nhắn thoại</string>
     <string name="notification_permission_required">Bạn cần cấp quyền thông báo để nhận tin nhắn mới</string>
     <string name="channel_id">chat_messages</string>
+    <string name="sending">Đang gửi…</string>
+    <string name="image_saved">Đã lưu ảnh vào thư viện!</string>
+    <string name="download_failed">Tải thất bại: %1$s</string>
+    <string name="permission_denied">Từ chối quyền</string>
 
 </resources>

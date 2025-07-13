@@ -66,5 +66,9 @@
     <string name="new_message_voice">Sent a voice message</string>
     <string name="notification_permission_required">You need to allow notifications to receive new messages</string>
     <string name="channel_id">chat_messages</string>
+    <string name="sending">Sending…</string>
+    <string name="image_saved">Image saved to Gallery!</string>
+    <string name="download_failed">Download failed: %1$s</string>
+    <string name="permission_denied">Permission denied</string>
 
 </resources>

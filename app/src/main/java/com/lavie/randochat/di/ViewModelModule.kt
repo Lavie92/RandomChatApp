@@ -1,5 +1,7 @@
 package com.lavie.randochat.di
 
+import com.lavie.randochat.repository.ImageFileRepository
+import com.lavie.randochat.repository.ImageFileRepositoryImpl
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
@@ -9,5 +11,6 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { AuthViewModel(get(), get()) }
     viewModel { MatchViewModel(get()) }
-    viewModel { ChatViewModel(get()) }
+    viewModel { ChatViewModel(get(), get()) }
+    single<ImageFileRepository> { ImageFileRepositoryImpl() }
 }

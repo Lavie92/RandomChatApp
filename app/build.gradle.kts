@@ -84,4 +84,7 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.coil.compose)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.glide)
+    implementation(libs.glide.transformations)
+    implementation(libs.firebase.appcheck.playintegrity)
 }

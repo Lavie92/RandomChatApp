@@ -23,18 +23,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.lavie.randochat.R
+import com.lavie.randochat.viewmodel.ChatViewModel
 
 @Composable
-fun ImagePreviewScreen(imageUrl: String, navController: NavController) {
+fun ImagePreviewScreen(
+    imageUrl: String,
+    navController: NavController,
+    chatViewModel: ChatViewModel
+) {
     val context = LocalContext.current
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            downloadImageToGallery(context, imageUrl)
+            chatViewModel.downloadImage(context, imageUrl)
         } else {
-            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -49,15 +55,13 @@ fun ImagePreviewScreen(imageUrl: String, navController: NavController) {
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable {
-                    navController.popBackStack()
-                }
+                .clickable { navController.popBackStack() }
         )
 
         FloatingActionButton(
             onClick = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    downloadImageToGallery(context, imageUrl)
+                    chatViewModel.downloadImage(context, imageUrl)
                 } else {
                     permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }

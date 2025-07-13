@@ -1,51 +1,68 @@
 package com.lavie.randochat.ui.screen
 
 import android.net.Uri
+import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import com.lavie.randochat.model.Message
-import com.lavie.randochat.ui.component.ChatInputBar
-import com.lavie.randochat.ui.theme.*
-import com.lavie.randochat.viewmodel.AuthViewModel
-import com.lavie.randochat.viewmodel.ChatViewModel
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.NavController
+import com.bumptech.glide.Glide
+import com.lavie.randochat.R
+import com.lavie.randochat.model.Message
+import com.lavie.randochat.model.MessageStatus
+import com.lavie.randochat.ui.component.ChatInputBar
+import com.lavie.randochat.ui.theme.Dimens
+import com.lavie.randochat.ui.theme.MessageBackground
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageType
-import android.app.DownloadManager
-import android.content.ContentValues
-import android.content.Context
-import android.os.Environment
-import android.provider.MediaStore
-import android.widget.Toast
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.lavie.randochat.viewmodel.AuthViewModel
+import com.lavie.randochat.viewmodel.ChatViewModel
+import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.net.URL
 
 @Composable
 fun ChatScreen(
@@ -57,14 +74,20 @@ fun ChatScreen(
     val myUser by authViewModel.loginState.collectAsState()
     val myUserId = myUser?.id ?: return
     val messages by chatViewModel.messages.collectAsState()
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
         uris.forEach { uri ->
-            chatViewModel.sendImage(roomId, myUserId, uri)
+            scope.launch {
+                chatViewModel.sendImage(roomId, myUserId, uri, context)
+            }
         }
     }
+
 
     DisposableEffect(roomId) {
         val listener = chatViewModel.startListening(roomId)
@@ -143,6 +166,7 @@ fun ConversationScreen(
                             isMe = isMe,
                             type = message.type,
                             time = message.timestamp,
+                            status = message.status,
                             isSelected = selectedMessageId == message.id,
                             onClick = {
                                 selectedMessageId =
@@ -186,6 +210,7 @@ fun MessageBubble(
     type: MessageType,
     time: Long,
     isSelected: Boolean,
+    status: MessageStatus = MessageStatus.SENT,
     onClick: () -> Unit,
     navController: NavController
 ) {
@@ -211,8 +236,7 @@ fun MessageBubble(
                 Dimens.smallBorderStrokeWidth,
                 Color.LightGray
             ) else null
-        )
-        {
+        ) {
             when (type) {
                 MessageType.TEXT -> Text(
                     text = content,
@@ -224,18 +248,55 @@ fun MessageBubble(
                 )
 
                 MessageType.IMAGE -> {
-                    val context = LocalContext.current
-                    AsyncImage(
-                        model = content,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                navController.navigate("imagePreview/${Uri.encode(content)}")
+                    Box(
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val density = LocalDensity.current
+                        val sizePx = with(density) { 200.dp.toPx().toInt() }
+
+                        AndroidView(
+                            factory = { context ->
+                                ImageView(context).apply {
+                                    layoutParams = FrameLayout.LayoutParams(sizePx, sizePx)
+                                    scaleType = ImageView.ScaleType.CENTER_CROP
+                                    if (isMe) {
+                                        Glide.with(this)
+                                            .load(content)
+                                            .placeholder(R.drawable.placeholder)
+                                            .into(this)
+                                    } else {
+                                        Glide.with(this)
+                                            .load(content)
+                                            .placeholder(R.drawable.placeholder)
+                                            .transform(BlurTransformation(25, 3))
+                                            .into(this)
+                                        }
+                                    }
                             },
-                        contentScale = ContentScale.Crop
-                    )
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    navController.navigate("imagePreview/${Uri.encode(content)}")
+                                }
+                        )
+
+
+                        if (status == MessageStatus.SENDING) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(Color.Black.copy(alpha = 0.4f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.sending),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
                 }
 
                 MessageType.VOICE -> {}
@@ -310,38 +371,4 @@ private fun createChatItemsWithTimestamps(
 sealed class ChatItem {
     data class MessageItem(val message: Message) : ChatItem()
     data class TimestampItem(val timestamp: Long) : ChatItem()
-}
-
-fun downloadImageToGallery(context: Context, imageUrl: String) {
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            val inputStream = URL(imageUrl).openStream()
-
-            val filename = "chat_image_${System.currentTimeMillis()}.jpg"
-            val resolver = context.contentResolver
-
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/RandoChat")
-            }
-
-            val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            imageUri?.let { uri ->
-                resolver.openOutputStream(uri).use { outputStream ->
-                    inputStream.copyTo(outputStream!!)
-                }
-            }
-
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Image saved to Gallery!", Toast.LENGTH_SHORT).show()
-            }
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Download failed: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 }

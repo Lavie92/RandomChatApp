@@ -7,6 +7,10 @@ data class Message(
     val senderId: String = "",
     val content: String = "",
     val timestamp: Long = 0L,
-    val type: MessageType = MessageType.TEXT
+    val type: MessageType = MessageType.TEXT,
+    var status: MessageStatus = MessageStatus.SENT
 )
 
+enum class MessageStatus {
+    SENDING, SENT, FAILED
+}
