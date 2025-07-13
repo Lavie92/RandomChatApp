@@ -45,6 +45,9 @@ import com.lavie.randochat.model.Message
 import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.ui.theme.MessageBackground
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
@@ -62,8 +65,11 @@ fun ChatScreen(
     val myUserId = myUser?.id ?: return
     val messages by chatViewModel.messages.collectAsState()
     val isLoadingMore by chatViewModel.isLoadingMore.collectAsState()
+    val isTyping by chatViewModel.isTyping.collectAsState()
+
     val context = LocalContext.current
     val activity = context as? Activity
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     BackHandler {
         activity?.finish()
@@ -80,14 +86,39 @@ fun ChatScreen(
     }
 
     DisposableEffect(roomId) {
-        onDispose { chatViewModel.removeMessageListener() }
+        val typingListener = chatViewModel.startTypingListener(roomId, myUserId)
+
+        onDispose {
+            chatViewModel.removeMessageListener()
+            chatViewModel.updateTypingStatus(roomId, myUserId, false)
+            chatViewModel.removeTypingListener(roomId, typingListener)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                chatViewModel.updateTypingStatus(roomId, myUserId, false)
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     ConversationScreen(
         messages = messages,
         myUserId = myUserId,
+        isTyping = isTyping,
+        onTypingStatusChanged = { typing ->
+            chatViewModel.updateTypingStatus(roomId, myUserId, typing)
+        },
         onSendText = { text ->
             chatViewModel.sendTextMessage(roomId, myUserId, text)
+            chatViewModel.updateTypingStatus(roomId, myUserId, false)
         },
         onSendImage = { imageUrl ->
             chatViewModel.sendImageMessage(roomId, myUserId, imageUrl)
@@ -104,6 +135,8 @@ fun ChatScreen(
 fun ConversationScreen(
     messages: List<Message>,
     myUserId: String,
+    isTyping: Boolean,
+    onTypingStatusChanged: (Boolean) -> Unit,
     onSendText: (String) -> Unit,
     onSendImage: (String) -> Unit,
     onSendVoice: (String) -> Unit,
@@ -199,9 +232,23 @@ fun ConversationScreen(
             }
         }
 
+        if (isTyping) {
+            Text(
+                text = stringResource(R.string.typing),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = Dimens.baseMarginDouble)
+            )
+        }
+
         ChatInputBar(
             value = messageText,
-            onValueChange = { messageText = it },
+            onValueChange = {
+                messageText = it
+                onTypingStatusChanged(it.isNotBlank())
+            },
             onSendImage = { onSendImage },
             onVoiceRecord = { onSendVoice },
             onSend = {

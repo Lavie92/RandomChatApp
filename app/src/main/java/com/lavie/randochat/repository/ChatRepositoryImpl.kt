@@ -13,6 +13,7 @@ class ChatRepositoryImpl(
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
+    private val typingListeners = mutableMapOf<String, ValueEventListener>()
 
     override suspend fun sendMessage(roomId: String, message: Message): Result<Unit> {
         return try {
@@ -138,5 +139,44 @@ class ChatRepositoryImpl(
         } catch (e: Exception) {
             message.content
         }
+    }
+        
+    override suspend fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean): Result<Unit> {
+        return try {
+            val typingRef = database.child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.TYPING)
+                .child(userId)
+            typingRef.setValue(isTyping).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun listenForTyping(
+        roomId: String,
+        myUserId: String,
+        onTyping: (Boolean) -> Unit
+    ): ValueEventListener {
+        val typingRef = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val otherTyping = snapshot.children.any { child ->
+                    child.key != myUserId && child.getValue(Boolean::class.java) == true
+                }
+                onTyping(otherTyping)
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        typingRef.addValueEventListener(listener)
+        typingListeners[roomId] = listener
+        return listener
+    }
+
+    override fun removeTypingListener(roomId: String, listener: ValueEventListener) {
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING).removeEventListener(listener)
+        typingListeners.remove(roomId)
     }
 }

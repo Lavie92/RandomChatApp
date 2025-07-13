@@ -29,6 +29,8 @@ class ChatViewModel(
     private var messagesListener: ValueEventListener? = null
     private val _isLoadingMore = MutableStateFlow(false)
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
+    private val _isTyping = MutableStateFlow(false)
+    val isTyping: StateFlow<Boolean> = _isTyping
 
 
     fun loadInitialMessages(roomId: String) {
@@ -75,6 +77,22 @@ class ChatViewModel(
                 _isLoadingMore.value = false
             }
         }
+    }
+
+    fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean) {
+        viewModelScope.launch {
+            chatRepository.updateTypingStatus(roomId, userId, isTyping)
+        }
+    }
+
+    fun startTypingListener(roomId: String, myUserId: String): ValueEventListener {
+        return chatRepository.listenForTyping(roomId, myUserId) { typing ->
+            _isTyping.value = typing
+        }
+    }
+
+    fun removeTypingListener(roomId: String, listener: ValueEventListener) {
+        chatRepository.removeTypingListener(roomId, listener)
     }
 
     fun sendTextMessage(roomId: String, senderId: String, content: String) {
