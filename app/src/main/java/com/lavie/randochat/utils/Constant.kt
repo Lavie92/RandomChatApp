@@ -10,6 +10,8 @@ object Constants {
     const val EMAIL = "email"
     const val NICKNAME = "nickname"
     const val IS_ONLINE = "isOnline"
+    const val IS_ACTIVE = "isActive"
+    const val PARTICIPANTS_ID = "participantIds"
     const val ACTIVE = "active"
     const val IS_DISABLED = "isDisabled"
     const val LAST_UPDATED = "lastUpdated"
@@ -54,13 +56,10 @@ object Constants {
     const val SYSTEM = "system"
     const val PAGE_SIZE_MESSAGES = 50
     const val TYPING = "typing"
-
-    // Cached user info
     const val CACHED_USER_ID = "cached_user_id"
     const val CACHED_USER_EMAIL = "cached_user_email"
     const val CACHED_USER_NICKNAME = "cached_user_nickname"
-
-    // Cached chat data
     const val CACHED_ACTIVE_ROOM = "cached_active_room"
     const val CACHED_MESSAGES_PREFIX = "cached_messages_"
+    const val SENDER_ID = "senderId"
 }

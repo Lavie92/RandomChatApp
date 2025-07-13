@@ -49,7 +49,7 @@ class AuthViewModel(
         val user = auth.currentUser
         if (user != null && _loginState.value == null) {
             viewModelScope.launch {
-                checkInitialUserState(navigateOnResult = true)
+                checkInitialUserState()
             }
         }
     }
@@ -58,7 +58,7 @@ class AuthViewModel(
         val hasCached = restoreCachedUser()
         userRepository.addAuthStateListener(authStateListener)
         if (!hasCached) {
-            checkInitialUserState(navigateOnResult = true)
+            checkInitialUserState()
         }
     }
 
@@ -105,7 +105,7 @@ class AuthViewModel(
         }
     }
 
-    private fun checkInitialUserState(navigateOnResult: Boolean) {
+    private fun checkInitialUserState() {
         viewModelScope.launch {
             when (val result = userRepository.checkUserValid()) {
                 is UserRepository.UserResult.Success -> {
@@ -117,13 +117,11 @@ class AuthViewModel(
                     _activeRoom.value = activeRoom
                     cacheActiveRoom(activeRoom)
 
-                    if (navigateOnResult) {
-                        if (activeRoom != null) {
-                            val roomId = activeRoom.id
-                            _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
-                        } else {
-                            _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
-                        }
+                    if (activeRoom != null) {
+                        val roomId = activeRoom.id
+                        _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
+                    } else {
+                        _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                     }
                 }
 
@@ -257,8 +255,10 @@ class AuthViewModel(
                     _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                 }
             }
+
             return true
         }
+
         return false
     }
 
