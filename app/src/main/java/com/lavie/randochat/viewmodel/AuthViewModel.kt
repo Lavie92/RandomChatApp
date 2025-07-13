@@ -9,6 +9,7 @@ import com.lavie.randochat.model.User
 import com.lavie.randochat.repository.UserRepository
 import com.lavie.randochat.service.PreferencesService
 import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.utils.CacheUtils
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -95,6 +96,7 @@ class AuthViewModel(
 
                     val activeRoom = userRepository.getActiveRoomForUser(result.user.id)
                     _activeRoom.value = activeRoom
+                    cacheActiveRoom(activeRoom)
 
                     if (activeRoom != null) {
                         val roomId = activeRoom.id
@@ -110,6 +112,11 @@ class AuthViewModel(
                         if (cached != null) {
                             _loginState.value = cached
                             _errorMessageId.value = null
+                            val cachedRoom = getCachedActiveRoom()
+                            _activeRoom.value = cachedRoom
+                            cachedRoom?.let {
+                                _navigationEvent.emit(NavigationEvent.NavigateToChat(it.id))
+                            }
                         } else {
                             _loginState.value = null
                             _errorMessageId.value = result.messageId
@@ -142,6 +149,7 @@ class AuthViewModel(
 
                 val activeRoom = userRepository.getActiveRoomForUser(saveResult.user.id)
                 _activeRoom.value = activeRoom
+                cacheActiveRoom(activeRoom)
 
                 if (activeRoom != null) {
                     val roomId = activeRoom.id
@@ -226,6 +234,20 @@ class AuthViewModel(
         val email = prefs.getString(Constants.CACHED_USER_EMAIL, "") ?: ""
         val nickname = prefs.getString(Constants.CACHED_USER_NICKNAME, "") ?: ""
         return User(id = id, email = email, nickname = nickname, isOnline = false)
+    }
+
+    private fun cacheActiveRoom(room: ChatRoom?) {
+        if (room != null) {
+            val json = CacheUtils.chatRoomToJson(room)
+            prefs.putString(Constants.CACHED_ACTIVE_ROOM, json)
+        } else {
+            prefs.remove(Constants.CACHED_ACTIVE_ROOM)
+        }
+    }
+
+    private fun getCachedActiveRoom(): ChatRoom? {
+        val json = prefs.getString(Constants.CACHED_ACTIVE_ROOM, null)
+        return CacheUtils.jsonToChatRoom(json)
     }
 
     sealed class NavigationEvent {

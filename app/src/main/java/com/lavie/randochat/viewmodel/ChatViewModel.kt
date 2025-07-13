@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
+import com.lavie.randochat.service.PreferencesService
+import com.lavie.randochat.utils.CacheUtils
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
@@ -16,7 +18,8 @@ import com.lavie.randochat.utils.Constants
 import timber.log.Timber
 
 class ChatViewModel(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val prefs: PreferencesService
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
@@ -39,7 +42,11 @@ class ChatViewModel(
         currentRoomId = roomId
         isEndReached = false
         oldestTimestamp = null
-        _messages.value = emptyList()
+        val cachedJson = prefs.getString(Constants.CACHED_MESSAGES_PREFIX + roomId, null)
+        val cachedMessages = CacheUtils.jsonToMessages(cachedJson)
+        _messages.value = cachedMessages.sortedBy { it.timestamp }
+        oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+        isEndReached = cachedMessages.size < pageSize
 
         messagesListener = chatRepository.listenForMessages(
             roomId, limit = pageSize, startAfter = null
@@ -48,6 +55,7 @@ class ChatViewModel(
             _messages.value = sorted
             oldestTimestamp = sorted.minByOrNull { it.timestamp }?.timestamp
             isEndReached = sorted.size < pageSize
+            cacheMessages(roomId, sorted)
         }
     }
 
@@ -67,6 +75,7 @@ class ChatViewModel(
 
                 _messages.value = (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
                 oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+                cacheMessages(currentRoomId!!, _messages.value)
 
                 onLoaded(added)
             }
@@ -124,6 +133,7 @@ class ChatViewModel(
             status = status
         )
         _messages.value = _messages.value + message
+        currentRoomId?.let { cacheMessages(it, _messages.value) }
         viewModelScope.launch {
             val result = chatRepository.sendMessage(roomId, message)
             if (result.isSuccess) {
@@ -131,6 +141,7 @@ class ChatViewModel(
                 _messages.value = _messages.value.map {
                     if (it.id == message.id) it.copy(status = MessageStatus.SENT) else it
                 }
+                currentRoomId?.let { cacheMessages(it, _messages.value) }
             }
         }
     }
@@ -160,6 +171,13 @@ class ChatViewModel(
                 sentWelcomeMessages.add(roomId)
             }
         }
+    }
+
+    private fun cacheMessages(roomId: String, messages: List<Message>) {
+        prefs.putString(
+            Constants.CACHED_MESSAGES_PREFIX + roomId,
+            CacheUtils.messagesToJson(messages)
+        )
     }
 
     fun removeMessageListener() {
