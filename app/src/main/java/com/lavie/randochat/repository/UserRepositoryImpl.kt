@@ -248,4 +248,12 @@ class UserRepositoryImpl(
             .setValue(token)
             .await()
     }
+
+    override fun addAuthStateListener(listener: FirebaseAuth.AuthStateListener) {
+        firebaseAuth.addAuthStateListener(listener)
+    }
+
+    override fun removeAuthStateListener(listener: FirebaseAuth.AuthStateListener) {
+        firebaseAuth.removeAuthStateListener(listener)
+    }
 }
