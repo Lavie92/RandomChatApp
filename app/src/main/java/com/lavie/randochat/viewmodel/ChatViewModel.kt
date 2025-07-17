@@ -34,7 +34,8 @@ class ChatViewModel(
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
     private val _isTyping = MutableStateFlow(false)
     val isTyping: StateFlow<Boolean> = _isTyping
-
+    private var _chatType = MutableStateFlow("")
+    val chatType: StateFlow<String> = _chatType
 
     fun loadInitialMessages(roomId: String) {
         removeMessageListener()
@@ -185,5 +186,12 @@ class ChatViewModel(
             messagesListener?.let { chatRepository.removeMessageListener(roomId, it) }
         }
         messagesListener = null
+    }
+
+    fun loadChatType(roomId: String) {
+        viewModelScope.launch {
+            val type = chatRepository.getChatType(roomId)
+            _chatType.value = type.toString()
+        }
     }
 }

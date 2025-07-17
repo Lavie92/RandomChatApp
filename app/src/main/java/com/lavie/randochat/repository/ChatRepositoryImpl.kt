@@ -179,4 +179,19 @@ class ChatRepositoryImpl(
         database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING).removeEventListener(listener)
         typingListeners.remove(roomId)
     }
+
+    override suspend fun getChatType(roomId: String): String? {
+        return try {
+            val snapshot = database
+                .child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.CHAT_TYPE)
+                .get()
+                .await()
+            snapshot.getValue(String::class.java)
+        } catch (e: Exception) {
+            Timber.e(e)
+            null
+        }
+    }
 }

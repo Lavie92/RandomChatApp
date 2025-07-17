@@ -31,4 +31,6 @@ interface ChatRepository {
     ): ValueEventListener
 
     fun removeTypingListener(roomId: String, listener: ValueEventListener)
+
+    suspend fun getChatType(roomId: String): String?
 }

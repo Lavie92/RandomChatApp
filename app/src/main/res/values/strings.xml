@@ -73,5 +73,8 @@
     <string name="welcome_notice">
         Welcome to Rando Chat! You are about to chat with strangers. For your safety, do not share sensitive personal information and always respect your chat partner. Any inappropriate or abusive behavior is strictly prohibited.
     </string>
+    <string name="random_chat">Random Chat</string>
+    <string name="chat_by_location">Chat Nearby</string>
+    <string name="chat_by_age">Chat by Age</string>
 
 </resources>
