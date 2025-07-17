@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -21,10 +21,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +53,8 @@ import com.lavie.randochat.ui.theme.MessageBackground
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavController
+import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
@@ -57,6 +64,7 @@ import com.lavie.randochat.viewmodel.ChatViewModel
 
 @Composable
 fun ChatScreen(
+    navController: NavController,
     chatViewModel: ChatViewModel,
     authViewModel: AuthViewModel,
     roomId: String
@@ -127,10 +135,12 @@ fun ChatScreen(
             chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
         },
         onLoadMore = { chatViewModel.loadMoreMessages() },
-        isLoadingMore = isLoadingMore
+        isLoadingMore = isLoadingMore,
+        navController = navController
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationScreen(
     messages: List<Message>,
@@ -142,6 +152,7 @@ fun ConversationScreen(
     onSendVoice: (String) -> Unit,
     onLoadMore: () -> Unit,
     isLoadingMore: Boolean,
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -170,100 +181,111 @@ fun ConversationScreen(
             }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize(),
-            state = listState,
-            verticalArrangement = Arrangement.Bottom,
-            contentPadding = PaddingValues(bottom = Dimens.baseMargin),
-        ) {
-            if (isLoadingMore) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = Dimens.baseMargin),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Chat Random") },
+                actions = {
+                    ImageButton(onClick = { navController.navigate("settings") }, icon = Icons.Default.Settings)
                 }
-            }
-
-            items(chatItems, key = { item ->
-                when (item) {
-                    is ChatItem.MessageItem -> item.message.id
-                    is ChatItem.TimestampItem -> "${Constants.TIMESTAMP}${item.timestamp}"
-                }
-            }) { item ->
-                when (item) {
-                    is ChatItem.MessageItem -> {
-                        val message = item.message
-                        val isMe = message.senderId == myUserId
-                        val lastMessageId = messages.lastOrNull()?.id
-
-                        MessageBubble(
-                            content = if (message.isSystemMessage() && message.contentResId != null) {
-                                stringResource(message.contentResId)
-                            } else message.content,
-                            isMe = isMe,
-                            type = message.type,
-                            time = message.timestamp,
-                            status = message.status,
-                            showStatus = isMe && message.id == lastMessageId,
-                            isSelected = selectedMessageId == message.id,
-                            onClick = {
-                                selectedMessageId =
-                                    if (selectedMessageId == message.id) null else message.id
-                            }
-                        )
-                    }
-
-                    is ChatItem.TimestampItem -> {
-                        TimestampHeader(timestamp = item.timestamp)
-                    }
-                }
-            }
-        }
-
-        if (isTyping) {
-            Text(
-                text = stringResource(R.string.typing),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = Dimens.baseMarginDouble)
             )
         }
-
-        ChatInputBar(
-            value = messageText,
-            onValueChange = {
-                messageText = it
-                onTypingStatusChanged(it.isNotBlank())
-            },
-            onSendImage = { onSendImage },
-            onVoiceRecord = { onSendVoice },
-            onSend = {
-                val messageTrimmed = messageText.trim()
-                if (messageTrimmed.isNotBlank()) {
-                    onSendText(messageTrimmed)
-                    messageText = ""
-                    shouldScrollToBottom = true
-                }
-            },
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(WindowInsets.navigationBars.asPaddingValues())
-                .padding(top = Dimens.smallMargin)
-        )
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.surface)
+                .imePadding()
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize(),
+                state = listState,
+                verticalArrangement = Arrangement.Bottom,
+                contentPadding = PaddingValues(bottom = Dimens.emptySize),
+            ) {
+                if (isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = Dimens.baseMargin),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+                items(chatItems, key = { item ->
+                    when (item) {
+                        is ChatItem.MessageItem -> item.message.id
+                        is ChatItem.TimestampItem -> "${Constants.TIMESTAMP}${item.timestamp}"
+                    }
+                }) { item ->
+                    when (item) {
+                        is ChatItem.MessageItem -> {
+                            val message = item.message
+                            val isMe = message.senderId == myUserId
+                            val lastMessageId = messages.lastOrNull()?.id
+
+                            MessageBubble(
+                                content = if (message.isSystemMessage() && message.contentResId != null) {
+                                    stringResource(message.contentResId)
+                                } else message.content,
+                                isMe = isMe,
+                                type = message.type,
+                                time = message.timestamp,
+                                status = message.status,
+                                showStatus = isMe && message.id == lastMessageId,
+                                isSelected = selectedMessageId == message.id,
+                                onClick = {
+                                    selectedMessageId =
+                                        if (selectedMessageId == message.id) null else message.id
+                                }
+                            )
+                        }
+
+                        is ChatItem.TimestampItem -> {
+                            TimestampHeader(timestamp = item.timestamp)
+                        }
+                    }
+                }
+            }
+
+            if (isTyping) {
+                Text(
+                    text = stringResource(R.string.typing),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = Dimens.baseMarginDouble)
+                )
+            }
+
+            ChatInputBar(
+                value = messageText,
+                onValueChange = {
+                    messageText = it
+                    onTypingStatusChanged(it.isNotBlank())
+                },
+                onSendImage = { onSendImage },
+                onVoiceRecord = { onSendVoice },
+                onSend = {
+                    val messageTrimmed = messageText.trim()
+                    if (messageTrimmed.isNotBlank()) {
+                        onSendText(messageTrimmed)
+                        messageText = ""
+                        shouldScrollToBottom = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
     }
 }
 
