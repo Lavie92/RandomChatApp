@@ -194,5 +194,4 @@ class ChatRepositoryImpl(
             null
         }
     }
-
 }
