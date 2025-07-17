@@ -72,4 +72,8 @@
     <string name="welcome_notice">
         Chào mừng đến với Rando Chat! Đây là nền tảng trò chuyện với người lạ. Vì sự an toàn của bạn, không nên cung cấp thông tin cá nhân nhạy cảm và hãy luôn tôn trọng người trò chuyện cùng. Mọi hành vi thô tục, quấy rối đều bị nghiêm cấm.
     </string>
+    <string name="random_chat">Chat Ngẫu Nhiên</string>
+    <string name="chat_by_location">Chat theo vị trí</string>
+    <string name="chat_by_age">Chat theo độ tuổi</string>
+
 </resources>

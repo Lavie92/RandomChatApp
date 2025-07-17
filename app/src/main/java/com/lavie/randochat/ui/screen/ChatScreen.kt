@@ -10,11 +10,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,16 +43,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.lavie.randochat.R
-import com.lavie.randochat.model.Message
-import com.lavie.randochat.ui.component.ChatInputBar
-import com.lavie.randochat.ui.theme.Dimens
-import com.lavie.randochat.ui.theme.MessageBackground
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.lavie.randochat.R
+import com.lavie.randochat.model.Message
+import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.ImageButton
+import com.lavie.randochat.ui.theme.Dimens
+import com.lavie.randochat.ui.theme.MessageBackground
+import com.lavie.randochat.utils.ChatType
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
@@ -74,6 +73,7 @@ fun ChatScreen(
     val messages by chatViewModel.messages.collectAsState()
     val isLoadingMore by chatViewModel.isLoadingMore.collectAsState()
     val isTyping by chatViewModel.isTyping.collectAsState()
+    val chatType by chatViewModel.chatType.collectAsState()
 
     val context = LocalContext.current
     val activity = context as? Activity
@@ -90,6 +90,7 @@ fun ChatScreen(
     }
 
     LaunchedEffect(roomId) {
+        chatViewModel.loadChatType(roomId)
         chatViewModel.loadInitialMessages(roomId)
     }
 
@@ -136,6 +137,7 @@ fun ChatScreen(
         },
         onLoadMore = { chatViewModel.loadMoreMessages() },
         isLoadingMore = isLoadingMore,
+        chatType = chatType,
         navController = navController
     )
 }
@@ -152,8 +154,8 @@ fun ConversationScreen(
     onSendVoice: (String) -> Unit,
     onLoadMore: () -> Unit,
     isLoadingMore: Boolean,
+    chatType: String,
     navController: NavController,
-    modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
@@ -184,9 +186,9 @@ fun ConversationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chat Random") },
+                title = { Text(text = stringResource(getTitleFromChatType(getTitleFromChatType(chatType).toString()))) },
                 actions = {
-                    ImageButton(onClick = { navController.navigate("settings") }, icon = Icons.Default.Settings)
+                    ImageButton(onClick = { navController.navigate(Constants.SETTINGS_SCREEN) }, icon = Icons.Default.Settings)
                 }
             )
         }
@@ -419,6 +421,22 @@ private fun createChatItemsWithTimestamps(
     }
 
     return chatItems
+}
+
+private fun getTitleFromChatType(chatType: String) : Int {
+    return when (chatType) {
+        ChatType.AGE.name -> {
+            R.string.chat_by_age
+        }
+        ChatType.LOCATION.name -> {
+            R.string.chat_by_location
+        }
+        ChatType.RANDOM.name -> {
+            R.string.random_chat
+        }
+
+        else -> {R.string.random_chat}
+    }
 }
 
 sealed class ChatItem {
