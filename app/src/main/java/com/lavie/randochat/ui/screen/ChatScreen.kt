@@ -284,6 +284,9 @@ fun ConversationScreen(
                         shouldScrollToBottom = true
                     }
                 },
+                onReportClick = {},
+                onLikeClick = {},
+                onExitClick = {},
                 modifier = Modifier
                     .fillMaxWidth()
             )
