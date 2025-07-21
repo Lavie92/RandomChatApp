@@ -70,5 +70,8 @@
     <string name="image_saved">Image saved to Gallery!</string>
     <string name="download_failed">Download failed: %1$s</string>
     <string name="permission_denied">Permission denied</string>
+    <string name="voice_playback_failed">Cannot play voice message</string>
+    <string name="record_error">An error occurred while recording. Please try again.</string>
+    <string name="record_permission_required">You need to grant microphone permission to use this feature</string>
 
 </resources>

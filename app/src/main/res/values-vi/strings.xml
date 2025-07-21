@@ -69,5 +69,8 @@
     <string name="image_saved">Đã lưu ảnh vào thư viện!</string>
     <string name="download_failed">Tải thất bại: %1$s</string>
     <string name="permission_denied">Từ chối quyền</string>
+    <string name="voice_playback_failed">Không phát được ghi âm</string>
+    <string name="record_error">Đã xảy ra lỗi khi ghi âm. Vui lòng thử lại.</string>
+    <string name="record_permission_required">Bạn cần cấp quyền ghi âm để sử dụng tính năng này</string>
 
 </resources>

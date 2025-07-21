@@ -1,8 +1,13 @@
 package com.lavie.randochat.ui.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.media.MediaPlayer
+import android.media.MediaRecorder
 import android.net.Uri
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -13,6 +18,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,11 +27,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,24 +57,32 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.bumptech.glide.Glide
 import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.model.MessageStatus
 import com.lavie.randochat.ui.component.ChatInputBar
+import com.lavie.randochat.ui.component.VoiceRecordState
+import com.lavie.randochat.utils.resolveAudioFile
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.ui.theme.MessageBackground
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageType
+import com.lavie.randochat.utils.formatMillis
+import com.lavie.randochat.utils.getAudioDurationMs
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import jp.wasabeef.glide.transformations.BlurTransformation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.io.File
 
 @Composable
 fun ChatScreen(
@@ -75,8 +95,18 @@ fun ChatScreen(
     val myUserId = myUser?.id ?: return
     val messages by chatViewModel.messages.collectAsState()
     val context = LocalContext.current
-
     val scope = rememberCoroutineScope()
+    val isPlaying = remember { mutableStateOf(false) }
+
+    val recordAudioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, context.getString(R.string.record_permission_required), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val voiceRecordState by chatViewModel.voiceRecordState.collectAsState()
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -87,6 +117,7 @@ fun ChatScreen(
             }
         }
     }
+
 
 
     DisposableEffect(roomId) {
@@ -103,11 +134,18 @@ fun ChatScreen(
         onSendImage = {
             galleryLauncher.launch("image/*")
         },
-        onSendVoice = { audioUrl ->
-            chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
+        navController = navController,
+        voiceRecordState = voiceRecordState,
+        onVoiceRecordStart = {
+            chatViewModel.startRecording(context) {
+                recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
         },
-        navController = navController
+        onVoiceRecordStop = { chatViewModel.stopRecording() },
+        onVoiceRecordCancel = { chatViewModel.cancelRecording() },
+        onVoiceRecordSend = { chatViewModel.sendVoiceMessageOptimistic(context, roomId, myUserId) },
     )
+
 }
 
 @Composable
@@ -116,9 +154,13 @@ fun ConversationScreen(
     myUserId: String,
     onSendText: (String) -> Unit,
     onSendImage: () -> Unit,
-    onSendVoice: (String) -> Unit,
     modifier: Modifier = Modifier,
     navController: NavController,
+    voiceRecordState: VoiceRecordState,
+    onVoiceRecordStart: () -> Unit,
+    onVoiceRecordStop: () -> Unit,
+    onVoiceRecordSend: () -> Unit,
+    onVoiceRecordCancel: () -> Unit,
 ) {
     val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
@@ -186,11 +228,16 @@ fun ConversationScreen(
         ChatInputBar(
             value = messageText,
             onValueChange = { messageText = it },
-            onSendImage = {onSendImage() },
-            onVoiceRecord = { onSendVoice },
+            onSendImage = { onSendImage() },
+            voiceRecordState = voiceRecordState,
+            onVoiceRecordStart = { onVoiceRecordStart() },
+            onVoiceRecordStop = { onVoiceRecordStop() },
+            onVoiceRecordCancel = { onVoiceRecordCancel() },
+            onVoiceRecordSend = { onVoiceRecordSend() },
             onSend = {
-                if (messageText.trim().isNotBlank()) {
-                    onSendText(messageText)
+                val messageTrimmed = messageText.trim()
+                if (messageTrimmed.isNotBlank()) {
+                    onSendText(messageTrimmed)
                     messageText = ""
                     shouldScrollToBottom = true
                 }
@@ -270,8 +317,8 @@ fun MessageBubble(
                                             .placeholder(R.drawable.placeholder)
                                             .transform(BlurTransformation(25, 3))
                                             .into(this)
-                                        }
                                     }
+                                }
                             },
                             modifier = Modifier
                                 .size(200.dp)
@@ -280,7 +327,6 @@ fun MessageBubble(
                                     navController.navigate("imagePreview/${Uri.encode(content)}")
                                 }
                         )
-
 
                         if (status == MessageStatus.SENDING) {
                             Box(
@@ -299,7 +345,93 @@ fun MessageBubble(
                     }
                 }
 
-                MessageType.VOICE -> {}
+                MessageType.VOICE -> {
+                    val context = LocalContext.current
+                    val scope = rememberCoroutineScope()
+                    val mediaPlayer = remember { MediaPlayer() }
+                    val isPlaying = remember { mutableStateOf(false) }
+                    var durationText by remember { mutableStateOf("0:00") }
+                    var displayTime by remember { mutableStateOf("0:00") }
+                    var durationMs by remember { mutableStateOf(0L) }
+                    var lastPlaybackPosition by remember { mutableStateOf(0) }
+
+                    // Load duration ban đầu
+                    LaunchedEffect(content) {
+                        scope.launch {
+                            val file = resolveAudioFile(context, content)
+                            if (file != null) {
+                                durationMs = getAudioDurationMs(file)
+                                durationText = formatMillis(durationMs)
+                                displayTime = durationText
+                            }
+                        }
+                    }
+
+                    fun startPlayback(file: File) {
+                        try {
+                            mediaPlayer.reset()
+                            mediaPlayer.setDataSource(file.absolutePath)
+                            mediaPlayer.prepare()
+                            mediaPlayer.seekTo(lastPlaybackPosition)
+                            mediaPlayer.start()
+                            isPlaying.value = true
+
+                            scope.launch {
+                                while (isPlaying.value && mediaPlayer.isPlaying) {
+                                    delay(1000)
+                                    val current = mediaPlayer.currentPosition
+                                    displayTime = formatMillis(current.toLong())
+                                }
+                            }
+
+                            mediaPlayer.setOnCompletionListener {
+                                isPlaying.value = false
+                                lastPlaybackPosition = 0
+                                displayTime = durationText
+                            }
+                        } catch (e: Exception) {
+                            isPlaying.value = false
+                            Toast.makeText(context, "Không phát được ghi âm", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    // UI hiển thị
+                    Surface(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MessageBackground)
+                            .clickable {
+                                scope.launch {
+                                    val file = resolveAudioFile(context, content)
+                                    if (file != null) {
+                                        if (isPlaying.value) {
+                                            lastPlaybackPosition = mediaPlayer.currentPosition
+                                            mediaPlayer.pause()
+                                            isPlaying.value = false
+                                        } else {
+                                            displayTime = formatMillis(lastPlaybackPosition.toLong())
+                                            startPlayback(file)
+                                        }
+                                    }
+                                }
+                            },
+                        color = Color(0xFF007AFF)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying.value) Icons.Default.Stop else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(displayTime, color = Color.White)
+                        }
+                    }
+                }
             }
         }
 

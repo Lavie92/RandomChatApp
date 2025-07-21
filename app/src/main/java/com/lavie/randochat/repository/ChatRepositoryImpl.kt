@@ -1,14 +1,21 @@
 package com.lavie.randochat.repository
 
+import android.content.Context
+import android.net.Uri
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import java.io.File
 
 class ChatRepositoryImpl(
-    private val database: DatabaseReference
+    private val database: DatabaseReference,
+    private val storage: FirebaseStorage
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
@@ -76,5 +83,18 @@ class ChatRepositoryImpl(
     override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
         database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
         listeners.remove(roomId)
+    }
+
+    override suspend fun uploadAudioFile(context: Context, file: File): Result<String> = suspendCancellableCoroutine { cont ->
+        val ref = storage.reference.child("chat_audios/${System.currentTimeMillis()}.m4a")
+        ref.putFile(Uri.fromFile(file))
+            .addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { uri ->
+                    cont.resume(Result.success(uri.toString()), null)
+                }
+            }
+            .addOnFailureListener {
+                cont.resume(Result.failure(it), null)
+            }
     }
 }

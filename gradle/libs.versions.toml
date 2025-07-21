@@ -22,7 +22,6 @@ coil = "2.4.0"
 firebaseStorageKtx = "20.3.0"
 glide = "4.15.1"
 glideTransformations = "4.3.0"
-firebaseAppCheck = "17.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -59,7 +58,6 @@ firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
 glide-transformations = { group = "jp.wasabeef", name = "glide-transformations", version.ref = "glideTransformations" }
-firebase-appcheck-playintegrity = { module = "com.google.firebase:firebase-appcheck-playintegrity", version.ref = "firebaseAppCheck" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

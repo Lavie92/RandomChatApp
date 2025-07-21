@@ -86,5 +86,4 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(libs.glide)
     implementation(libs.glide.transformations)
-    implementation(libs.firebase.appcheck.playintegrity)
 }
