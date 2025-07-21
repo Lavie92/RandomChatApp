@@ -180,6 +180,31 @@ class ChatRepositoryImpl(
         typingListeners.remove(roomId)
     }
 
+    override fun listenToRoomStatus(
+        roomId: String,
+        onStatusChanged: (Boolean) -> Unit
+    ): ValueEventListener {
+        val ref = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.ACTIVE)
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val isActive = snapshot.getValue(Boolean::class.java) ?: true
+                onStatusChanged(isActive)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Timber.e(error.message)
+            }
+        }
+        ref.addValueEventListener(listener)
+
+        return listener
+    }
+
+    override fun removeRoomStatusListener(roomId: String, listener: ValueEventListener) {
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.ACTIVE).removeEventListener(listener)
+    }
+
     override suspend fun getChatType(roomId: String): String? {
         return try {
             val snapshot = database
@@ -192,6 +217,22 @@ class ChatRepositoryImpl(
         } catch (e: Exception) {
             Timber.e(e)
             null
+        }
+    }
+
+    override suspend fun endChat(roomId: String): Result<Unit> {
+        return try {
+            val roomUpdates = mapOf(
+                "${Constants.CHAT_ROOMS}/${roomId}/${Constants.ACTIVE}" to false,
+                "${Constants.CHAT_ROOMS}/${roomId}/${Constants.LAST_UPDATED}" to System.currentTimeMillis()
+            )
+
+            database.updateChildren(roomUpdates).await()
+
+            Result.success(Unit)
+        } catch(ex: Exception) {
+            Timber.e(ex, "Failed to end chat for room $roomId")
+            Result.failure(ex)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.lavie.randochat.viewmodel
 
+import android.renderscript.Sampler.Value
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lavie.randochat.model.Message
@@ -36,6 +37,9 @@ class ChatViewModel(
     val isTyping: StateFlow<Boolean> = _isTyping
     private var _chatType = MutableStateFlow("")
     val chatType: StateFlow<String> = _chatType
+    private var _isChatRoomEnded = MutableStateFlow(false)
+    val isChatRoomEnded = _isChatRoomEnded
+    private var roomStatusListener: ValueEventListener? = null
 
     fun loadInitialMessages(roomId: String) {
         removeMessageListener()
@@ -192,6 +196,39 @@ class ChatViewModel(
         viewModelScope.launch {
             val type = chatRepository.getChatType(roomId)
             _chatType.value = type.toString()
+        }
+    }
+
+    fun endChat(roomId: String) {
+        viewModelScope.launch {
+            try {
+                val result = chatRepository.endChat(roomId)
+                if (result.isSuccess) {
+                    _isChatRoomEnded.value = true
+
+                    prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
+
+                    Timber.d("Chat Ended")
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex, "Error when ending chat")
+            }
+        }
+    }
+
+    fun listenToRoomStatus(roomId: String) {
+        roomStatusListener?.let {
+            chatRepository.removeRoomStatusListener(roomId, it)
+        }
+
+        roomStatusListener = chatRepository.listenToRoomStatus(roomId) { isActive ->
+            val ended = !isActive
+            _isChatRoomEnded.value = ended
+
+            if (ended) {
+                prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
+                Timber.d("Detected chat end. Cache cleared.")
+            }
         }
     }
 }

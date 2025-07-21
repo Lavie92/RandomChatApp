@@ -33,4 +33,10 @@ interface ChatRepository {
     fun removeTypingListener(roomId: String, listener: ValueEventListener)
 
     suspend fun getChatType(roomId: String): String?
+
+    suspend fun endChat(roomId: String): Result<Unit>
+
+    fun listenToRoomStatus(roomId: String, onStatusChanged: (Boolean) -> Unit): ValueEventListener
+
+    fun removeRoomStatusListener(roomId: String, listener: ValueEventListener)
 }

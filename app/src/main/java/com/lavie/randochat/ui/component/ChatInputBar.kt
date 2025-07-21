@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.theme.Dimens
 
@@ -44,7 +45,11 @@ fun ChatInputBar(
             .padding(horizontal = Dimens.baseMargin, vertical = Dimens.smallMargin),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .padding(end = Dimens.baseMargin)
+                .align(Alignment.CenterVertically)
+        ) {
             ImageButton(
                 onClick = { menuExpanded = true },
                 icon = Icons.Default.Add,
@@ -53,24 +58,25 @@ fun ChatInputBar(
 
             DropdownMenu(
                 expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false }
+                onDismissRequest = { menuExpanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
                 DropdownMenuItem(
-                    text = { Text("❤️ " + "Thả tim") },
+                    text = { Text(stringResource(R.string.send_heart)) },
                     onClick = {
                         menuExpanded = false
                         onLikeClick()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("⚠️ " + "Báo cáo") },
+                    text = { Text(stringResource(R.string.report)) },
                     onClick = {
                         menuExpanded = false
                         onReportClick()
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("🚪 " + "Thoát") },
+                    text = { Text(stringResource(R.string.leave_chat)) },
                     onClick = {
                         menuExpanded = false
                         onExitClick()
@@ -79,7 +85,7 @@ fun ChatInputBar(
             }
         }
 
-        Spacer(modifier = Modifier.width(Dimens.baseMargin))
+        Spacer(modifier = Modifier.width(Dimens.baseMarginDouble))
 
         ImageButton(
             onClick = onSendImage,
