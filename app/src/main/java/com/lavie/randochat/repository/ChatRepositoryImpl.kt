@@ -10,8 +10,10 @@ import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
-import timber.log.Timber
 import java.io.File
+import com.lavie.randochat.utils.MessageStatus
+import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class ChatRepositoryImpl(
     private val database: DatabaseReference,
@@ -19,6 +21,7 @@ class ChatRepositoryImpl(
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
+    private val typingListeners = mutableMapOf<String, ValueEventListener>()
 
     override suspend fun sendMessage(roomId: String, message: Message): Result<Unit> {
         return try {
@@ -52,22 +55,31 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(
         roomId: String,
+        limit: Int,
+        startAfter: Long?,
         onNewMessages: (List<Message>) -> Unit
     ): ValueEventListener {
-        val msgRef = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES)
+        val msgRef = database.child(Constants.CHAT_ROOMS)
+            .child(roomId)
+            .child(Constants.MESSAGES)
+
+        val query = if (startAfter == null) {
+            msgRef.orderByChild(Constants.TIMESTAMP)
+                .limitToLast(limit)
+        } else {
+            msgRef.orderByChild(Constants.TIMESTAMP)
+                .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit)
+        }
+
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val messages = snapshot.children.mapNotNull {val msg = it.getValue(Message::class.java)
-                    msg?.let {
-                        val key = CommonUtils.generateMessageKey(roomId, msg.senderId)
-                        val decryptedContent = try {
-                            CommonUtils.decryptMessage(msg.content, key)
-                        } catch (e: Exception) {
-                            msg.content
-                        }
+                val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                    .sortedBy { it.timestamp }
+                    .map { msg ->
+                        val decryptedContent = decryptedMessage(msg, roomId)
                         msg.copy(content = decryptedContent)
                     }
-                }
 
                 onNewMessages(messages)
             }
@@ -75,7 +87,7 @@ class ChatRepositoryImpl(
             override fun onCancelled(error: DatabaseError) {}
         }
 
-        msgRef.addValueEventListener(listener)
+        query.addValueEventListener(listener)
         listeners[roomId] = listener
         return listener
     }
@@ -85,16 +97,123 @@ class ChatRepositoryImpl(
         listeners.remove(roomId)
     }
 
-    override suspend fun uploadAudioFile(context: Context, file: File): Result<String> = suspendCancellableCoroutine { cont ->
-        val ref = storage.reference.child("chat_audios/${System.currentTimeMillis()}.m4a")
-        ref.putFile(Uri.fromFile(file))
-            .addOnSuccessListener {
-                ref.downloadUrl.addOnSuccessListener { uri ->
-                    cont.resume(Result.success(uri.toString()), null)
-                }
-            }
-            .addOnFailureListener {
-                cont.resume(Result.failure(it), null)
-            }
+    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
+        return try {
+            val statusRef = database.child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.MESSAGES)
+                .child(messageId)
+                .child(Constants.STATUS)
+            statusRef.setValue(status.name).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
+
+    override suspend fun getPreviousMessages(
+        roomId: String,
+        limit: Int,
+        startAfter: Long
+    ): List<Message> {
+        val msgRef = database.child(Constants.CHAT_ROOMS)
+            .child(roomId)
+            .child(Constants.MESSAGES)
+
+        return try {
+            val snapshot = msgRef.orderByChild(Constants.TIMESTAMP)
+                .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit)
+                .get()
+                .await()
+
+            snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                .sortedBy { it.timestamp }
+                .map { msg ->
+                    val decryptedContent = decryptedMessage(msg, roomId)
+                    msg.copy(content = decryptedContent)
+                }
+        } catch (e: Exception) {
+            Timber.d(e)
+            emptyList()
+        }
+    }
+
+    private fun decryptedMessage(message: Message, roomId: String) : String {
+        val key = CommonUtils.generateMessageKey(roomId, message.senderId)
+
+        return try {
+            CommonUtils.decryptMessage(message.content, key)
+        } catch (e: Exception) {
+            message.content
+        }
+    }
+        
+    override suspend fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean): Result<Unit> {
+        return try {
+            val typingRef = database.child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.TYPING)
+                .child(userId)
+            typingRef.setValue(isTyping).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun listenForTyping(
+        roomId: String,
+        myUserId: String,
+        onTyping: (Boolean) -> Unit
+    ): ValueEventListener {
+        val typingRef = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val otherTyping = snapshot.children.any { child ->
+                    child.key != myUserId && child.getValue(Boolean::class.java) == true
+                }
+                onTyping(otherTyping)
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        typingRef.addValueEventListener(listener)
+        typingListeners[roomId] = listener
+        return listener
+    }
+
+    override fun removeTypingListener(roomId: String, listener: ValueEventListener) {
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING).removeEventListener(listener)
+        typingListeners.remove(roomId)
+    }
+
+    override suspend fun getChatType(roomId: String): String? {
+        return try {
+            val snapshot = database
+                .child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.CHAT_TYPE)
+                .get()
+                .await()
+            snapshot.getValue(String::class.java)
+        } catch (e: Exception) {
+            Timber.e(e)
+            null
+        }
+    }
+
+    override suspend fun uploadAudioFile(context: Context, file: File): Result<String> =
+        suspendCancellableCoroutine { cont ->
+            val ref = storage.reference.child("chat_audios/${System.currentTimeMillis()}.m4a")
+            ref.putFile(Uri.fromFile(file))
+                .addOnSuccessListener {
+                    ref.downloadUrl.addOnSuccessListener { uri ->
+                        cont.resume(Result.success(uri.toString()), null)
+                    }
+                }
+                .addOnFailureListener {
+                    cont.resume(Result.failure(it), null)
+                }
+        }
 }

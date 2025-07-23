@@ -9,8 +9,8 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { AuthViewModel(get(), get()) }
-    viewModel { MatchViewModel(get()) }
-    viewModel { ChatViewModel(get(), get()) }
-    single<ImageFileRepository> { ImageFileRepositoryImpl() }
+    viewModel { AuthViewModel(get(), get(), get()) }
+    viewModel { MatchViewModel(get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get()) }
+ 	single<ImageFileRepository> { ImageFileRepositoryImpl() }
 }

@@ -1,5 +1,7 @@
 package com.lavie.randochat.ui.screen
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +29,7 @@ import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.ChatType
 import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.utils.singleClickHandler
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
 
@@ -35,20 +38,24 @@ fun StartChatScreen(
     navController: NavController,
     matchViewModel: MatchViewModel,
     authViewModel: AuthViewModel,
-    modifier: Modifier = Modifier
 ) {
     val myUser by authViewModel.loginState.collectAsState()
     val matchState by matchViewModel.matchState.collectAsState()
 
     val myUserId = myUser?.id
     val context = LocalContext.current
-    val isMatching = matchState is MatchViewModel.MatchState.Matching || matchState is MatchViewModel.MatchState.Waiting
 
     //TODO Need to get value from user choice
     val chatType: ChatType = ChatType.RANDOM
 
+    val activity = context as? Activity
+
+    BackHandler {
+        activity?.finish()
+    }
+
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -71,7 +78,7 @@ fun StartChatScreen(
         CustomSpacer(height = Dimens.baseSpacerHeight)
 
         TextButton(
-            onClick = {
+            onClick = singleClickHandler {
                 if (myUserId != null) {
                     navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_MATCHING}/${R.string.matching}")
                     matchViewModel.startMatching(myUserId, chatType)
@@ -80,7 +87,7 @@ fun StartChatScreen(
         )
         {
             Text(
-                text = if (isMatching) stringResource(R.string.stop_matching) else stringResource(R.string.start_a_chat),
+                text = stringResource(R.string.start_a_chat),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF2979FF)
             )

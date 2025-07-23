@@ -8,8 +8,6 @@ interface MatchRepository {
 
     suspend fun cancelWaiting(userId: String)
 
-    suspend fun createChatRoom(userA: String, userB: String): MatchResult
-
     fun observeMatchedUser(
         userId: String,
         onMatched: (matched: Boolean, matchedWith: String?, roomId: String?) -> Unit

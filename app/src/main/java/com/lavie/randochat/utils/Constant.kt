@@ -10,6 +10,8 @@ object Constants {
     const val EMAIL = "email"
     const val NICKNAME = "nickname"
     const val IS_ONLINE = "isOnline"
+    const val IS_ACTIVE = "isActive"
+    const val PARTICIPANTS_ID = "participantIds"
     const val ACTIVE = "active"
     const val IS_DISABLED = "isDisabled"
     const val LAST_UPDATED = "lastUpdated"
@@ -39,7 +41,7 @@ object Constants {
     const val EEEE_HH_MM = "EEEE HH:mm"
     const val VI = "vi"
     const val TIME_GAP_MINUTES = 60
-    const val CHECK_USER_TIMEOUT = 800L
+    const val CHECK_USER_TIMEOUT = 1000L
     const val SPLASH_SCREEN = "splash"
     const val SPLASH_SCREEN_LOGIN = "splash_login"
     const val SPLASH_MODE_LOGIN = "splash_login"
@@ -48,7 +50,16 @@ object Constants {
     const val MESSAGE_ID = "messageId"
     const val APP_PREFS = "app_prefs"
     const val FCM_TOKEN = "fcm_token"
-    const val CHAT_MESSAGE = "Chat Message"
     const val TYPE = "type"
     const val CONTENT = "content"
+    const val SINGLE_CLICK_TIMEOUT = 600L
+    const val SYSTEM = "system"
+    const val PAGE_SIZE_MESSAGES = 50
+    const val TYPING = "typing"
+    const val CACHED_USER_ID = "cached_user_id"
+    const val CACHED_USER_EMAIL = "cached_user_email"
+    const val CACHED_USER_NICKNAME = "cached_user_nickname"
+    const val CACHED_ACTIVE_ROOM = "cached_active_room"
+    const val CACHED_MESSAGES_PREFIX = "cached_messages_"
+    const val SENDER_ID = "senderId"
 }

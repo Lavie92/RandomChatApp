@@ -1,13 +1,13 @@
 package com.lavie.randochat.ui.screen
 
 import android.Manifest
-import android.content.pm.PackageManager
+import android.app.Activity
 import android.media.MediaPlayer
-import android.media.MediaRecorder
 import android.net.Uri
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -20,11 +20,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,11 +33,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +52,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,29 +63,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.bumptech.glide.Glide
 import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
-import com.lavie.randochat.model.MessageStatus
 import com.lavie.randochat.ui.component.ChatInputBar
+import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.VoiceRecordState
-import com.lavie.randochat.utils.resolveAudioFile
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.ui.theme.MessageBackground
+import com.lavie.randochat.utils.ChatType
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
 import com.lavie.randochat.utils.formatMillis
 import com.lavie.randochat.utils.getAudioDurationMs
+import com.lavie.randochat.utils.resolveAudioFile
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.io.File
 
 @Composable
@@ -94,20 +101,14 @@ fun ChatScreen(
     val myUser by authViewModel.loginState.collectAsState()
     val myUserId = myUser?.id ?: return
     val messages by chatViewModel.messages.collectAsState()
-    val context = LocalContext.current
+    val isLoadingMore by chatViewModel.isLoadingMore.collectAsState()
+    val isTyping by chatViewModel.isTyping.collectAsState()
+    val chatType by chatViewModel.chatType.collectAsState()
     val scope = rememberCoroutineScope()
-    val isPlaying = remember { mutableStateOf(false) }
-
-    val recordAudioLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (!isGranted) {
-            Toast.makeText(context, context.getString(R.string.record_permission_required), Toast.LENGTH_SHORT).show()
-        }
-    }
-
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val lifecycleOwner = LocalLifecycleOwner.current
     val voiceRecordState by chatViewModel.voiceRecordState.collectAsState()
-
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
@@ -117,24 +118,70 @@ fun ChatScreen(
             }
         }
     }
+    val recordAudioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, context.getString(R.string.record_permission_required), Toast.LENGTH_SHORT).show()
+        }
+    }
+    BackHandler {
+        activity?.finish()
+    }
 
+    LaunchedEffect(messages) {
+        if (CommonUtils.isAppInForeground(context)) {
+            chatViewModel.markMessagesAsSeen(roomId, myUserId, messages)
+        }
+    }
 
+    LaunchedEffect(roomId) {
+        chatViewModel.loadChatType(roomId)
+        chatViewModel.loadInitialMessages(roomId)
+    }
 
     DisposableEffect(roomId) {
-        val listener = chatViewModel.startListening(roomId)
-        onDispose { chatViewModel.removeMessageListener(roomId, listener) }
+        val typingListener = chatViewModel.startTypingListener(roomId, myUserId)
+
+        onDispose {
+            chatViewModel.removeMessageListener()
+            chatViewModel.updateTypingStatus(roomId, myUserId, false)
+            chatViewModel.removeTypingListener(roomId, typingListener)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                chatViewModel.updateTypingStatus(roomId, myUserId, false)
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     ConversationScreen(
         messages = messages,
         myUserId = myUserId,
+        isTyping = isTyping,
+        onTypingStatusChanged = { typing ->
+            chatViewModel.updateTypingStatus(roomId, myUserId, typing)
+        },
         onSendText = { text ->
             chatViewModel.sendTextMessage(roomId, myUserId, text)
+            chatViewModel.updateTypingStatus(roomId, myUserId, false)
         },
         onSendImage = {
             galleryLauncher.launch("image/*")
         },
         navController = navController,
+        onLoadMore = { chatViewModel.loadMoreMessages() },
+        isLoadingMore = isLoadingMore,
+        chatType = chatType,
         voiceRecordState = voiceRecordState,
         onVoiceRecordStart = {
             chatViewModel.startRecording(context) {
@@ -148,10 +195,13 @@ fun ChatScreen(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationScreen(
     messages: List<Message>,
     myUserId: String,
+    isTyping: Boolean,
+    onTypingStatusChanged: (Boolean) -> Unit,
     onSendText: (String) -> Unit,
     onSendImage: () -> Unit,
     modifier: Modifier = Modifier,
@@ -161,6 +211,9 @@ fun ConversationScreen(
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordSend: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
+    onLoadMore: () -> Unit,
+    isLoadingMore: Boolean,
+    chatType: String,
 ) {
     val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
@@ -179,74 +232,125 @@ fun ConversationScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize(),
-            state = listState,
-            verticalArrangement = Arrangement.Bottom,
-            contentPadding = PaddingValues(bottom = Dimens.baseMargin),
-        ) {
-            items(chatItems, key = { item ->
-                when (item) {
-                    is ChatItem.MessageItem -> item.message.id
-                    is ChatItem.TimestampItem -> "${Constants.TIMESTAMP}${item.timestamp}"
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                if (index == 0 && offset == 0) {
+                    onLoadMore()
                 }
-            }) { item ->
-                when (item) {
-                    is ChatItem.MessageItem -> {
-                        val message = item.message
-                        val isMe = message.senderId == myUserId
+            }
+    }
 
-                        MessageBubble(
-                            content = message.content,
-                            isMe = isMe,
-                            type = message.type,
-                            time = message.timestamp,
-                            status = message.status,
-                            isSelected = selectedMessageId == message.id,
-                            onClick = {
-                                selectedMessageId =
-                                    if (selectedMessageId == message.id) null else message.id
-                            },
-                            navController = navController
-                        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(getTitleFromChatType(getTitleFromChatType(chatType).toString()))) },
+                actions = {
+                    ImageButton(onClick = { navController.navigate(Constants.SETTINGS_SCREEN) }, icon = Icons.Default.Settings)
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.surface)
+                .imePadding()
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize(),
+                state = listState,
+                verticalArrangement = Arrangement.Bottom,
+                contentPadding = PaddingValues(bottom = Dimens.emptySize),
+            ) {
+                if (isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = Dimens.baseMargin),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
+                }
 
-                    is ChatItem.TimestampItem -> {
-                        TimestampHeader(timestamp = item.timestamp)
+                items(chatItems, key = { item ->
+                    when (item) {
+                        is ChatItem.MessageItem -> item.message.id
+                        is ChatItem.TimestampItem -> "${Constants.TIMESTAMP}${item.timestamp}"
+                    }
+                }) { item ->
+                    when (item) {
+                        is ChatItem.MessageItem -> {
+                            val message = item.message
+                            val isMe = message.senderId == myUserId
+                            val lastMessageId = messages.lastOrNull()?.id
+
+                            MessageBubble(
+                                content = if (message.isSystemMessage() && message.contentResId != null) {
+                                    stringResource(message.contentResId)
+                                } else message.content,
+                                isMe = isMe,
+                                type = message.type,
+                                time = message.timestamp,
+                                status = message.status,
+                                showStatus = isMe && message.id == lastMessageId,
+                                isSelected = selectedMessageId == message.id,
+                                onClick = {
+                                    selectedMessageId =
+                                        if (selectedMessageId == message.id) null else message.id
+                                },
+                                navController = navController
+                            )
+                        }
+
+                        is ChatItem.TimestampItem -> {
+                            TimestampHeader(timestamp = item.timestamp)
+                        }
                     }
                 }
             }
-        }
 
-        ChatInputBar(
-            value = messageText,
-            onValueChange = { messageText = it },
-            onSendImage = { onSendImage() },
-            voiceRecordState = voiceRecordState,
-            onVoiceRecordStart = { onVoiceRecordStart() },
-            onVoiceRecordStop = { onVoiceRecordStop() },
-            onVoiceRecordCancel = { onVoiceRecordCancel() },
-            onVoiceRecordSend = { onVoiceRecordSend() },
-            onSend = {
-                val messageTrimmed = messageText.trim()
-                if (messageTrimmed.isNotBlank()) {
-                    onSendText(messageTrimmed)
-                    messageText = ""
-                    shouldScrollToBottom = true
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(WindowInsets.navigationBars.asPaddingValues())
-                .padding(top = Dimens.smallMargin)
-        )
+            if (isTyping) {
+                Text(
+                    text = stringResource(R.string.typing),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = Dimens.baseMarginDouble)
+                )
+            }
+
+            ChatInputBar(
+                value = messageText,
+                onValueChange = {
+                    messageText = it
+                    onTypingStatusChanged(it.isNotBlank())
+                },
+                onSendImage = { onSendImage() },
+                voiceRecordState = voiceRecordState,
+            	onVoiceRecordStart = { onVoiceRecordStart() },
+            	onVoiceRecordStop = { onVoiceRecordStop() },
+            	onVoiceRecordCancel = { onVoiceRecordCancel() },
+            	onVoiceRecordSend = { onVoiceRecordSend() },
+                onSend = {
+                    val messageTrimmed = messageText.trim()
+                    if (messageTrimmed.isNotBlank()) {
+                        onSendText(messageTrimmed)
+                        messageText = ""
+                        shouldScrollToBottom = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -256,8 +360,9 @@ fun MessageBubble(
     isMe: Boolean,
     type: MessageType,
     time: Long,
+    status: MessageStatus,
+    showStatus: Boolean,
     isSelected: Boolean,
-    status: MessageStatus = MessageStatus.SENT,
     onClick: () -> Unit,
     navController: NavController
 ) {
@@ -355,7 +460,6 @@ fun MessageBubble(
                     var durationMs by remember { mutableStateOf(0L) }
                     var lastPlaybackPosition by remember { mutableStateOf(0) }
 
-                    // Load duration ban đầu
                     LaunchedEffect(content) {
                         scope.launch {
                             val file = resolveAudioFile(context, content)
@@ -391,11 +495,11 @@ fun MessageBubble(
                             }
                         } catch (e: Exception) {
                             isPlaying.value = false
-                            Toast.makeText(context, "Không phát được ghi âm", Toast.LENGTH_SHORT).show()
+                            customToast(context,R.string.voice_playback_failed)
+
                         }
                     }
 
-                    // UI hiển thị
                     Surface(
                         modifier = Modifier
                             .padding(4.dp)
@@ -442,6 +546,23 @@ fun MessageBubble(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = Dimens.smallMargin, end = Dimens.baseMarginDouble)
             )
+        } else {
+            if (showStatus) {
+                Text(
+                    text = when (status) {
+                        MessageStatus.SENT -> stringResource(R.string.message_sent)
+                        MessageStatus.SEEN -> stringResource(R.string.message_seen)
+                        MessageStatus.SENDING -> stringResource(R.string.message_sending)
+                        MessageStatus.FAILED -> stringResource(R.string.play_audio_failed)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(
+                        top = Dimens.smallMargin,
+                        end = Dimens.baseMarginDouble
+                    )
+                )
+            }
         }
     }
 }
@@ -498,6 +619,22 @@ private fun createChatItemsWithTimestamps(
     }
 
     return chatItems
+}
+
+private fun getTitleFromChatType(chatType: String) : Int {
+    return when (chatType) {
+        ChatType.AGE.name -> {
+            R.string.chat_by_age
+        }
+        ChatType.LOCATION.name -> {
+            R.string.chat_by_location
+        }
+        ChatType.RANDOM.name -> {
+            R.string.random_chat
+        }
+
+        else -> {R.string.random_chat}
+    }
 }
 
 sealed class ChatItem {

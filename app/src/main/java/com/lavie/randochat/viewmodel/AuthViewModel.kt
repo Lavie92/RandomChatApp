@@ -3,10 +3,14 @@ package com.lavie.randochat.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.auth.FirebaseAuth
 import com.lavie.randochat.R
 import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 import com.lavie.randochat.repository.UserRepository
+import com.lavie.randochat.service.PreferencesService
+import com.lavie.randochat.utils.Constants
+import com.lavie.randochat.utils.CacheUtils
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +20,8 @@ import timber.log.Timber
 
 class AuthViewModel(
     private val userRepository: UserRepository,
-    private val firebaseMessaging: FirebaseMessaging
+    private val firebaseMessaging: FirebaseMessaging,
+    private val prefs: PreferencesService
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<User?>(null)
@@ -40,8 +45,26 @@ class AuthViewModel(
     private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
     val navigationEvent = _navigationEvent.asSharedFlow()
 
+    private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+        val user = auth.currentUser
+        if (user != null && _loginState.value == null) {
+            viewModelScope.launch {
+                checkInitialUserState()
+            }
+        }
+    }
+
     init {
-        checkInitialUserState()
+        val hasCached = restoreCachedUser()
+        userRepository.addAuthStateListener(authStateListener)
+        if (!hasCached) {
+            checkInitialUserState()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        userRepository.removeAuthStateListener(authStateListener)
     }
 
     fun onGoogleLoginClick() {
@@ -87,10 +110,12 @@ class AuthViewModel(
             when (val result = userRepository.checkUserValid()) {
                 is UserRepository.UserResult.Success -> {
                     _loginState.value = result.user
+                    cacheUser(result.user)
                     _errorMessageId.value = null
 
                     val activeRoom = userRepository.getActiveRoomForUser(result.user.id)
                     _activeRoom.value = activeRoom
+                    cacheActiveRoom(activeRoom)
 
                     if (activeRoom != null) {
                         val roomId = activeRoom.id
@@ -101,8 +126,17 @@ class AuthViewModel(
                 }
 
                 is UserRepository.UserResult.Error -> {
-                    _loginState.value = null
-                    _errorMessageId.value = result.messageId
+                    if (result.messageId == R.string.network_error) {
+                        if (_loginState.value != null) {
+                            _errorMessageId.value = null
+                        } else {
+                            _loginState.value = null
+                            _errorMessageId.value = result.messageId
+                        }
+                    } else {
+                        _loginState.value = null
+                        _errorMessageId.value = result.messageId
+                    }
                 }
 
                 else -> {
@@ -121,11 +155,13 @@ class AuthViewModel(
             is UserRepository.UserResult.Success -> {
                 Timber.d("User saved to database successfully")
                 _loginState.value = saveResult.user
+                cacheUser(saveResult.user)
                 _progressMessageId.value = null
                 _errorMessageId.value = null
 
                 val activeRoom = userRepository.getActiveRoomForUser(saveResult.user.id)
                 _activeRoom.value = activeRoom
+                cacheActiveRoom(activeRoom)
 
                 if (activeRoom != null) {
                     val roomId = activeRoom.id
@@ -197,6 +233,54 @@ class AuthViewModel(
                 userRepository.updateFcmToken(userId, token)
             }
         }
+    }
+
+    private fun cacheUser(user: User) {
+        prefs.putString(Constants.CACHED_USER_ID, user.id)
+        prefs.putString(Constants.CACHED_USER_EMAIL, user.email)
+        prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
+    }
+
+    private fun restoreCachedUser(): Boolean {
+        val cachedUser = getCachedUser()
+        if (cachedUser != null) {
+            _loginState.value = cachedUser
+            _errorMessageId.value = null
+            val cachedRoom = getCachedActiveRoom()
+            _activeRoom.value = cachedRoom
+            viewModelScope.launch {
+                if (cachedRoom != null) {
+                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                } else {
+                    _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                }
+            }
+
+            return true
+        }
+
+        return false
+    }
+
+    private fun getCachedUser(): User? {
+        val id = prefs.getString(Constants.CACHED_USER_ID, null) ?: return null
+        val email = prefs.getString(Constants.CACHED_USER_EMAIL, "") ?: ""
+        val nickname = prefs.getString(Constants.CACHED_USER_NICKNAME, "") ?: ""
+        return User(id = id, email = email, nickname = nickname, isOnline = false)
+    }
+
+    private fun cacheActiveRoom(room: ChatRoom?) {
+        if (room != null) {
+            val json = CacheUtils.chatRoomToJson(room)
+            prefs.putString(Constants.CACHED_ACTIVE_ROOM, json)
+        } else {
+            prefs.remove(Constants.CACHED_ACTIVE_ROOM)
+        }
+    }
+
+    private fun getCachedActiveRoom(): ChatRoom? {
+        val json = prefs.getString(Constants.CACHED_ACTIVE_ROOM, null)
+        return CacheUtils.jsonToChatRoom(json)
     }
 
     sealed class NavigationEvent {
