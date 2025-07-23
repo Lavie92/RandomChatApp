@@ -36,5 +36,6 @@ interface ChatRepository {
 
     suspend fun getChatType(roomId: String): String?
 
-    suspend fun uploadAudioFile(context: Context, file: File): Result<String>
+    suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String>
+
 }

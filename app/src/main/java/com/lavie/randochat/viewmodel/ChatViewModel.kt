@@ -8,9 +8,7 @@ import android.net.Uri
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.storage.storage
 import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
@@ -26,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.util.UUID
@@ -58,7 +57,6 @@ class ChatViewModel(
     private var audioFile: File? = null
 
     private val _isSendingImage = MutableStateFlow(false)
-    val isSendingImage: StateFlow<Boolean> = _isSendingImage
 
     fun loadInitialMessages(roomId: String) {
         removeMessageListener()
@@ -136,8 +134,6 @@ class ChatViewModel(
     fun sendImageMessage(roomId: String, senderId: String, imageUrl: String) {
         sendMessage(roomId, senderId, imageUrl, MessageType.IMAGE)
     }
-
-
 
     private fun sendMessage(
         roomId: String,
@@ -233,44 +229,36 @@ class ChatViewModel(
         val totalStart = System.currentTimeMillis()
 
         viewModelScope.launch(Dispatchers.IO) {
-            uploadImageFileToFirebase(uri, roomId, senderId, localId) {
-                val totalElapsed = System.currentTimeMillis() - totalStart
-                Timber.d("✅ Total end-to-end time: $totalElapsed ms")
-                _isSendingImage.value = false
-            }
-        }
-    }
+            try {
+                val startCompress = System.currentTimeMillis()
+                val compressedFile = imageFileRepository.compressImage(context, uri)
+                val elapsedCompress = System.currentTimeMillis() - startCompress
+                Timber.d("⏱️ Compress image took $elapsedCompress ms")
 
-    private fun uploadImageFileToFirebase(
-        uri: Uri,
-        roomId: String,
-        senderId: String,
-        localId: String,
-        onComplete: () -> Unit
-    ) {
-        val storageRef = Firebase.storage.reference.child("chat_images/${System.currentTimeMillis()}.jpg")
-        val startUpload = System.currentTimeMillis()
-
-        storageRef.putFile(uri)
-            .addOnSuccessListener {
+                val startUpload = System.currentTimeMillis()
+                val result = imageFileRepository.uploadImageToCloudinary(context, Uri.fromFile(compressedFile))
                 val elapsedUpload = System.currentTimeMillis() - startUpload
-                Timber.d("Upload completed in $elapsedUpload ms")
+                Timber.d("⏱️ [Repo] Upload image to Cloudinary took $elapsedUpload ms")
 
-                val startDownloadUrl = System.currentTimeMillis()
-                storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                    val elapsedDownloadUrl = System.currentTimeMillis() - startDownloadUrl
-                    Timber.d("Download URL retrieval took $elapsedDownloadUrl ms")
-
-                    sendImageMessage(roomId, senderId, downloadUri.toString())
-                    updateMessageStatus(localId, MessageStatus.SENT)
-                    onComplete()
+                withContext(Dispatchers.Main) {
+                    if (result.isSuccess) {
+                        val downloadUrl = result.getOrNull()!!
+                        sendImageMessage(roomId, senderId, downloadUrl)
+                        updateMessageStatus(localId, MessageStatus.SENT)
+                    } else {
+                        updateMessageStatus(localId, MessageStatus.FAILED)
+                    }
+                    val totalElapsed = System.currentTimeMillis() - totalStart
+                    Timber.d("✅ Total end-to-end time: $totalElapsed ms")
+                    _isSendingImage.value = false
+                }
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    updateMessageStatus(localId, MessageStatus.FAILED)
+                    _isSendingImage.value = false
                 }
             }
-            .addOnFailureListener {
-                Timber.d("Upload failed after ${System.currentTimeMillis() - startUpload} ms")
-                updateMessageStatus(localId, MessageStatus.FAILED)
-                onComplete()
-            }
+        }
     }
 
     private fun addLocalMessage(message: Message) {
@@ -309,7 +297,7 @@ class ChatViewModel(
                 start()
             }
             _voiceRecordState.value = VoiceRecordState.Recording
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _voiceRecordState.value = VoiceRecordState.Locked
         }
     }
@@ -324,7 +312,7 @@ class ChatViewModel(
             audioFile?.let { file ->
                 _voiceRecordState.value = VoiceRecordState.Recorded(file)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _voiceRecordState.value = VoiceRecordState.Locked
         }
     }
@@ -338,8 +326,7 @@ class ChatViewModel(
             recorder = null
             audioFile?.delete()
             audioFile = null
-        } catch (e: Exception) {
-            // ignore
+        } catch (_: Exception) {
         }
         _voiceRecordState.value = VoiceRecordState.Idle
     }
@@ -359,7 +346,7 @@ class ChatViewModel(
         addLocalMessage(localMessage)
 
         viewModelScope.launch(Dispatchers.IO) {
-            val uploadResult = chatRepository.uploadAudioFile(context, file)
+            val uploadResult = chatRepository.uploadAudioToCloudinary(context, file)
             if (uploadResult.isSuccess) {
                 val url = uploadResult.getOrNull()!!
                 val sentMessage = localMessage.copy(

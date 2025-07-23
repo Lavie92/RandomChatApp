@@ -13,5 +13,5 @@ val repositoryModule = module {
     single { FirebaseStorage.getInstance() }
     single<UserRepository> { UserRepositoryImpl(get(), get()) }
     single<MatchRepository> { MatchRepositoryImpl(get()) }
-    single<ChatRepository> { ChatRepositoryImpl(get(), get()) }
+    single<ChatRepository> { ChatRepositoryImpl(get()) }
 }

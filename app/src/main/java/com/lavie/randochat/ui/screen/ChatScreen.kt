@@ -122,8 +122,8 @@ fun ChatScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(context, context.getString(R.string.record_permission_required), Toast.LENGTH_SHORT).show()
-        }
+            customToast(context, R.string.record_permission_required)
+               }
     }
     BackHandler {
         activity?.finish()

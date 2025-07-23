@@ -212,7 +212,7 @@ fun ChatInputBar(
                         }
                     } catch (e: Exception) {
                         isPlaying.value = false
-                        Toast.makeText(context, context.getString(R.string.voice_playback_failed), Toast.LENGTH_SHORT).show()
+                        customToast(context, R.string.voice_playback_failed)
                     }
                 }
 

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.lavie.randochat.R
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.viewmodel.ChatViewModel
 
 @Composable
@@ -40,7 +41,7 @@ fun ImagePreviewScreen(
         if (isGranted) {
             chatViewModel.downloadImage(context, imageUrl)
         } else {
-            Toast.makeText(context, context.getString(R.string.permission_denied), Toast.LENGTH_SHORT).show()
+            customToast(context, R.string.permission_denied)
         }
     }
 

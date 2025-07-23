@@ -1,23 +1,25 @@
 package com.lavie.randochat.repository
 
 import android.content.Context
-import android.net.Uri
 import com.google.firebase.database.*
-import com.google.firebase.storage.FirebaseStorage
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import com.lavie.randochat.utils.MessageStatus
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 import timber.log.Timber
 
 class ChatRepositoryImpl(
-    private val database: DatabaseReference,
-    private val storage: FirebaseStorage
+    private val database: DatabaseReference
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
@@ -144,7 +146,7 @@ class ChatRepositoryImpl(
 
         return try {
             CommonUtils.decryptMessage(message.content, key)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             message.content
         }
     }
@@ -203,17 +205,33 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun uploadAudioFile(context: Context, file: File): Result<String> =
-        suspendCancellableCoroutine { cont ->
-            val ref = storage.reference.child("chat_audios/${System.currentTimeMillis()}.m4a")
-            ref.putFile(Uri.fromFile(file))
-                .addOnSuccessListener {
-                    ref.downloadUrl.addOnSuccessListener { uri ->
-                        cont.resume(Result.success(uri.toString()), null)
-                    }
-                }
-                .addOnFailureListener {
-                    cont.resume(Result.failure(it), null)
-                }
+    override suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val cloudName = "durhoy6iq"
+            val uploadPreset = "Chat_Rando_Audio"
+            val url = "https://api.cloudinary.com/v1_1/$cloudName/video/upload"
+
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", file.name, file.asRequestBody("audio/m4a".toMediaTypeOrNull()))
+                .addFormDataPart("upload_preset", uploadPreset)
+                .addFormDataPart("folder", "chat_audios")
+                .build()
+
+            val request = Request.Builder().url(url).post(requestBody).build()
+            val client = OkHttpClient()
+            val response = client.newCall(request).execute()
+
+            if (response.isSuccessful) {
+                val body = response.body?.string()
+                val json = JSONObject(body!!)
+                val secureUrl = json.getString("secure_url")
+                Result.success(secureUrl)
+            } else {
+                Result.failure(Exception("Upload failed: ${response.message}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+    }
 }
