@@ -62,4 +62,6 @@ object Constants {
     const val CACHED_ACTIVE_ROOM = "cached_active_room"
     const val CACHED_MESSAGES_PREFIX = "cached_messages_"
     const val SENDER_ID = "senderId"
+    const val CONTENT_RES_ID = "contentResId"
+    const val ACTIVE_ROOM_ID = "activeRoomId"
 }

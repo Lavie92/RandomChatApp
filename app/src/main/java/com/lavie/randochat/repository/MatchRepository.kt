@@ -17,8 +17,8 @@ interface MatchRepository {
 
     sealed class MatchResult {
         data class Matched(val roomId: String, val otherUserId: String) : MatchResult()
-        object Waiting : MatchResult()
+        data object Waiting : MatchResult()
         data class Error(val messageId: Int) : MatchResult()
-        object Cancelled : MatchResult()
+        data object Cancelled : MatchResult()
     }
 }

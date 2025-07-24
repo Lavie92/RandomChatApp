@@ -22,7 +22,7 @@ fun AppNavHost(authViewModel: AuthViewModel) {
     val matchViewModel: MatchViewModel = koinViewModel()
     val chatViewModel: ChatViewModel = koinViewModel()
 
-    NavHost(navController = navController, startDestination = Constants.WELCOME_SCREEN) {
+    NavHost(navController = navController, startDestination = Constants.SPLASH_SCREEN_LOGIN) {
 
         composable(Constants.LOGIN_SCREEN) {
             LoginScreen(navController, authViewModel)
@@ -65,7 +65,8 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             StartChatScreen(
                 navController = navController,
                 matchViewModel = matchViewModel,
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+                chatViewModel = chatViewModel
             )
         }
 

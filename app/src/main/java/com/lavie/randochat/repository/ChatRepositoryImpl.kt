@@ -1,6 +1,7 @@
 package com.lavie.randochat.repository
 
 import com.google.firebase.database.*
+import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
@@ -22,14 +23,23 @@ class ChatRepositoryImpl(
 
             val encryptedContent = CommonUtils.encryptMessage(message.content, key)
 
-            val encryptedMessage = message.copy(content = encryptedContent)
-
             val msgRef = database
                 .child(Constants.CHAT_ROOMS)
                 .child(roomId)
                 .child(Constants.MESSAGES)
                 .child(message.id)
-            msgRef.setValue(encryptedMessage).await()
+
+            val messageMap = mapOf(
+                Constants.ID to message.id,
+                Constants.SENDER_ID to message.senderId,
+                Constants.CONTENT_RES_ID to message.contentResId,
+                Constants.CONTENT to encryptedContent,
+                Constants.TIMESTAMP to ServerValue.TIMESTAMP,
+                Constants.TYPE to message.type.name,
+                Constants.STATUS to message.status.name
+            )
+
+            msgRef.setValue(messageMap).await()
 
             val roomRef = database.child(Constants.CHAT_ROOMS).child(roomId)
             roomRef.updateChildren(
@@ -47,7 +57,7 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(
         roomId: String,
-        limit: Int,
+        limit: Int?,
         startAfter: Long?,
         onNewMessages: (List<Message>) -> Unit
     ): ValueEventListener {
@@ -55,13 +65,15 @@ class ChatRepositoryImpl(
             .child(roomId)
             .child(Constants.MESSAGES)
 
-        val query = if (startAfter == null) {
-            msgRef.orderByChild(Constants.TIMESTAMP)
-                .limitToLast(limit)
-        } else {
-            msgRef.orderByChild(Constants.TIMESTAMP)
+        val query = when {
+            startAfter != null -> msgRef.orderByChild(Constants.TIMESTAMP)
                 .endAt(startAfter.toDouble() - 1)
+                .limitToLast(limit ?: 50)
+
+            limit != null -> msgRef.orderByChild(Constants.TIMESTAMP)
                 .limitToLast(limit)
+
+            else -> msgRef.orderByChild(Constants.TIMESTAMP)  // realtime listener full range
         }
 
         val listener = object : ValueEventListener {
@@ -69,10 +81,9 @@ class ChatRepositoryImpl(
                 val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
                     .sortedBy { it.timestamp }
                     .map { msg ->
-                        val decryptedContent = decryptedMessage(msg, roomId)
-                        msg.copy(content = decryptedContent)
+                        val decrypted = decryptedMessage(msg, roomId)
+                        msg.copy(content = decrypted)
                     }
-
                 onNewMessages(messages)
             }
 
@@ -140,7 +151,7 @@ class ChatRepositoryImpl(
             message.content
         }
     }
-        
+
     override suspend fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean): Result<Unit> {
         return try {
             val typingRef = database.child(Constants.CHAT_ROOMS)
@@ -222,12 +233,19 @@ class ChatRepositoryImpl(
 
     override suspend fun endChat(roomId: String): Result<Unit> {
         return try {
-            val roomUpdates = mapOf(
-                "${Constants.CHAT_ROOMS}/${roomId}/${Constants.ACTIVE}" to false,
-                "${Constants.CHAT_ROOMS}/${roomId}/${Constants.LAST_UPDATED}" to System.currentTimeMillis()
-            )
+            val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(roomId).get().await()
+            val chatRoom = roomSnapshot.getValue(ChatRoom::class.java)
 
-            database.updateChildren(roomUpdates).await()
+            val updates = mutableMapOf<String, Any?>()
+
+            updates["${Constants.CHAT_ROOMS}/$roomId/${Constants.ACTIVE}"] = false
+            updates["${Constants.CHAT_ROOMS}/$roomId/${Constants.LAST_UPDATED}"] = System.currentTimeMillis()
+
+            chatRoom?.participantIds?.forEach { userId ->
+                updates["${Constants.USERS}/$userId/${Constants.ACTIVE_ROOM_ID}"] = null
+            }
+
+            database.updateChildren(updates).await()
 
             Result.success(Unit)
         } catch(ex: Exception) {

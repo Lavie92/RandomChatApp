@@ -43,7 +43,6 @@ fun WelcomeScreen(
     LaunchedEffect(loginState, activeRoom) {
         if (loginState != null) {
             if (activeRoom != null) {
-                val myUserId = loginState!!.id
                 val roomId = activeRoom!!.id
 
                 navController.navigate("${Constants.CHAT_SCREEN}/${roomId}") {

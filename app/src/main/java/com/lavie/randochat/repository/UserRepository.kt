@@ -17,11 +17,13 @@ interface UserRepository {
 
     suspend fun loginWithEmail(email: String, password: String): UserResult?
 
-    suspend fun updateFcmToken(userId: String, token: String)
+    suspend fun addFcmToken(userId: String, token: String)
 
     fun addAuthStateListener(listener: FirebaseAuth.AuthStateListener)
 
     fun removeAuthStateListener(listener: FirebaseAuth.AuthStateListener)
+
+    suspend fun getChatRoomStatus(roomId: String): Boolean?
 
     sealed class UserResult {
         data class Success(val user: User) : UserResult()

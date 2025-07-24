@@ -155,20 +155,16 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getActiveRoomForUser(userId: String): ChatRoom? {
-        val snapshot = database.child(Constants.CHAT_ROOMS)
-            .orderByChild(Constants.ACTIVE)
-            .equalTo(true)
-            .get()
-            .await()
-        for (room in snapshot.children) {
-            val chatRoom = room.getValue(ChatRoom::class.java)
-            if (chatRoom != null && chatRoom.participantIds.contains(userId)) {
-                return chatRoom
-            }
+        val userSnapshot = database.child(Constants.USERS).child(userId).get().await()
+        val activeRoomId = userSnapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
+
+        if (activeRoomId.isNullOrEmpty()) {
+            return null
         }
 
-        return null
-    }
+        val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(activeRoomId).get().await()
+
+        return roomSnapshot.getValue(ChatRoom::class.java)    }
 
     override suspend fun registerWithEmail(email: String, password: String): UserResult {
         return try {
@@ -237,15 +233,16 @@ class UserRepositoryImpl(
         )
 
         withTimeout(Constants.SAVE_USER_TIMEOUT) {
-            database.child(Constants.USERS).child(user.id).setValue(userMapToSave).await()
+            database.child(Constants.USERS).child(user.id).updateChildren(userMapToSave).await()
         }
     }
 
-    override suspend fun updateFcmToken(userId: String, token: String) {
+    override suspend fun addFcmToken(userId: String, token: String) {
         database.child(Constants.USERS)
             .child(userId)
-            .child("fcmToken")
-            .setValue(token)
+            .child("fcmTokens")
+            .child(token)
+            .setValue(true)
             .await()
     }
 
@@ -255,5 +252,15 @@ class UserRepositoryImpl(
 
     override fun removeAuthStateListener(listener: FirebaseAuth.AuthStateListener) {
         firebaseAuth.removeAuthStateListener(listener)
+    }
+
+    override suspend fun getChatRoomStatus(roomId: String): Boolean? {
+        return try {
+            val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(roomId).get().await()
+            roomSnapshot.child(Constants.ACTIVE).getValue(Boolean::class.java) ?: true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get room status for $roomId")
+            null
+        }
     }
 }

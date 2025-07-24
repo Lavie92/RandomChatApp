@@ -1,8 +1,8 @@
 package com.lavie.randochat.viewmodel
 
-import android.renderscript.Sampler.Value
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.database.ServerValue
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.service.PreferencesService
@@ -42,24 +42,31 @@ class ChatViewModel(
     private var roomStatusListener: ValueEventListener? = null
 
     fun loadInitialMessages(roomId: String) {
-        removeMessageListener()
-
         currentRoomId = roomId
         isEndReached = false
         oldestTimestamp = null
+
         val cachedJson = prefs.getString(Constants.CACHED_MESSAGES_PREFIX + roomId, null)
         val cachedMessages = CacheUtils.jsonToMessages(cachedJson)
         _messages.value = cachedMessages.sortedBy { it.timestamp }
         oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
         isEndReached = cachedMessages.size < pageSize
 
+        startRealtimeMessageListener(roomId)
+    }
+
+    fun startRealtimeMessageListener(roomId: String) {
+        removeMessageListener()
+
         messagesListener = chatRepository.listenForMessages(
-            roomId, limit = pageSize, startAfter = null
+            roomId = roomId,
+            limit = null,
+            startAfter = null
         ) { newMessages ->
             val sorted = newMessages.sortedBy { it.timestamp }
             _messages.value = sorted
             oldestTimestamp = sorted.minByOrNull { it.timestamp }?.timestamp
-            isEndReached = sorted.size < pageSize
+            isEndReached = false
             cacheMessages(roomId, sorted)
         }
     }
@@ -133,11 +140,12 @@ class ChatViewModel(
             id = messageId,
             senderId = senderId,
             content = content,
-            timestamp = System.currentTimeMillis(),
+            timestamp = 0L,
             type = type,
             status = status
         )
-        _messages.value = _messages.value + message
+        _messages.value += message
+
         currentRoomId?.let { cacheMessages(it, _messages.value) }
         viewModelScope.launch {
             val result = chatRepository.sendMessage(roomId, message)
@@ -161,12 +169,13 @@ class ChatViewModel(
         }
     }
 
-    fun sendWelcomeMessage(roomId: String) {
+    fun sendSystemMessage(roomId: String, messageId: Int) {
         if (roomId !in sentWelcomeMessages) {
             val welcomeMsg = Message(
                 id = UUID.randomUUID().toString(),
                 senderId = Constants.SYSTEM,
-                contentResId = R.string.welcome_notice,
+                content = "",
+                contentResId = messageId,
                 timestamp = System.currentTimeMillis(),
                 type = MessageType.TEXT,
                 status = MessageStatus.SENT
@@ -199,14 +208,20 @@ class ChatViewModel(
         }
     }
 
+    fun resetChatState() {
+        _isChatRoomEnded.value = false
+    }
+
     fun endChat(roomId: String) {
         viewModelScope.launch {
             try {
+                sendSystemMessage(roomId, R.string.chat_ended)
                 val result = chatRepository.endChat(roomId)
                 if (result.isSuccess) {
                     _isChatRoomEnded.value = true
 
                     prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
+                    prefs.remove(Constants.CACHED_ACTIVE_ROOM)
 
                     Timber.d("Chat Ended")
                 }
@@ -226,8 +241,7 @@ class ChatViewModel(
             _isChatRoomEnded.value = ended
 
             if (ended) {
-                prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
-                Timber.d("Detected chat end. Cache cleared.")
+                Timber.d("Detected chat end. Waiting for user action.")
             }
         }
     }

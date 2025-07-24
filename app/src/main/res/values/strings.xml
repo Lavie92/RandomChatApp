@@ -79,5 +79,7 @@
     <string name="report">Report</string>
     <string name="send_heart">Send Heart</string>
     <string name="leave_chat">Leave</string>
+    <string name="chat_ended">The conversation has ended</string>
+    <string name="already_in_chat">You are already in a chat</string>
 
 </resources>

@@ -139,9 +139,6 @@ fun ChatScreen(
         },
         onEndChat = {
             chatViewModel.endChat(roomId)
-            navController.navigate(Constants.START_CHAT_SCREEN) {
-                popUpTo(Constants.CHAT_SCREEN) { inclusive = true }
-            }
         },
         onSendHeart = {},
         onReport = {},
@@ -149,6 +146,7 @@ fun ChatScreen(
         onLoadMore = { chatViewModel.loadMoreMessages() },
         isLoadingMore = isLoadingMore,
         chatType = chatType,
+        authViewModel = authViewModel,
         navController = navController
     )
 }
@@ -170,6 +168,7 @@ fun ConversationScreen(
     isChatRoomEnded: Boolean,
     isLoadingMore: Boolean,
     chatType: String,
+    authViewModel: AuthViewModel,
     navController: NavController,
 ) {
     val listState = rememberLazyListState()
@@ -298,6 +297,8 @@ fun ConversationScreen(
             if (isChatRoomEnded) {
                 Button(
                     onClick = {
+                        authViewModel.clearActiveRoom()
+
                         navController.navigate(Constants.START_CHAT_SCREEN) {
                             popUpTo(Constants.CHAT_SCREEN) { inclusive = true }
                         }
