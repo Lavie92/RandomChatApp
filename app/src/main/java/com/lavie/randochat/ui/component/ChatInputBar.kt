@@ -160,8 +160,10 @@ fun ChatInputBar(
                     ImageButton(
                         onClick = {
                             if (voiceRecordState is VoiceRecordState.Recording) {
-                                onVoiceRecordStop()
-                                onVoiceRecordSend()
+                                if (elapsedSeconds >= 2L) {
+                                    onVoiceRecordStop()
+                                    onVoiceRecordSend()
+                                }
                             }
                             if (voiceRecordState is VoiceRecordState.Recorded) {
                                 onVoiceRecordSend()

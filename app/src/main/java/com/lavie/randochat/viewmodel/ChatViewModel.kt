@@ -359,7 +359,7 @@ class ChatViewModel(
             } else {
                 updateMessageStatus(localId, MessageStatus.FAILED)
             }
-            _voiceRecordState.value = VoiceRecordState.Idle
+
         }
         _voiceRecordState.value = VoiceRecordState.Idle
     }
