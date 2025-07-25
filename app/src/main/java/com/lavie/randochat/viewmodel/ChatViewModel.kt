@@ -261,8 +261,8 @@ class ChatViewModel(
         }
     }
 
-    fun downloadImage(context: Context, imageUrl: String) {
-        imageFileRepository.saveImageToGallery(context, imageUrl)
+    fun downloadImage(context: Context, imageUrl: String, onResult: (Boolean) -> Unit) {
+        imageFileRepository.saveImageToGallery(context, imageUrl, onResult)
     }
 
     fun startRecording(context: Context, onPermissionDenied: () -> Unit) {
@@ -276,7 +276,10 @@ class ChatViewModel(
         }
 
         try {
-            val file = File(context.cacheDir, "voice_${System.currentTimeMillis()}.m4a")
+            val file = File(
+                context.cacheDir,
+                "${Constants.AUDIO_FILE_PREFIX}${System.currentTimeMillis()}${Constants.AUDIO_FILE_EXTENSION}"
+            )
             audioFile = file
             recorder = MediaRecorder().apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -363,6 +366,4 @@ class ChatViewModel(
             }
         }
     }
-
-
 }

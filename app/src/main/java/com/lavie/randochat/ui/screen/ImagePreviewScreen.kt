@@ -2,7 +2,6 @@ package com.lavie.randochat.ui.screen
 
 import android.Manifest
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -39,7 +38,9 @@ fun ImagePreviewScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            chatViewModel.downloadImage(context, imageUrl)
+            chatViewModel.downloadImage(context, imageUrl) { success ->
+                customToast(context, if (success) R.string.image_saved else R.string.download_failed)
+            }
         } else {
             customToast(context, R.string.permission_denied)
         }
@@ -62,7 +63,9 @@ fun ImagePreviewScreen(
         FloatingActionButton(
             onClick = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    chatViewModel.downloadImage(context, imageUrl)
+                    chatViewModel.downloadImage(context, imageUrl) { success ->
+                        customToast(context, if (success) R.string.image_saved else R.string.download_failed)
+                    }
                 } else {
                     permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }

@@ -9,8 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import com.lavie.randochat.R
-import com.lavie.randochat.ui.component.customToast
+import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,19 +25,19 @@ import java.io.InputStream
 import java.net.URL
 
 class ImageFileRepositoryImpl : ImageFileRepository {
-    override fun saveImageToGallery(context: Context, imageUrl: String) {
+    override fun saveImageToGallery(context: Context, imageUrl: String, onResult: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val inputStream = URL(imageUrl).openStream()
-                val filename = "chat_image_${System.currentTimeMillis()}.jpg"
+                val filename = "${Constants.IMAGE_FILE_PREFIX}${System.currentTimeMillis()}${Constants.IMAGE_FILE_EXTENSION}"
                 val resolver = context.contentResolver
                 var savedUri: Uri? = null
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val contentValues = ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/RandoChat")
+                        put(MediaStore.MediaColumns.MIME_TYPE, Constants.IMAGE_MIME_TYPE)
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + Constants.IMAGE_FOLDER_NAME)
                     }
                     savedUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
                     savedUri?.let { uri ->
@@ -47,24 +46,22 @@ class ImageFileRepositoryImpl : ImageFileRepository {
                         }
                     }
                 } else {
-                    val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/RandoChat")
+                    val picturesDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES + Constants.IMAGE_FOLDER_NAME
+                    )
                     if (!picturesDir.exists()) picturesDir.mkdirs()
                     val imageFile = File(picturesDir, filename)
                     FileOutputStream(imageFile).use { outputStream ->
                         inputStream.copyTo(outputStream)
                     }
-                    MediaScannerConnection.scanFile(context, arrayOf(imageFile.absolutePath), arrayOf("image/jpeg"), null)
+                    MediaScannerConnection.scanFile(
+                        context, arrayOf(imageFile.absolutePath), arrayOf(Constants.IMAGE_MIME_TYPE), null
+                    )
                 }
-
-                withContext(Dispatchers.Main) {
-                    customToast(context, R.string.image_saved)
-                }
-
+                withContext(Dispatchers.Main) { onResult(true) }
             } catch (e: Exception) {
                 e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    customToast(context, R.string.download_failed)
-                }
+                withContext(Dispatchers.Main) { onResult(false) }
             }
         }
     }
@@ -72,24 +69,23 @@ class ImageFileRepositoryImpl : ImageFileRepository {
     override suspend fun compressImage(context: Context, uri: Uri): File {
         return withContext(Dispatchers.IO) {
             val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
-            val compressedFile = File(context.cacheDir, "compressed_${System.currentTimeMillis()}.jpg")
+            val filename = "${Constants.IMAGE_FILE_PREFIX}${System.currentTimeMillis()}${Constants.IMAGE_FILE_EXTENSION}"
+            val compressedFile = File(context.cacheDir, filename)
             FileOutputStream(compressedFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, Constants.IMAGE_COMPRESS_QUALITY, out)
             }
-            val fileSizeKb = compressedFile.length() / 1024
             compressedFile
         }
     }
 
     override suspend fun uploadImageToCloudinary(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val cloudName = "durhoy6iq"
-            val uploadPreset = "Chat_Rando"
-            val url = "https://api.cloudinary.com/v1_1/$cloudName/image/upload"
+            val uploadPreset = Constants.CLOUDINARY_IMAGE_UPLOAD_PRESET
+            val url = Constants.CLOUDINARY_IMAGE_UPLOAD_URL
 
             val contentResolver = context.contentResolver
             val inputStream: InputStream? = contentResolver.openInputStream(uri)
-            val tempFile = File.createTempFile("upload", ".jpg", context.cacheDir)
+            val tempFile = File.createTempFile(Constants.TEMP_IMAGE_FILE_PREFIX, Constants.IMAGE_FILE_EXTENSION, context.cacheDir)
             inputStream?.use { input ->
                 tempFile.outputStream().use { fileOut ->
                     input.copyTo(fileOut)
@@ -98,8 +94,8 @@ class ImageFileRepositoryImpl : ImageFileRepository {
 
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("file", tempFile.name, tempFile.asRequestBody("image/*".toMediaTypeOrNull()))
-                .addFormDataPart("upload_preset", uploadPreset)
+                .addFormDataPart(Constants.CLOUDINARY_FORM_KEY_FILE, tempFile.name, tempFile.asRequestBody(Constants.IMAGE_MIME_TYPE.toMediaTypeOrNull()))
+                .addFormDataPart(Constants.CLOUDINARY_FORM_KEY_UPLOAD_PRESET, uploadPreset)
                 .build()
 
             val request = Request.Builder()
@@ -112,14 +108,13 @@ class ImageFileRepositoryImpl : ImageFileRepository {
             if (response.isSuccessful) {
                 val json = response.body?.string()
                 val jsonObj = org.json.JSONObject(json)
-                Result.success(jsonObj.getString("secure_url"))
+                Result.success(jsonObj.getString(Constants.CLOUDINARY_RESPONSE_KEY_SECURE_URL))
             } else {
-                Result.failure(Exception("Cloudinary upload failed: ${response.message}"))
+                Result.failure(Exception("${Constants.CLOUDINARY_ERROR_PREFIX}${response.message}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-
 
 }
