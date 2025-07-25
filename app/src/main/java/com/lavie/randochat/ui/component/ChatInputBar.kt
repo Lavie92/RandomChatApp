@@ -1,7 +1,6 @@
 package com.lavie.randochat.ui.component
 
 import android.media.MediaPlayer
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +42,6 @@ import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.formatMillis
 import com.lavie.randochat.utils.getAudioDuration
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -85,7 +83,6 @@ fun ChatInputBar(
             }
         }
     }
-
 
     val elapsedSeconds = ((currentTime - startTime) / 1000L).coerceAtLeast(0L)
     Column(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
@@ -368,10 +365,8 @@ fun ChatInputBar(
                     )
                 }
             }
-
         }
     }
-
 }
 
 

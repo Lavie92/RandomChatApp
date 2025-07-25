@@ -6,7 +6,6 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -204,7 +203,6 @@ fun ConversationScreen(
     onTypingStatusChanged: (Boolean) -> Unit,
     onSendText: (String) -> Unit,
     onSendImage: () -> Unit,
-    modifier: Modifier = Modifier,
     navController: NavController,
     voiceRecordState: VoiceRecordState,
     onVoiceRecordStart: () -> Unit,
@@ -493,7 +491,7 @@ fun MessageBubble(
                                 lastPlaybackPosition = 0
                                 displayTime = durationText
                             }
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             isPlaying.value = false
                             customToast(context,R.string.voice_playback_failed)
 

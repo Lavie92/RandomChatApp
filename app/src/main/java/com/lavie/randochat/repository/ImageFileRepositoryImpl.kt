@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.widget.Toast
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.customToast
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +20,6 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
-import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -79,7 +77,6 @@ class ImageFileRepositoryImpl : ImageFileRepository {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
             }
             val fileSizeKb = compressedFile.length() / 1024
-            Timber.d("⏱️ [Repo] Compressed file size: $fileSizeKb KB")
             compressedFile
         }
     }

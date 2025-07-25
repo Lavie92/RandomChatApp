@@ -226,19 +226,11 @@ class ChatViewModel(
         addLocalMessage(localMessage)
 
         _isSendingImage.value = true
-        val totalStart = System.currentTimeMillis()
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val startCompress = System.currentTimeMillis()
                 val compressedFile = imageFileRepository.compressImage(context, uri)
-                val elapsedCompress = System.currentTimeMillis() - startCompress
-                Timber.d("⏱️ Compress image took $elapsedCompress ms")
-
-                val startUpload = System.currentTimeMillis()
                 val result = imageFileRepository.uploadImageToCloudinary(context, Uri.fromFile(compressedFile))
-                val elapsedUpload = System.currentTimeMillis() - startUpload
-                Timber.d("⏱️ [Repo] Upload image to Cloudinary took $elapsedUpload ms")
 
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
@@ -248,8 +240,6 @@ class ChatViewModel(
                     } else {
                         updateMessageStatus(localId, MessageStatus.FAILED)
                     }
-                    val totalElapsed = System.currentTimeMillis() - totalStart
-                    Timber.d("✅ Total end-to-end time: $totalElapsed ms")
                     _isSendingImage.value = false
                 }
             } catch (_: Exception) {
