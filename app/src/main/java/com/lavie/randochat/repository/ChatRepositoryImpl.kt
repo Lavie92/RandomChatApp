@@ -2,6 +2,7 @@ package com.lavie.randochat.repository
 
 import android.content.Context
 import com.google.firebase.database.*
+import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
@@ -33,14 +34,23 @@ class ChatRepositoryImpl(
 
             val encryptedContent = CommonUtils.encryptMessage(message.content, key)
 
-            val encryptedMessage = message.copy(content = encryptedContent)
-
             val msgRef = database
                 .child(Constants.CHAT_ROOMS)
                 .child(roomId)
                 .child(Constants.MESSAGES)
                 .child(message.id)
-            msgRef.setValue(encryptedMessage).await()
+
+            val messageMap = mapOf(
+                Constants.ID to message.id,
+                Constants.SENDER_ID to message.senderId,
+                Constants.CONTENT_RES_ID to message.contentResId,
+                Constants.CONTENT to encryptedContent,
+                Constants.TIMESTAMP to ServerValue.TIMESTAMP,
+                Constants.TYPE to message.type.name,
+                Constants.STATUS to message.status.name
+            )
+
+            msgRef.setValue(messageMap).await()
 
             val roomRef = database.child(Constants.CHAT_ROOMS).child(roomId)
             roomRef.updateChildren(
@@ -58,32 +68,24 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(
         roomId: String,
-        limit: Int,
-        startAfter: Long?,
         onNewMessages: (List<Message>) -> Unit
     ): ValueEventListener {
         val msgRef = database.child(Constants.CHAT_ROOMS)
             .child(roomId)
             .child(Constants.MESSAGES)
 
-        val query = if (startAfter == null) {
-            msgRef.orderByChild(Constants.TIMESTAMP)
-                .limitToLast(limit)
-        } else {
-            msgRef.orderByChild(Constants.TIMESTAMP)
-                .endAt(startAfter.toDouble() - 1)
-                .limitToLast(limit)
-        }
+        val query = msgRef
+            .orderByChild(Constants.TIMESTAMP)
+            .limitToLast(Constants.PAGE_SIZE_MESSAGES)
 
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
                     .sortedBy { it.timestamp }
                     .map { msg ->
-                        val decryptedContent = decryptedMessage(msg, roomId)
-                        msg.copy(content = decryptedContent)
+                        val decrypted = decryptedMessage(msg, roomId)
+                        msg.copy(content = decrypted)
                     }
-
                 onNewMessages(messages)
             }
 
@@ -93,25 +95,6 @@ class ChatRepositoryImpl(
         query.addValueEventListener(listener)
         listeners[roomId] = listener
         return listener
-    }
-
-    override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
-        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
-        listeners.remove(roomId)
-    }
-
-    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
-        return try {
-            val statusRef = database.child(Constants.CHAT_ROOMS)
-                .child(roomId)
-                .child(Constants.MESSAGES)
-                .child(messageId)
-                .child(Constants.STATUS)
-            statusRef.setValue(status.name).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
     }
 
     override suspend fun getPreviousMessages(
@@ -142,6 +125,25 @@ class ChatRepositoryImpl(
         }
     }
 
+    override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
+        listeners.remove(roomId)
+    }
+
+    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
+        return try {
+            val statusRef = database.child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.MESSAGES)
+                .child(messageId)
+                .child(Constants.STATUS)
+            statusRef.setValue(status.name).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun decryptedMessage(message: Message, roomId: String) : String {
         val key = CommonUtils.generateMessageKey(roomId, message.senderId)
 
@@ -151,7 +153,7 @@ class ChatRepositoryImpl(
             message.content
         }
     }
-        
+
     override suspend fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean): Result<Unit> {
         return try {
             val typingRef = database.child(Constants.CHAT_ROOMS)
@@ -191,6 +193,31 @@ class ChatRepositoryImpl(
         typingListeners.remove(roomId)
     }
 
+    override fun listenToRoomStatus(
+        roomId: String,
+        onStatusChanged: (Boolean) -> Unit
+    ): ValueEventListener {
+        val ref = database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.ACTIVE)
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val isActive = snapshot.getValue(Boolean::class.java) ?: true
+                onStatusChanged(isActive)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Timber.e(error.message)
+            }
+        }
+        ref.addValueEventListener(listener)
+
+        return listener
+    }
+
+    override fun removeRoomStatusListener(roomId: String, listener: ValueEventListener) {
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.ACTIVE).removeEventListener(listener)
+    }
+
     override suspend fun getChatType(roomId: String): String? {
         return try {
             val snapshot = database
@@ -206,6 +233,25 @@ class ChatRepositoryImpl(
         }
     }
 
+    override suspend fun endChat(roomId: String, userId: String): Result<Unit> {
+        return try {
+            val chatRoomSnap = database.child(Constants.CHAT_ROOMS).child(roomId).get().await()
+            val participantIds = chatRoomSnap.child(Constants.PARTICIPANTS_ID).children.mapNotNull { it.getValue(String::class.java) }
+
+            val updates = mutableMapOf<String, Any?>(
+                "${Constants.CHAT_ROOMS}/$roomId/${Constants.ACTIVE}" to false
+            )
+
+            participantIds.forEach { uid ->
+                updates["${Constants.USERS}/$uid/${Constants.ACTIVE_ROOM_ID}"] = null
+                updates["${Constants.USERS}/$uid/${Constants.LAST_ROOM_ID}"] = roomId
+            }
+
+            database.updateChildren(updates).await()
+            Result.success(Unit)
+        } catch (ex: Exception) {
+            Timber.e(ex, "Failed to end chat for $roomId")
+            Result.failure(ex)
     override suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String> = withContext(Dispatchers.IO) {
         try {
             val uploadPreset = Constants.CLOUDINARY_AUDIO_UPLOAD_PRESET

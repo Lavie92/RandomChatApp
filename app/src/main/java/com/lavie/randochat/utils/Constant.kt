@@ -49,7 +49,7 @@ object Constants {
     const val MODE = "mode"
     const val MESSAGE_ID = "messageId"
     const val APP_PREFS = "app_prefs"
-    const val FCM_TOKEN = "fcm_token"
+    const val FCM_TOKENS = "fcm_tokens"
     const val TYPE = "type"
     const val CONTENT = "content"
     const val SINGLE_CLICK_TIMEOUT = 600L
@@ -89,4 +89,7 @@ object Constants {
     const val SECONDS_PER_MINUTE = 60
     const val ERROR_CANNOT_OPEN_INPUT_STREAM = "Không thể mở inputStream từ uri %s (có thể đã mất quyền truy cập hoặc file không còn tồn tại)"
 
+    const val CONTENT_RES_ID = "contentResId"
+    const val ACTIVE_ROOM_ID = "activeRoomId"
+    const val LAST_ROOM_ID = "lastRoomId"
 }

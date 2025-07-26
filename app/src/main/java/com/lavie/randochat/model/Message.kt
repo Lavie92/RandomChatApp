@@ -9,7 +9,7 @@ data class Message(
     val senderId: String = "",
     val content: String = "",
     val contentResId: Int? = null,
-    val timestamp: Long = 0L,
+    val timestamp: Long = System.currentTimeMillis(),
     val type: MessageType = MessageType.TEXT,
     val status: MessageStatus =  MessageStatus.SENDING
 ) {

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.R
+import com.google.firebase.database.ServerValue
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
@@ -57,21 +58,29 @@ class ChatViewModel(
     private var audioFile: File? = null
 
     private val _isSendingImage = MutableStateFlow(false)
+    private var _isChatRoomEnded = MutableStateFlow(false)
+    val isChatRoomEnded = _isChatRoomEnded
+    private var roomStatusListener: ValueEventListener? = null
 
     fun loadInitialMessages(roomId: String) {
-        removeMessageListener()
-
         currentRoomId = roomId
         isEndReached = false
         oldestTimestamp = null
+
         val cachedJson = prefs.getString(Constants.CACHED_MESSAGES_PREFIX + roomId, null)
         val cachedMessages = CacheUtils.jsonToMessages(cachedJson)
         _messages.value = cachedMessages.sortedBy { it.timestamp }
         oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
         isEndReached = cachedMessages.size < pageSize
 
+        startRealtimeMessageListener(roomId)
+    }
+
+    fun startRealtimeMessageListener(roomId: String) {
+        removeMessageListener()
+
         messagesListener = chatRepository.listenForMessages(
-            roomId, limit = pageSize, startAfter = null
+            roomId = roomId
         ) { newMessages ->
             val sorted = newMessages.sortedBy { it.timestamp }
             _messages.value = sorted
@@ -79,8 +88,18 @@ class ChatViewModel(
             isEndReached = sorted.size < pageSize
             cacheMessages(roomId, sorted)     
    
+            val combined = (_messages.value + newMessages)
+                .associateBy { it.id }
+                .values
+                .sortedBy { it.timestamp }
+
+            _messages.value = combined
+
+            oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+            cacheMessages(roomId, _messages.value)
         }
     }
+
 
     fun loadMoreMessages(onLoaded: (addedCount: Int) -> Unit = {}) {
         if (_isLoadingMore.value || isEndReached || currentRoomId == null || oldestTimestamp == null) return
@@ -96,16 +115,15 @@ class ChatViewModel(
 
                 val added = sorted.size
 
-                _messages.value = (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
+                _messages.value =
+                    (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
                 oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
                 cacheMessages(currentRoomId!!, _messages.value)
 
                 onLoaded(added)
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Timber.d(e)
-            }
-            finally {
+            } finally {
                 _isLoadingMore.value = false
             }
         }
@@ -147,11 +165,11 @@ class ChatViewModel(
             id = messageId,
             senderId = senderId,
             content = content,
-            timestamp = System.currentTimeMillis(),
             type = type,
             status = status
         )
-        _messages.value = _messages.value + message
+        _messages.value += message
+
         currentRoomId?.let { cacheMessages(it, _messages.value) }
         viewModelScope.launch {
             val result = chatRepository.sendMessage(roomId, message)
@@ -175,12 +193,13 @@ class ChatViewModel(
         }
     }
 
-    fun sendWelcomeMessage(roomId: String) {
+    fun sendSystemMessage(roomId: String, messageId: Int) {
         if (roomId !in sentWelcomeMessages) {
             val welcomeMsg = Message(
                 id = UUID.randomUUID().toString(),
                 senderId = Constants.SYSTEM,
-                contentResId = R.string.welcome_notice,
+                content = "",
+                contentResId = messageId,
                 timestamp = System.currentTimeMillis(),
                 type = MessageType.TEXT,
                 status = MessageStatus.SENT
@@ -247,6 +266,22 @@ class ChatViewModel(
                     updateMessageStatus(localId, MessageStatus.FAILED)
                     _isSendingImage.value = false
                 }
+    fun resetChatState() {
+        _isChatRoomEnded.value = false
+    }
+
+    fun endChat(roomId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                sendSystemMessage(roomId, R.string.chat_ended)
+
+                val result = chatRepository.endChat(roomId, userId)
+                if (result.isSuccess) {
+                    _isChatRoomEnded.value = true
+                    Timber.d("Chat Ended. activeRoomId cleared. lastRoomId set to $roomId")
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex, "Error when ending chat")
             }
         }
     }
@@ -365,5 +400,40 @@ class ChatViewModel(
                 else it
             }
         }
+    }
+}
+    fun clearChatCache(roomId: String) {
+        prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
+        prefs.remove(Constants.CACHED_ACTIVE_ROOM)
+    }
+
+    fun listenToRoomStatus(roomId: String) {
+        roomStatusListener?.let {
+            chatRepository.removeRoomStatusListener(roomId, it)
+        }
+
+        roomStatusListener = chatRepository.listenToRoomStatus(roomId) { isActive ->
+            val ended = !isActive
+            _isChatRoomEnded.value = ended
+
+            if (ended) {
+                Timber.d("Detected chat end. Waiting for user action.")
+            }
+        }
+    }
+
+    fun clearListeners() {
+        messagesListener?.let {
+            currentRoomId?.let { roomId ->
+                chatRepository.removeMessageListener(roomId, it)
+            }
+        }
+        roomStatusListener?.let {
+            currentRoomId?.let { roomId ->
+                chatRepository.removeRoomStatusListener(roomId, it)
+            }
+        }
+        messagesListener = null
+        roomStatusListener = null
     }
 }
