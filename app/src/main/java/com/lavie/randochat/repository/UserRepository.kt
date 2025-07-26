@@ -25,6 +25,10 @@ interface UserRepository {
 
     suspend fun getChatRoomStatus(roomId: String): Boolean?
 
+    suspend fun getNavigableActiveRoomForUser(userId: String): ChatRoom?
+
+    suspend fun getActiveOrLastRoom(userId: String): String?
+
     sealed class UserResult {
         data class Success(val user: User) : UserResult()
         data class Error(val messageId: Int?) : UserResult()

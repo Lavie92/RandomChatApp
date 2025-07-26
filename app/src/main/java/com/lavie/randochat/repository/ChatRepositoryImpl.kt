@@ -57,24 +57,15 @@ class ChatRepositoryImpl(
 
     override fun listenForMessages(
         roomId: String,
-        limit: Int?,
-        startAfter: Long?,
         onNewMessages: (List<Message>) -> Unit
     ): ValueEventListener {
         val msgRef = database.child(Constants.CHAT_ROOMS)
             .child(roomId)
             .child(Constants.MESSAGES)
 
-        val query = when {
-            startAfter != null -> msgRef.orderByChild(Constants.TIMESTAMP)
-                .endAt(startAfter.toDouble() - 1)
-                .limitToLast(limit ?: 50)
-
-            limit != null -> msgRef.orderByChild(Constants.TIMESTAMP)
-                .limitToLast(limit)
-
-            else -> msgRef.orderByChild(Constants.TIMESTAMP)  // realtime listener full range
-        }
+        val query = msgRef
+            .orderByChild(Constants.TIMESTAMP)
+            .limitToLast(Constants.PAGE_SIZE_MESSAGES)
 
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -93,25 +84,6 @@ class ChatRepositoryImpl(
         query.addValueEventListener(listener)
         listeners[roomId] = listener
         return listener
-    }
-
-    override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
-        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
-        listeners.remove(roomId)
-    }
-
-    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
-        return try {
-            val statusRef = database.child(Constants.CHAT_ROOMS)
-                .child(roomId)
-                .child(Constants.MESSAGES)
-                .child(messageId)
-                .child(Constants.STATUS)
-            statusRef.setValue(status.name).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
     }
 
     override suspend fun getPreviousMessages(
@@ -139,6 +111,25 @@ class ChatRepositoryImpl(
         } catch (e: Exception) {
             Timber.d(e)
             emptyList()
+        }
+    }
+
+    override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
+        listeners.remove(roomId)
+    }
+
+    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
+        return try {
+            val statusRef = database.child(Constants.CHAT_ROOMS)
+                .child(roomId)
+                .child(Constants.MESSAGES)
+                .child(messageId)
+                .child(Constants.STATUS)
+            statusRef.setValue(status.name).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -231,25 +222,24 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun endChat(roomId: String): Result<Unit> {
+    override suspend fun endChat(roomId: String, userId: String): Result<Unit> {
         return try {
-            val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(roomId).get().await()
-            val chatRoom = roomSnapshot.getValue(ChatRoom::class.java)
+            val chatRoomSnap = database.child(Constants.CHAT_ROOMS).child(roomId).get().await()
+            val participantIds = chatRoomSnap.child(Constants.PARTICIPANTS_ID).children.mapNotNull { it.getValue(String::class.java) }
 
-            val updates = mutableMapOf<String, Any?>()
+            val updates = mutableMapOf<String, Any?>(
+                "${Constants.CHAT_ROOMS}/$roomId/${Constants.ACTIVE}" to false
+            )
 
-            updates["${Constants.CHAT_ROOMS}/$roomId/${Constants.ACTIVE}"] = false
-            updates["${Constants.CHAT_ROOMS}/$roomId/${Constants.LAST_UPDATED}"] = System.currentTimeMillis()
-
-            chatRoom?.participantIds?.forEach { userId ->
-                updates["${Constants.USERS}/$userId/${Constants.ACTIVE_ROOM_ID}"] = null
+            participantIds.forEach { uid ->
+                updates["${Constants.USERS}/$uid/${Constants.ACTIVE_ROOM_ID}"] = null
+                updates["${Constants.USERS}/$uid/${Constants.LAST_ROOM_ID}"] = roomId
             }
 
             database.updateChildren(updates).await()
-
             Result.success(Unit)
-        } catch(ex: Exception) {
-            Timber.e(ex, "Failed to end chat for room $roomId")
+        } catch (ex: Exception) {
+            Timber.e(ex, "Failed to end chat for $roomId")
             Result.failure(ex)
         }
     }

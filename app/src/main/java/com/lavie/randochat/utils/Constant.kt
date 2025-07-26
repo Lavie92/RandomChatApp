@@ -49,12 +49,12 @@ object Constants {
     const val MODE = "mode"
     const val MESSAGE_ID = "messageId"
     const val APP_PREFS = "app_prefs"
-    const val FCM_TOKEN = "fcm_token"
+    const val FCM_TOKENS = "fcm_tokens"
     const val TYPE = "type"
     const val CONTENT = "content"
     const val SINGLE_CLICK_TIMEOUT = 600L
     const val SYSTEM = "system"
-    const val PAGE_SIZE_MESSAGES = 50
+    const val PAGE_SIZE_MESSAGES = 10
     const val TYPING = "typing"
     const val CACHED_USER_ID = "cached_user_id"
     const val CACHED_USER_EMAIL = "cached_user_email"
@@ -64,4 +64,5 @@ object Constants {
     const val SENDER_ID = "senderId"
     const val CONTENT_RES_ID = "contentResId"
     const val ACTIVE_ROOM_ID = "activeRoomId"
+    const val LAST_ROOM_ID = "lastRoomId"
 }

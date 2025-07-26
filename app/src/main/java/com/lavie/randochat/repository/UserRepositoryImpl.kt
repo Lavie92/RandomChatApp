@@ -157,14 +157,21 @@ class UserRepositoryImpl(
     override suspend fun getActiveRoomForUser(userId: String): ChatRoom? {
         val userSnapshot = database.child(Constants.USERS).child(userId).get().await()
         val activeRoomId = userSnapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
-
-        if (activeRoomId.isNullOrEmpty()) {
-            return null
-        }
+            ?: return null
 
         val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(activeRoomId).get().await()
+        return roomSnapshot.getValue(ChatRoom::class.java)
+    }
 
-        return roomSnapshot.getValue(ChatRoom::class.java)    }
+    override suspend fun getNavigableActiveRoomForUser(userId: String): ChatRoom? {
+        val userSnapshot = database.child(Constants.USERS).child(userId).get().await()
+        val activeRoomId = userSnapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
+            ?: return null
+
+        val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(activeRoomId).get().await()
+        return roomSnapshot.getValue(ChatRoom::class.java)
+    }
+
 
     override suspend fun registerWithEmail(email: String, password: String): UserResult {
         return try {
@@ -240,7 +247,7 @@ class UserRepositoryImpl(
     override suspend fun addFcmToken(userId: String, token: String) {
         database.child(Constants.USERS)
             .child(userId)
-            .child("fcmTokens")
+            .child(Constants.FCM_TOKENS)
             .child(token)
             .setValue(true)
             .await()
@@ -262,5 +269,15 @@ class UserRepositoryImpl(
             Timber.e(e, "Failed to get room status for $roomId")
             null
         }
+    }
+
+    override suspend fun getActiveOrLastRoom(userId: String): String? {
+        val snapshot = database.child(Constants.USERS).child(userId).get().await()
+
+        val activeRoomId = snapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
+        if (!activeRoomId.isNullOrEmpty()) return activeRoomId
+
+        val lastRoomId = snapshot.child(Constants.LAST_ROOM_ID).getValue(String::class.java)
+        return lastRoomId
     }
 }

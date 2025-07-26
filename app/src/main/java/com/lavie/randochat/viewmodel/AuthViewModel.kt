@@ -129,9 +129,8 @@ class AuthViewModel(
                                     _activeRoom.value = cachedRoom
                                     _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
                                 } else if (isRoomActive == false) {
-                                    _activeRoom.value = null
-                                    clearActiveRoom()
-                                    _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                                    _activeRoom.value = cachedRoom
+                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
                                 } else {
                                     _activeRoom.value = cachedRoom
                                     _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
@@ -286,16 +285,18 @@ class AuthViewModel(
         prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
     }
 
-    fun restoreCachedUser(): Boolean {
-        val cachedUser = getCachedUser()
-        if (cachedUser != null) {
-            _loginState.value = cachedUser
-            _errorMessageId.value = null
+    suspend fun restoreCachedUser(): Boolean {
+        val firebaseUser = FirebaseAuth.getInstance().currentUser ?: return false
 
-            return true
-        }
+        val userId = firebaseUser.uid
 
-        return false
+        val roomId = userRepository.getActiveOrLastRoom(userId)
+        if (roomId.isNullOrEmpty()) return false
+
+        _activeRoom.value = ChatRoom(id = roomId)
+
+        _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
+        return true
     }
 
     fun hasCachedUser(): Boolean {
@@ -323,10 +324,18 @@ class AuthViewModel(
         cacheActiveRoom(null)
     }
 
-
     private fun getCachedActiveRoom(): ChatRoom? {
         val json = prefs.getString(Constants.CACHED_ACTIVE_ROOM, null)
         return CacheUtils.jsonToChatRoom(json)
+    }
+
+    suspend fun getNavigableActiveRoom(): ChatRoom? {
+        val userId = loginState.value?.id ?: return null
+        return userRepository.getNavigableActiveRoomForUser(userId)
+    }
+
+    suspend fun getNavigableRoomId(): String? {
+        return getNavigableActiveRoom()?.id
     }
 
     sealed class NavigationEvent {

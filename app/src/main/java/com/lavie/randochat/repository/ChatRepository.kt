@@ -7,7 +7,7 @@ import com.lavie.randochat.utils.MessageStatus
 interface ChatRepository {
     suspend fun sendMessage(roomId: String, message: Message): Result<Unit>
 
-    fun listenForMessages(roomId: String, limit: Int? = null, startAfter: Long? = null, onNewMessages: (List<Message>) -> Unit): ValueEventListener
+    fun listenForMessages(roomId: String, onNewMessages: (List<Message>) -> Unit): ValueEventListener
 
     fun removeMessageListener(roomId: String, listener: ValueEventListener)
 
@@ -23,7 +23,7 @@ interface ChatRepository {
 
     suspend fun getChatType(roomId: String): String?
 
-    suspend fun endChat(roomId: String): Result<Unit>
+    suspend fun endChat(roomId: String, userId: String): Result<Unit>
 
     fun listenToRoomStatus(roomId: String, onStatusChanged: (Boolean) -> Unit): ValueEventListener
 

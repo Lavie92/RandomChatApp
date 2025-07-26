@@ -84,8 +84,8 @@ fun StartChatScreen(
         TextButton(
             onClick = singleClickHandler {
                 coroutineScope.launch {
-                    val roomId = authViewModel.getCurrentRoom()
-                    if (roomId.isEmpty()) {
+                    val roomId = authViewModel.getNavigableRoomId()
+                    if (roomId.isNullOrEmpty()) {
                         if (myUserId != null) {
                             navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_MATCHING}/${R.string.matching}")
                             matchViewModel.startMatching(myUserId, chatType)

@@ -59,17 +59,20 @@ class ChatViewModel(
         removeMessageListener()
 
         messagesListener = chatRepository.listenForMessages(
-            roomId = roomId,
-            limit = null,
-            startAfter = null
+            roomId = roomId
         ) { newMessages ->
-            val sorted = newMessages.sortedBy { it.timestamp }
-            _messages.value = sorted
-            oldestTimestamp = sorted.minByOrNull { it.timestamp }?.timestamp
-            isEndReached = false
-            cacheMessages(roomId, sorted)
+            val combined = (_messages.value + newMessages)
+                .associateBy { it.id }
+                .values
+                .sortedBy { it.timestamp }
+
+            _messages.value = combined
+
+            oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+            cacheMessages(roomId, _messages.value)
         }
     }
+
 
     fun loadMoreMessages(onLoaded: (addedCount: Int) -> Unit = {}) {
         if (_isLoadingMore.value || isEndReached || currentRoomId == null || oldestTimestamp == null) return
@@ -140,7 +143,6 @@ class ChatViewModel(
             id = messageId,
             senderId = senderId,
             content = content,
-            timestamp = 0L,
             type = type,
             status = status
         )
@@ -212,23 +214,25 @@ class ChatViewModel(
         _isChatRoomEnded.value = false
     }
 
-    fun endChat(roomId: String) {
+    fun endChat(roomId: String, userId: String) {
         viewModelScope.launch {
             try {
                 sendSystemMessage(roomId, R.string.chat_ended)
-                val result = chatRepository.endChat(roomId)
+
+                val result = chatRepository.endChat(roomId, userId)
                 if (result.isSuccess) {
                     _isChatRoomEnded.value = true
-
-                    prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
-                    prefs.remove(Constants.CACHED_ACTIVE_ROOM)
-
-                    Timber.d("Chat Ended")
+                    Timber.d("Chat Ended. activeRoomId cleared. lastRoomId set to $roomId")
                 }
             } catch (ex: Exception) {
                 Timber.e(ex, "Error when ending chat")
             }
         }
+    }
+
+    fun clearChatCache(roomId: String) {
+        prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
+        prefs.remove(Constants.CACHED_ACTIVE_ROOM)
     }
 
     fun listenToRoomStatus(roomId: String) {

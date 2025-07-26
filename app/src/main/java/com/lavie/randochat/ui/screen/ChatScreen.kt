@@ -61,6 +61,7 @@ import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
+import timber.log.Timber
 
 @Composable
 fun ChatScreen(
@@ -84,7 +85,7 @@ fun ChatScreen(
         activity?.finish()
     }
 
-    LaunchedEffect(messages) {
+    LaunchedEffect(messages.lastOrNull()) {
         if (CommonUtils.isAppInForeground(context)) {
             chatViewModel.markMessagesAsSeen(roomId, myUserId, messages)
         }
@@ -120,6 +121,10 @@ fun ChatScreen(
         }
     }
 
+    OnAppResumed {
+        chatViewModel.startRealtimeMessageListener(roomId)
+    }
+
     ConversationScreen(
         messages = messages,
         myUserId = myUserId,
@@ -138,7 +143,7 @@ fun ChatScreen(
             chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
         },
         onEndChat = {
-            chatViewModel.endChat(roomId)
+            chatViewModel.endChat(roomId, myUserId)
         },
         onSendHeart = {},
         onReport = {},
@@ -147,6 +152,8 @@ fun ChatScreen(
         isLoadingMore = isLoadingMore,
         chatType = chatType,
         authViewModel = authViewModel,
+        chatViewModel = chatViewModel,
+        roomId = roomId,
         navController = navController
     )
 }
@@ -169,6 +176,8 @@ fun ConversationScreen(
     isLoadingMore: Boolean,
     chatType: String,
     authViewModel: AuthViewModel,
+    chatViewModel: ChatViewModel,
+    roomId: String,
     navController: NavController,
 ) {
     val listState = rememberLazyListState()
@@ -298,7 +307,7 @@ fun ConversationScreen(
                 Button(
                     onClick = {
                         authViewModel.clearActiveRoom()
-
+                        chatViewModel.clearChatCache(roomId)
                         navController.navigate(Constants.START_CHAT_SCREEN) {
                             popUpTo(Constants.CHAT_SCREEN) { inclusive = true }
                         }
@@ -485,6 +494,23 @@ private fun getTitleFromChatType(chatType: String): Int {
 
         else -> {
             R.string.random_chat
+        }
+    }
+}
+
+@Composable
+fun OnAppResumed(action: () -> Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                action()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 }
