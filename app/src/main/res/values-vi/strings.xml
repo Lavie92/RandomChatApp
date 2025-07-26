@@ -75,5 +75,10 @@
     <string name="random_chat">Chat Ngẫu Nhiên</string>
     <string name="chat_by_location">Chat theo vị trí</string>
     <string name="chat_by_age">Chat theo độ tuổi</string>
+    <string name="report">Báo cáo vi phạm</string>
+    <string name="send_heart">Thả tim</string>
+    <string name="leave_chat">Thoát</string>
+    <string name="chat_ended">Cuộc trò chuyện đã kết thúc</string>
+    <string name="already_in_chat">Bạn đang trong một cuộc trò chuyện</string>
 
 </resources>

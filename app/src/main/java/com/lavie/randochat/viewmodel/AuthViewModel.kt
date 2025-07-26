@@ -55,11 +55,8 @@ class AuthViewModel(
     }
 
     init {
-        val hasCached = restoreCachedUser()
         userRepository.addAuthStateListener(authStateListener)
-        if (!hasCached) {
-            checkInitialUserState()
-        }
+        checkInitialUserState()
     }
 
     override fun onCleared() {
@@ -109,26 +106,64 @@ class AuthViewModel(
         viewModelScope.launch {
             when (val result = userRepository.checkUserValid()) {
                 is UserRepository.UserResult.Success -> {
-                    _loginState.value = result.user
-                    cacheUser(result.user)
+                    val user = result.user
+                    _loginState.value = user
                     _errorMessageId.value = null
+                    cacheUser(user)
 
-                    val activeRoom = userRepository.getActiveRoomForUser(result.user.id)
-                    _activeRoom.value = activeRoom
-                    cacheActiveRoom(activeRoom)
+                    val activeRoom = userRepository.getActiveRoomForUser(user.id)
+                    val cachedRoom = getCachedActiveRoom()
 
-                    if (activeRoom != null) {
-                        val roomId = activeRoom.id
-                        _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
-                    } else {
-                        _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                    when {
+                        activeRoom != null -> {
+                            _activeRoom.value = activeRoom
+                            cacheActiveRoom(activeRoom)
+                            _navigationEvent.emit(NavigationEvent.NavigateToChat(activeRoom.id))
+                        }
+
+                        cachedRoom != null -> {
+                            try {
+                                val isRoomActive = userRepository.getChatRoomStatus(cachedRoom.id)
+
+                                if (isRoomActive == true) {
+                                    _activeRoom.value = cachedRoom
+                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                                } else if (isRoomActive == false) {
+                                    _activeRoom.value = cachedRoom
+                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                                } else {
+                                    _activeRoom.value = cachedRoom
+                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                                }
+                            } catch (e: Exception) {
+                                _activeRoom.value = cachedRoom
+                                _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                            }
+                        }
+
+                        else -> {
+                            _activeRoom.value = null
+                            _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                        }
                     }
                 }
 
                 is UserRepository.UserResult.Error -> {
                     if (result.messageId == R.string.network_error) {
-                        if (_loginState.value != null) {
+                        val cachedUser = getCachedUser()
+                        val cachedRoom = getCachedActiveRoom()
+
+                        if (cachedUser != null) {
+                            _loginState.value = cachedUser
                             _errorMessageId.value = null
+
+                            if (cachedRoom != null) {
+                                _activeRoom.value = cachedRoom
+                                _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
+                            } else {
+                                _activeRoom.value = null
+                                _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
+                            }
                         } else {
                             _loginState.value = null
                             _errorMessageId.value = result.messageId
@@ -230,7 +265,7 @@ class AuthViewModel(
         val userId = loginState.value!!.id
         firebaseMessaging.token.addOnSuccessListener { token ->
             viewModelScope.launch {
-                userRepository.updateFcmToken(userId, token)
+                userRepository.addFcmToken(userId, token)
             }
         }
     }
@@ -241,25 +276,22 @@ class AuthViewModel(
         prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
     }
 
-    private fun restoreCachedUser(): Boolean {
-        val cachedUser = getCachedUser()
-        if (cachedUser != null) {
-            _loginState.value = cachedUser
-            _errorMessageId.value = null
-            val cachedRoom = getCachedActiveRoom()
-            _activeRoom.value = cachedRoom
-            viewModelScope.launch {
-                if (cachedRoom != null) {
-                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
-                } else {
-                    _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
-                }
-            }
+    suspend fun restoreCachedUser(): Boolean {
+        val firebaseUser = FirebaseAuth.getInstance().currentUser ?: return false
 
-            return true
-        }
+        val userId = firebaseUser.uid
 
-        return false
+        val roomId = userRepository.getActiveOrLastRoom(userId)
+        if (roomId.isNullOrEmpty()) return false
+
+        _activeRoom.value = ChatRoom(id = roomId)
+
+        _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
+        return true
+    }
+
+    fun hasCachedUser(): Boolean {
+        return getCachedUser() != null
     }
 
     private fun getCachedUser(): User? {
@@ -278,9 +310,23 @@ class AuthViewModel(
         }
     }
 
+    fun clearActiveRoom() {
+        _activeRoom.value = null
+        cacheActiveRoom(null)
+    }
+
     private fun getCachedActiveRoom(): ChatRoom? {
         val json = prefs.getString(Constants.CACHED_ACTIVE_ROOM, null)
         return CacheUtils.jsonToChatRoom(json)
+    }
+
+    private suspend fun getNavigableActiveRoom(): ChatRoom? {
+        val userId = loginState.value?.id ?: return null
+        return userRepository.getNavigableActiveRoomForUser(userId)
+    }
+
+    suspend fun getNavigableRoomId(): String? {
+        return getNavigableActiveRoom()?.id
     }
 
     sealed class NavigationEvent {
