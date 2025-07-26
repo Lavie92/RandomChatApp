@@ -54,7 +54,7 @@ object Constants {
     const val CONTENT = "content"
     const val SINGLE_CLICK_TIMEOUT = 600L
     const val SYSTEM = "system"
-    const val PAGE_SIZE_MESSAGES = 10
+    const val PAGE_SIZE_MESSAGES = 50
     const val TYPING = "typing"
     const val CACHED_USER_ID = "cached_user_id"
     const val CACHED_USER_EMAIL = "cached_user_email"

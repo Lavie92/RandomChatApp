@@ -88,16 +88,15 @@ class ChatViewModel(
 
                 val added = sorted.size
 
-                _messages.value = (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
+                _messages.value =
+                    (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
                 oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
                 cacheMessages(currentRoomId!!, _messages.value)
 
                 onLoaded(added)
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Timber.d(e)
-            }
-            finally {
+            } finally {
                 _isLoadingMore.value = false
             }
         }

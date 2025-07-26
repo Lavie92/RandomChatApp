@@ -158,8 +158,6 @@ class AuthViewModel(
                             _errorMessageId.value = null
 
                             if (cachedRoom != null) {
-                                // Trong trường hợp offline, vẫn cho phép vào chat với cached room
-                                // User sẽ thấy được trạng thái chat ended nếu room đã end
                                 _activeRoom.value = cachedRoom
                                 _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
                             } else {
@@ -182,13 +180,6 @@ class AuthViewModel(
                 }
             }
         }
-    }
-
-    suspend fun getCurrentRoom(): String {
-        val userId = _loginState.value?.id ?: return ""
-        val room = userRepository.getActiveRoomForUser(userId)
-        _activeRoom.value = room
-        return room?.id ?: ""
     }
 
     private suspend fun handleSuccessfulSignIn(user: User) {
@@ -329,7 +320,7 @@ class AuthViewModel(
         return CacheUtils.jsonToChatRoom(json)
     }
 
-    suspend fun getNavigableActiveRoom(): ChatRoom? {
+    private suspend fun getNavigableActiveRoom(): ChatRoom? {
         val userId = loginState.value?.id ?: return null
         return userRepository.getNavigableActiveRoomForUser(userId)
     }
