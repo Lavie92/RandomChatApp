@@ -248,4 +248,19 @@ class ChatViewModel(
             }
         }
     }
+
+    fun clearListeners() {
+        messagesListener?.let {
+            currentRoomId?.let { roomId ->
+                chatRepository.removeMessageListener(roomId, it)
+            }
+        }
+        roomStatusListener?.let {
+            currentRoomId?.let { roomId ->
+                chatRepository.removeRoomStatusListener(roomId, it)
+            }
+        }
+        messagesListener = null
+        roomStatusListener = null
+    }
 }

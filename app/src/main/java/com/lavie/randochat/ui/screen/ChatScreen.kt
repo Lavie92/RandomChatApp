@@ -101,7 +101,7 @@ fun ChatScreen(
         val typingListener = chatViewModel.startTypingListener(roomId, myUserId)
 
         onDispose {
-            chatViewModel.removeMessageListener()
+            chatViewModel.clearListeners()
             chatViewModel.updateTypingStatus(roomId, myUserId, false)
             chatViewModel.removeTypingListener(roomId, typingListener)
         }
