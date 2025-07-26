@@ -1,12 +1,9 @@
 package com.lavie.randochat.service
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -16,7 +13,6 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageType
 import timber.log.Timber
-import androidx.core.content.edit
 
 class FCMService : FirebaseMessagingService() {
 
@@ -24,7 +20,7 @@ class FCMService : FirebaseMessagingService() {
         super.onNewToken(token)
         Timber.d("onNewToken: $token")
         val prefs = SharedPreferencesService(this)
-        prefs.putString(Constants.FCM_TOKEN, token)
+        prefs.putString(Constants.FCM_TOKENS, token)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {

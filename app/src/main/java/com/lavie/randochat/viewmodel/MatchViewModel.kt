@@ -46,7 +46,7 @@ class MatchViewModel(
             when (val result = matchRepository.findUserForMatch(myUserId, chatType)) {
                 is MatchRepository.MatchResult.Matched -> {
                     _matchState.value = MatchState.Matched(result.roomId, result.otherUserId)
-                    chatViewModel.sendWelcomeMessage(result.roomId)
+                    chatViewModel.sendSystemMessage(result.roomId, R.string.welcome_notice)
                     removeMatchedListener()
                 }
                 is MatchRepository.MatchResult.Waiting -> {

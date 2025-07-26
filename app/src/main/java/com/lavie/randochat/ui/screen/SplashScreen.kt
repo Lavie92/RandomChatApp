@@ -74,14 +74,30 @@ private fun LoginCheckSplash(
 ) {
     val loginState by authViewModel.loginState.collectAsState()
     val errorMessageId by authViewModel.errorMessageId.collectAsState()
-    val isLoading by authViewModel.isLoading.collectAsState()
     val progressMessageId by authViewModel.progressMessageId.collectAsState()
 
-    val currentMessage = progressMessageId?.let { stringResource(it) } ?: defaultMessage
+    val currentMessage = when {
+        progressMessageId != null -> stringResource(progressMessageId!!)
+        loginState != null -> stringResource(R.string.splash_connecting)
+        errorMessageId != null -> stringResource(errorMessageId!!)
+        authViewModel.hasCachedUser() -> stringResource(R.string.splash_connecting)
+        else -> defaultMessage
+    }
+
+    LaunchedEffect(Unit) {
+        if (loginState == null && authViewModel.hasCachedUser()) {
+            val restored = authViewModel.restoreCachedUser()
+            if (restored) return@LaunchedEffect
+        }
+    }
 
     LaunchedEffect(Unit) {
         delay(Constants.CHECK_USER_TIMEOUT)
-        if (loginState == null && errorMessageId == null) {
+        val noLogin = authViewModel.loginState.value == null
+        val noError = authViewModel.errorMessageId.value == null
+        val noCache = !authViewModel.hasCachedUser()
+
+        if (noLogin && noError && noCache) {
             navController.navigate(Constants.WELCOME_SCREEN) {
                 popUpTo(Constants.SPLASH_SCREEN) { inclusive = true }
             }
@@ -102,24 +118,6 @@ private fun LoginCheckSplash(
                         popUpTo(Constants.SPLASH_SCREEN) { inclusive = true }
                     }
                 }
-            }
-        }
-    }
-
-    LaunchedEffect(errorMessageId) {
-        if (errorMessageId != null) {
-            delay(Constants.CHECK_USER_TIMEOUT)
-            navController.navigate(Constants.WELCOME_SCREEN) {
-                popUpTo(Constants.SPLASH_SCREEN) { inclusive = true }
-            }
-        }
-    }
-
-    LaunchedEffect(loginState, errorMessageId, isLoading) {
-        if (!isLoading && loginState == null && errorMessageId == null) {
-            delay(Constants.CHECK_USER_TIMEOUT)
-            navController.navigate(Constants.WELCOME_SCREEN) {
-                popUpTo(Constants.SPLASH_SCREEN) { inclusive = true }
             }
         }
     }

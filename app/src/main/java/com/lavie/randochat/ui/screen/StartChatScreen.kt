@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,22 +32,25 @@ import com.lavie.randochat.utils.ChatType
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.singleClickHandler
 import com.lavie.randochat.viewmodel.AuthViewModel
+import com.lavie.randochat.viewmodel.ChatViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun StartChatScreen(
     navController: NavController,
     matchViewModel: MatchViewModel,
     authViewModel: AuthViewModel,
+    chatViewModel: ChatViewModel
 ) {
     val myUser by authViewModel.loginState.collectAsState()
-    val matchState by matchViewModel.matchState.collectAsState()
-
+    val activeRoom by authViewModel.activeRoom.collectAsState()
     val myUserId = myUser?.id
     val context = LocalContext.current
 
     //TODO Need to get value from user choice
     val chatType: ChatType = ChatType.RANDOM
+    val coroutineScope = rememberCoroutineScope()
 
     val activity = context as? Activity
 
@@ -79,9 +83,17 @@ fun StartChatScreen(
 
         TextButton(
             onClick = singleClickHandler {
-                if (myUserId != null) {
-                    navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_MATCHING}/${R.string.matching}")
-                    matchViewModel.startMatching(myUserId, chatType)
+                coroutineScope.launch {
+                    val roomId = authViewModel.getNavigableRoomId()
+                    if (roomId.isNullOrEmpty()) {
+                        if (myUserId != null) {
+                            navController.navigate("${Constants.SPLASH_SCREEN}/${Constants.SPLASH_MODE_MATCHING}/${R.string.matching}")
+                            matchViewModel.startMatching(myUserId, chatType)
+                        }
+                    } else {
+                        customToast(context, R.string.already_in_chat)
+                        navController.navigate("${Constants.CHAT_SCREEN}/$roomId")
+                    }
                 }
             }
         )
@@ -94,16 +106,7 @@ fun StartChatScreen(
         }
     }
 
-    LaunchedEffect(matchState) {
-        if (matchState is MatchViewModel.MatchState.Error) {
-            val errorMsg = context.getString((matchState as MatchViewModel.MatchState.Error).messageResId)
-            customToast(context, errorMsg)
-        }
-        if (matchState is MatchViewModel.MatchState.Matched) {
-            val matched = matchState as MatchViewModel.MatchState.Matched
-            navController.navigate("${Constants.CHAT_SCREEN}/${matched.roomId}") {
-                popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }
-            }
-        }
+    LaunchedEffect(Unit) {
+        chatViewModel.resetChatState()
     }
 }

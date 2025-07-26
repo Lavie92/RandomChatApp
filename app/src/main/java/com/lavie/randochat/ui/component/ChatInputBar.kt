@@ -4,6 +4,7 @@ import android.media.MediaPlayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,9 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,11 +43,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.theme.Dimens
-import com.lavie.randochat.utils.formatMillis
 import com.lavie.randochat.utils.getAudioDuration
 import com.lavie.randochat.utils.startVoicePlayback
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.io.File
 
 sealed class VoiceRecordState {
@@ -63,11 +65,15 @@ fun ChatInputBar(
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
     onSend: () -> Unit,
+     onLikeClick: () -> Unit,
+    onReportClick: () -> Unit,
+    onExitClick: () -> Unit,
     onVoiceRecordSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var startTime by remember { mutableStateOf(System.currentTimeMillis()) }
     var currentTime by remember { mutableStateOf(startTime) }
+    var menuExpanded by remember { mutableStateOf(false) }
     remember { mutableStateOf(false) }
 
     LaunchedEffect(voiceRecordState) {
@@ -297,6 +303,46 @@ fun ChatInputBar(
                         .padding(Dimens.baseMargin),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = Dimens.baseMargin)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        ImageButton(
+                            onClick = { menuExpanded = true },
+                            icon = Icons.Default.Add,
+                            modifier = Modifier.width(Dimens.baseIconSize),
+                        )
+
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.send_heart)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onLikeClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.report)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onReportClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.leave_chat)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onExitClick()
+                                }
+                            )
+                        }
+                    }
+
                     IconButton(
                         onClick = onVoiceRecordStart,
                         modifier = Modifier
@@ -310,6 +356,8 @@ fun ChatInputBar(
                         )
                     }
 
+        			Spacer(modifier = Modifier.width(Dimens.baseMarginDouble))
+        			
                     ImageButton(
                         onClick = onSendImage,
                         vectorId = R.drawable.vector_welcome_background,

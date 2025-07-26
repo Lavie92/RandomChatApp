@@ -138,8 +138,15 @@ class MatchRepositoryImpl(
 
         val updates = hashMapOf(
             "${Constants.CHAT_ROOMS}/$newRoomId" to chatRoom,
+
             "${Constants.MATCH_NOTIFICATIONS}/$userId" to matchDataForUser,
             "${Constants.MATCH_NOTIFICATIONS}/$otherUserId" to matchDataForOther,
+
+            "${Constants.USERS}/$userId/${Constants.ACTIVE_ROOM_ID}" to newRoomId,
+            "${Constants.USERS}/$otherUserId/${Constants.ACTIVE_ROOM_ID}" to newRoomId,
+            "${Constants.USERS}/$userId/${Constants.LAST_ROOM_ID}" to newRoomId,
+            "${Constants.USERS}/$otherUserId/${Constants.LAST_ROOM_ID}" to newRoomId,
+
             "${Constants.WAITING_USERS}/$userId" to null,
             "${Constants.WAITING_USERS}/$otherUserId" to null
         )

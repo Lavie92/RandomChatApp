@@ -5,8 +5,6 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.compose.runtime.MutableState
-import com.lavie.randochat.R
-import com.lavie.randochat.ui.component.customToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -15,7 +13,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.text.toLong
 
 suspend fun downloadUrlToTempFile(context: Context, url: String): File? = withContext(Dispatchers.IO) {
     var tempFile: File? = null

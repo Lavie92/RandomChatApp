@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -87,9 +88,7 @@ import com.lavie.randochat.utils.startVoicePlayback
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import jp.wasabeef.glide.transformations.BlurTransformation
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 
 @Composable
 fun ChatScreen(
@@ -105,6 +104,7 @@ fun ChatScreen(
     val isTyping by chatViewModel.isTyping.collectAsState()
     val chatType by chatViewModel.chatType.collectAsState()
     val scope = rememberCoroutineScope()
+    val isChatRoomEnded by chatViewModel.isChatRoomEnded.collectAsState()
     val context = LocalContext.current
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -129,7 +129,7 @@ fun ChatScreen(
         activity?.finish()
     }
 
-    LaunchedEffect(messages) {
+    LaunchedEffect(messages.lastOrNull()) {
         if (CommonUtils.isAppInForeground(context)) {
             chatViewModel.markMessagesAsSeen(roomId, myUserId, messages)
         }
@@ -138,13 +138,14 @@ fun ChatScreen(
     LaunchedEffect(roomId) {
         chatViewModel.loadChatType(roomId)
         chatViewModel.loadInitialMessages(roomId)
+        chatViewModel.listenToRoomStatus(roomId)
     }
 
     DisposableEffect(roomId) {
         val typingListener = chatViewModel.startTypingListener(roomId, myUserId)
 
         onDispose {
-            chatViewModel.removeMessageListener()
+            chatViewModel.clearListeners()
             chatViewModel.updateTypingStatus(roomId, myUserId, false)
             chatViewModel.removeTypingListener(roomId, typingListener)
         }
@@ -164,6 +165,10 @@ fun ChatScreen(
         }
     }
 
+    OnAppResumed {
+        chatViewModel.startRealtimeMessageListener(roomId)
+    }
+
     ConversationScreen(
         messages = messages,
         myUserId = myUserId,
@@ -178,10 +183,18 @@ fun ChatScreen(
         onSendImage = {
             galleryLauncher.launch("image/*")
         },
-        navController = navController,
+        onEndChat = {
+            chatViewModel.endChat(roomId, myUserId)
+        },
+        onSendHeart = {},
+        onReport = {},
+        isChatRoomEnded = isChatRoomEnded,
         onLoadMore = { chatViewModel.loadMoreMessages() },
         isLoadingMore = isLoadingMore,
         chatType = chatType,
+        authViewModel = authViewModel,
+        chatViewModel = chatViewModel,
+        roomId = roomId,
         voiceRecordState = voiceRecordState,
         onVoiceRecordStart = {
             chatViewModel.startRecording(context) {
@@ -191,6 +204,7 @@ fun ChatScreen(
         onVoiceRecordStop = { chatViewModel.stopRecording() },
         onVoiceRecordCancel = { chatViewModel.cancelRecording() },
         onVoiceRecordSend = { chatViewModel.sendVoiceMessageOptimistic(context, roomId, myUserId) },
+        navController = navController
     )
 
 }
@@ -204,15 +218,22 @@ fun ConversationScreen(
     onTypingStatusChanged: (Boolean) -> Unit,
     onSendText: (String) -> Unit,
     onSendImage: () -> Unit,
-    navController: NavController,
     voiceRecordState: VoiceRecordState,
     onVoiceRecordStart: () -> Unit,
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordSend: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
     onLoadMore: () -> Unit,
+    onEndChat: () -> Unit,
+    onSendHeart: () -> Unit,
+    onReport: () -> Unit,
+    isChatRoomEnded: Boolean,
     isLoadingMore: Boolean,
     chatType: String,
+    authViewModel: AuthViewModel,
+    chatViewModel: ChatViewModel,
+    roomId: String,
+    navController: NavController,
 ) {
     val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
@@ -243,9 +264,22 @@ fun ConversationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(getTitleFromChatType(getTitleFromChatType(chatType).toString()))) },
+                title = {
+                    Text(
+                        text = stringResource(
+                            getTitleFromChatType(
+                                getTitleFromChatType(
+                                    chatType
+                                ).toString()
+                            )
+                        )
+                    )
+                },
                 actions = {
-                    ImageButton(onClick = { navController.navigate(Constants.SETTINGS_SCREEN) }, icon = Icons.Default.Settings)
+                    ImageButton(
+                        onClick = { navController.navigate(Constants.SETTINGS_SCREEN) },
+                        icon = Icons.Default.Settings
+                    )
                 }
             )
         }
@@ -325,30 +359,49 @@ fun ConversationScreen(
                         .padding(start = Dimens.baseMarginDouble)
                 )
             }
-
-            ChatInputBar(
-                value = messageText,
-                onValueChange = {
-                    messageText = it
-                    onTypingStatusChanged(it.isNotBlank())
-                },
-                onSendImage = { onSendImage() },
-                voiceRecordState = voiceRecordState,
-            	onVoiceRecordStart = { onVoiceRecordStart() },
-            	onVoiceRecordStop = { onVoiceRecordStop() },
-            	onVoiceRecordCancel = { onVoiceRecordCancel() },
-            	onVoiceRecordSend = { onVoiceRecordSend() },
-                onSend = {
-                    val messageTrimmed = messageText.trim()
-                    if (messageTrimmed.isNotBlank()) {
-                        onSendText(messageTrimmed)
-                        messageText = ""
-                        shouldScrollToBottom = true
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
+            if (isChatRoomEnded) {
+                Button(
+                    onClick = {
+                        authViewModel.clearActiveRoom()
+                        chatViewModel.clearChatCache(roomId)
+                        navController.navigate(Constants.START_CHAT_SCREEN) {
+                            popUpTo(Constants.CHAT_SCREEN) { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.baseMargin)
+                ) {
+                    Text("OK")
+                }
+            } else {
+                ChatInputBar(
+                    value = messageText,
+                    onValueChange = {
+                        messageText = it
+                        onTypingStatusChanged(it.isNotBlank())
+                    },
+                    onSendImage = { onSendImage() },
+                    voiceRecordState = voiceRecordState,
+            		onVoiceRecordStart = { onVoiceRecordStart() },
+            		onVoiceRecordStop = { onVoiceRecordStop() },
+            		onVoiceRecordCancel = { onVoiceRecordCancel() },
+            		onVoiceRecordSend = { onVoiceRecordSend() },
+                    onSend = {
+                        val messageTrimmed = messageText.trim()
+                        if (messageTrimmed.isNotBlank()) {
+                            onSendText(messageTrimmed)
+                            messageText = ""
+                            shouldScrollToBottom = true
+                        }
+                    },
+                    onReportClick = onReport,
+                    onLikeClick = onSendHeart,
+                    onExitClick = onEndChat,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -601,19 +654,40 @@ private fun createChatItemsWithTimestamps(
     return chatItems
 }
 
-private fun getTitleFromChatType(chatType: String) : Int {
+private fun getTitleFromChatType(chatType: String): Int {
     return when (chatType) {
         ChatType.AGE.name -> {
             R.string.chat_by_age
         }
+
         ChatType.LOCATION.name -> {
             R.string.chat_by_location
         }
+
         ChatType.RANDOM.name -> {
             R.string.random_chat
         }
 
-        else -> {R.string.random_chat}
+        else -> {
+            R.string.random_chat
+        }
+    }
+}
+
+@Composable
+fun OnAppResumed(action: () -> Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                action()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 }
 
