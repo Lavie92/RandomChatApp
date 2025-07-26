@@ -65,9 +65,16 @@
     <string name="new_message_voice">Đã gửi một tin nhắn thoại</string>
     <string name="notification_permission_required">Bạn cần cấp quyền thông báo để nhận tin nhắn mới</string>
     <string name="channel_id">chat_messages</string>
+    <string name="image_saved">Đã lưu ảnh vào thư viện!</string>
+    <string name="download_failed">Tải thất bại: %1$s</string>
+    <string name="permission_denied">Từ chối quyền</string>
+    <string name="voice_playback_failed">Không phát được ghi âm</string>
+    <string name="record_error">Đã xảy ra lỗi khi ghi âm. Vui lòng thử lại.</string>
+    <string name="record_permission_required">Bạn cần cấp quyền ghi âm để sử dụng tính năng này</string>
     <string name="message_sending">Đang gửi…</string>
     <string name="message_sent">Đã gửi</string>
     <string name="message_seen">Đã xem</string>
+    <string name="play_audio_failed">Phát audio thất bại</string>
     <string name="typing">Đang nhập…</string>
     <string name="welcome_notice">
         Chào mừng đến với Rando Chat! Đây là nền tảng trò chuyện với người lạ. Vì sự an toàn của bạn, không nên cung cấp thông tin cá nhân nhạy cảm và hãy luôn tôn trọng người trò chuyện cùng. Mọi hành vi thô tục, quấy rối đều bị nghiêm cấm.
@@ -75,6 +82,7 @@
     <string name="random_chat">Chat Ngẫu Nhiên</string>
     <string name="chat_by_location">Chat theo vị trí</string>
     <string name="chat_by_age">Chat theo độ tuổi</string>
+    <string name="sending">Đang gửi…</string>
     <string name="report">Báo cáo vi phạm</string>
     <string name="send_heart">Thả tim</string>
     <string name="leave_chat">Thoát</string>

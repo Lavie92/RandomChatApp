@@ -1,7 +1,14 @@
 package com.lavie.randochat.ui.screen
 
+import android.Manifest
 import android.app.Activity
+import android.media.MediaPlayer
+import android.net.Uri
+import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,20 +17,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -36,22 +50,30 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.bumptech.glide.Glide
 import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.ImageButton
+import com.lavie.randochat.ui.component.VoiceRecordState
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.ui.theme.MessageBackground
 import com.lavie.randochat.utils.ChatType
@@ -59,8 +81,16 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
+import com.lavie.randochat.utils.formatMillis
+import com.lavie.randochat.utils.getAudioDurationMs
+import com.lavie.randochat.utils.resolveAudioFile
+import com.lavie.randochat.utils.startVoicePlayback
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
+import jp.wasabeef.glide.transformations.BlurTransformation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.File
 import timber.log.Timber
 
 @Composable
@@ -76,11 +106,28 @@ fun ChatScreen(
     val isLoadingMore by chatViewModel.isLoadingMore.collectAsState()
     val isTyping by chatViewModel.isTyping.collectAsState()
     val chatType by chatViewModel.chatType.collectAsState()
+    val scope = rememberCoroutineScope()
     val isChatRoomEnded by chatViewModel.isChatRoomEnded.collectAsState()
     val context = LocalContext.current
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
-
+    val voiceRecordState by chatViewModel.voiceRecordState.collectAsState()
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
+            scope.launch {
+                chatViewModel.sendImage(roomId, myUserId, uri, context)
+            }
+        }
+    }
+    val recordAudioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            customToast(context, R.string.record_permission_required)
+               }
+    }
     BackHandler {
         activity?.finish()
     }
@@ -136,12 +183,22 @@ fun ChatScreen(
             chatViewModel.sendTextMessage(roomId, myUserId, text)
             chatViewModel.updateTypingStatus(roomId, myUserId, false)
         },
-        onSendImage = { imageUrl ->
-            chatViewModel.sendImageMessage(roomId, myUserId, imageUrl)
+        onSendImage = {
+            galleryLauncher.launch("image/*")
         },
-        onSendVoice = { audioUrl ->
-            chatViewModel.sendVoiceMessage(roomId, myUserId, audioUrl)
+        navController = navController,
+        onLoadMore = { chatViewModel.loadMoreMessages() },
+        isLoadingMore = isLoadingMore,
+        chatType = chatType,
+        voiceRecordState = voiceRecordState,
+        onVoiceRecordStart = {
+            chatViewModel.startRecording(context) {
+                recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
         },
+        onVoiceRecordStop = { chatViewModel.stopRecording() },
+        onVoiceRecordCancel = { chatViewModel.cancelRecording() },
+        onVoiceRecordSend = { chatViewModel.sendVoiceMessageOptimistic(context, roomId, myUserId) },
         onEndChat = {
             chatViewModel.endChat(roomId, myUserId)
         },
@@ -156,6 +213,7 @@ fun ChatScreen(
         roomId = roomId,
         navController = navController
     )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -166,8 +224,13 @@ fun ConversationScreen(
     isTyping: Boolean,
     onTypingStatusChanged: (Boolean) -> Unit,
     onSendText: (String) -> Unit,
-    onSendImage: (String) -> Unit,
-    onSendVoice: (String) -> Unit,
+    onSendImage: () -> Unit,
+    navController: NavController,
+    voiceRecordState: VoiceRecordState,
+    onVoiceRecordStart: () -> Unit,
+    onVoiceRecordStop: () -> Unit,
+    onVoiceRecordSend: () -> Unit,
+    onVoiceRecordCancel: () -> Unit,
     onLoadMore: () -> Unit,
     onEndChat: () -> Unit,
     onSendHeart: () -> Unit,
@@ -282,7 +345,8 @@ fun ConversationScreen(
                                 onClick = {
                                     selectedMessageId =
                                         if (selectedMessageId == message.id) null else message.id
-                                }
+                                },
+                                navController = navController
                             )
                         }
 
@@ -342,6 +406,30 @@ fun ConversationScreen(
                         .fillMaxWidth()
                 )
             }
+
+            ChatInputBar(
+                value = messageText,
+                onValueChange = {
+                    messageText = it
+                    onTypingStatusChanged(it.isNotBlank())
+                },
+                onSendImage = { onSendImage() },
+                voiceRecordState = voiceRecordState,
+            	onVoiceRecordStart = { onVoiceRecordStart() },
+            	onVoiceRecordStop = { onVoiceRecordStop() },
+            	onVoiceRecordCancel = { onVoiceRecordCancel() },
+            	onVoiceRecordSend = { onVoiceRecordSend() },
+                onSend = {
+                    val messageTrimmed = messageText.trim()
+                    if (messageTrimmed.isNotBlank()) {
+                        onSendText(messageTrimmed)
+                        messageText = ""
+                        shouldScrollToBottom = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -355,7 +443,8 @@ fun MessageBubble(
     status: MessageStatus,
     showStatus: Boolean,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    navController: NavController
 ) {
     Column(
         modifier = Modifier
@@ -379,8 +468,7 @@ fun MessageBubble(
                 Dimens.smallBorderStrokeWidth,
                 Color.LightGray
             ) else null
-        )
-        {
+        ) {
             when (type) {
                 MessageType.TEXT -> Text(
                     text = content,
@@ -391,9 +479,124 @@ fun MessageBubble(
                         .widthIn(max = Dimens.messageMaxSizeable)
                 )
 
-                MessageType.IMAGE -> {}
+                MessageType.IMAGE -> {
+                    Box(
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val density = LocalDensity.current
+                        val sizePx = with(density) { 200.dp.toPx().toInt() }
 
-                MessageType.VOICE -> {}
+                        AndroidView(
+                            factory = { context ->
+                                ImageView(context).apply {
+                                    layoutParams = FrameLayout.LayoutParams(sizePx, sizePx)
+                                    scaleType = ImageView.ScaleType.CENTER_CROP
+                                    if (isMe) {
+                                        Glide.with(this)
+                                            .load(content)
+                                            .placeholder(R.drawable.placeholder)
+                                            .into(this)
+                                    } else {
+                                        Glide.with(this)
+                                            .load(content)
+                                            .placeholder(R.drawable.placeholder)
+                                            .transform(BlurTransformation(25, 3))
+                                            .into(this)
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    navController.navigate("imagePreview/${Uri.encode(content)}")
+                                }
+                        )
+
+                        if (status == MessageStatus.SENDING) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(Color.Black.copy(alpha = 0.4f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.sending),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+                }
+
+                MessageType.VOICE -> {
+                    val context = LocalContext.current
+                    val scope = rememberCoroutineScope()
+                    val mediaPlayer = remember { MediaPlayer() }
+                    val isPlaying = remember { mutableStateOf(false) }
+                    val displayTime = remember { mutableStateOf("0:00") }
+                    val lastPlaybackPosition = remember { mutableStateOf(0) }
+                    var durationText by remember { mutableStateOf("0:00") }
+                    var durationMs by remember { mutableStateOf(0L) }
+
+                    LaunchedEffect(content) {
+                        scope.launch {
+                            val file = resolveAudioFile(context, content)
+                            if (file != null) {
+                                durationMs = getAudioDurationMs(file)
+                                durationText = formatMillis(durationMs)
+                                displayTime.value = durationText
+                            }
+                        }
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MessageBackground)
+                            .clickable {
+                                scope.launch {
+                                    val file = resolveAudioFile(context, content)
+                                    if (file != null) {
+                                        if (isPlaying.value) {
+                                            lastPlaybackPosition.value = mediaPlayer.currentPosition
+                                            mediaPlayer.pause()
+                                            isPlaying.value = false
+                                        } else {
+                                            displayTime.value = formatMillis(lastPlaybackPosition.value.toLong())
+                                            startVoicePlayback(
+                                                context = context,
+                                                file = file,
+                                                mediaPlayer = mediaPlayer,
+                                                scope = scope,
+                                                isPlaying = isPlaying,
+                                                lastPlaybackPosition = lastPlaybackPosition,
+                                                displayTime = displayTime,
+                                                durationText = durationText,
+                                                onError = { customToast(context, R.string.voice_playback_failed) }
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                        color = Color(0xFF007AFF)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying.value) Icons.Default.Stop else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(displayTime.value, color = Color.White)
+                        }
+                    }
+                }
             }
         }
 
@@ -411,6 +614,7 @@ fun MessageBubble(
                         MessageStatus.SENT -> stringResource(R.string.message_sent)
                         MessageStatus.SEEN -> stringResource(R.string.message_seen)
                         MessageStatus.SENDING -> stringResource(R.string.message_sending)
+                        MessageStatus.FAILED -> stringResource(R.string.play_audio_failed)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

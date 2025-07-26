@@ -1,16 +1,27 @@
 package com.lavie.randochat.repository
 
+import android.content.Context
 import com.google.firebase.database.*
 import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
-import com.lavie.randochat.utils.MessageStatus
 import kotlinx.coroutines.tasks.await
+import java.io.File
+import com.lavie.randochat.utils.MessageStatus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 import timber.log.Timber
 
 class ChatRepositoryImpl(
-    private val database: DatabaseReference
+    private val database: DatabaseReference,
+    private val httpClient: OkHttpClient
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
@@ -18,7 +29,7 @@ class ChatRepositoryImpl(
 
     override suspend fun sendMessage(roomId: String, message: Message): Result<Unit> {
         return try {
-
+            Timber.d("message: ${message}")
             val key = CommonUtils.generateMessageKey(roomId, message.senderId)
 
             val encryptedContent = CommonUtils.encryptMessage(message.content, key)
@@ -241,6 +252,31 @@ class ChatRepositoryImpl(
         } catch (ex: Exception) {
             Timber.e(ex, "Failed to end chat for $roomId")
             Result.failure(ex)
+    override suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val uploadPreset = Constants.CLOUDINARY_AUDIO_UPLOAD_PRESET
+            val url = Constants.CLOUDINARY_AUDIO_UPLOAD_URL
+
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(Constants.CLOUDINARY_FORM_KEY_FILE, file.name, file.asRequestBody(Constants.AUDIO_MIME_TYPE.toMediaTypeOrNull()))
+                .addFormDataPart(Constants.CLOUDINARY_FORM_KEY_UPLOAD_PRESET, uploadPreset)
+                .addFormDataPart(Constants.CLOUDINARY_FORM_KEY_FOLDER, Constants.CLOUDINARY_AUDIO_FOLDER)
+                .build()
+
+            val request = Request.Builder().url(url).post(requestBody).build()
+            val response = httpClient.newCall(request).execute()
+
+            if (response.isSuccessful) {
+                val body = response.body?.string()
+                val json = JSONObject(body!!)
+                val secureUrl = json.getString(Constants.CLOUDINARY_RESPONSE_KEY_SECURE_URL)
+                Result.success(secureUrl)
+            } else {
+                Result.failure(Exception("${Constants.CLOUDINARY_ERROR_PREFIX}${response.message}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }
