@@ -19,7 +19,8 @@ import org.json.JSONObject
 import timber.log.Timber
 
 class ChatRepositoryImpl(
-    private val database: DatabaseReference
+    private val database: DatabaseReference,
+    private val httpClient: OkHttpClient
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
@@ -218,8 +219,7 @@ class ChatRepositoryImpl(
                 .build()
 
             val request = Request.Builder().url(url).post(requestBody).build()
-            val client = OkHttpClient()
-            val response = client.newCall(request).execute()
+            val response = httpClient.newCall(request).execute()
 
             if (response.isSuccessful) {
                 val body = response.body?.string()

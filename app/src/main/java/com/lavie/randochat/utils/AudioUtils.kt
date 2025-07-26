@@ -2,49 +2,58 @@ package com.lavie.randochat.utils
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.media.MediaPlayer
 import android.net.Uri
+import androidx.compose.runtime.MutableState
+import com.lavie.randochat.R
+import com.lavie.randochat.ui.component.customToast
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
-
+import kotlin.text.toLong
 
 suspend fun downloadUrlToTempFile(context: Context, url: String): File? = withContext(Dispatchers.IO) {
+    var tempFile: File? = null
     try {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.connect()
-
         val inputStream = connection.inputStream
-        val tempFile = File.createTempFile("temp_audio", ".m4a", context.cacheDir)
+        tempFile = File.createTempFile(Constants.TEMP_AUDIO_FILE_PREFIX, Constants.AUDIO_FILE_EXTENSION, context.cacheDir)
         tempFile.outputStream().use { output ->
             inputStream.copyTo(output)
         }
-
         tempFile
     } catch (e: Exception) {
         e.printStackTrace()
+        tempFile?.delete()
         null
     }
 }
 
 fun uriToTempFile(context: Context, uriString: String): File? {
+    var tempFile: File? = null
     return try {
         val uri = Uri.parse(uriString)
         val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-        val tempFile = File.createTempFile("temp_audio", ".m4a", context.cacheDir)
+        tempFile = File.createTempFile(Constants.TEMP_AUDIO_FILE_PREFIX, Constants.AUDIO_FILE_EXTENSION, context.cacheDir)
         tempFile.outputStream().use { output ->
             inputStream.copyTo(output)
         }
         tempFile
     } catch (e: Exception) {
         e.printStackTrace()
+        tempFile?.delete()
         null
     }
 }
 
 suspend fun resolveAudioFile(context: Context, uriOrUrl: String): File? {
-    return if (uriOrUrl.startsWith("http")) {
+    return if (uriOrUrl.startsWith(Constants.HTTP_PREFIX)){
         downloadUrlToTempFile(context, uriOrUrl)
     } else {
         uriToTempFile(context, uriOrUrl)
@@ -58,9 +67,9 @@ fun getAudioDuration(file: File): String {
         val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
         retriever.release()
 
-        val seconds = (duration / 1000) % 60
-        val minutes = (duration / (1000 * 60)) % 60
-        String.format("%d:%02d", minutes, seconds)
+        val seconds = (duration / Constants.MILLISECONDS_PER_SECOND) % Constants.SECONDS_PER_MINUTE
+        val minutes = (duration / (Constants.MILLISECONDS_PER_SECOND * Constants.SECONDS_PER_MINUTE)) % Constants.SECONDS_PER_MINUTE
+        String.format(Constants.TIME_FORMAT, minutes, seconds)
     } catch (e: Exception) {
         "0:00"
     }
@@ -79,8 +88,46 @@ fun getAudioDurationMs(file: File): Long {
 }
 
 fun formatMillis(ms: Long): String {
-    val totalSec = ms / 1000
-    val minutes = totalSec / 60
-    val seconds = totalSec % 60
-    return String.format("%d:%02d", minutes, seconds)
+    val totalSec = ms / Constants.MILLISECONDS_PER_SECOND
+    val minutes = totalSec / Constants.SECONDS_PER_MINUTE
+    val seconds = totalSec % Constants.SECONDS_PER_MINUTE
+    return String.format(Constants.TIME_FORMAT, minutes, seconds)
+}
+
+fun startVoicePlayback(
+    context: Context,
+    file: File,
+    mediaPlayer: MediaPlayer,
+    scope: CoroutineScope,
+    isPlaying: MutableState<Boolean>,
+    lastPlaybackPosition: MutableState<Int>,
+    displayTime: MutableState<String>,
+    durationText: String,
+    onError: () -> Unit = {}
+) {
+    try {
+        mediaPlayer.reset()
+        mediaPlayer.setDataSource(file.absolutePath)
+        mediaPlayer.prepare()
+        mediaPlayer.seekTo(lastPlaybackPosition.value)
+        mediaPlayer.start()
+        isPlaying.value = true
+
+        scope.launch {
+            while (isPlaying.value && mediaPlayer.isPlaying) {
+                delay(1000)
+                val current = mediaPlayer.currentPosition
+                displayTime.value = formatMillis(current.toLong())
+            }
+        }
+
+        mediaPlayer.setOnCompletionListener {
+            isPlaying.value = false
+            lastPlaybackPosition.value = 0
+            displayTime.value = durationText
+        }
+    } catch (_: Exception) {
+        isPlaying.value = false
+        onError()
+    }
 }

@@ -24,7 +24,9 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URL
 
-class ImageFileRepositoryImpl : ImageFileRepository {
+class ImageFileRepositoryImpl(
+    private val httpClient: OkHttpClient
+) : ImageFileRepository {
     override fun saveImageToGallery(context: Context, imageUrl: String, onResult: (Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -79,14 +81,19 @@ class ImageFileRepositoryImpl : ImageFileRepository {
     }
 
     override suspend fun uploadImageToCloudinary(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
+        var tempFile: File? = null
         try {
             val uploadPreset = Constants.CLOUDINARY_IMAGE_UPLOAD_PRESET
             val url = Constants.CLOUDINARY_IMAGE_UPLOAD_URL
 
             val contentResolver = context.contentResolver
-            val inputStream: InputStream? = contentResolver.openInputStream(uri)
-            val tempFile = File.createTempFile(Constants.TEMP_IMAGE_FILE_PREFIX, Constants.IMAGE_FILE_EXTENSION, context.cacheDir)
-            inputStream?.use { input ->
+            val inputStream = contentResolver.openInputStream(uri)
+                ?: return@withContext Result.failure(
+                    Exception(Constants.ERROR_CANNOT_OPEN_INPUT_STREAM.format(uri))
+                )
+
+            tempFile = File.createTempFile(Constants.TEMP_IMAGE_FILE_PREFIX, Constants.IMAGE_FILE_EXTENSION, context.cacheDir)
+            inputStream.use { input ->
                 tempFile.outputStream().use { fileOut ->
                     input.copyTo(fileOut)
                 }
@@ -103,8 +110,7 @@ class ImageFileRepositoryImpl : ImageFileRepository {
                 .post(requestBody)
                 .build()
 
-            val client = OkHttpClient()
-            val response = client.newCall(request).execute()
+            val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
                 val json = response.body?.string()
                 val jsonObj = org.json.JSONObject(json)
@@ -114,7 +120,8 @@ class ImageFileRepositoryImpl : ImageFileRepository {
             }
         } catch (e: Exception) {
             Result.failure(e)
+        } finally {
+            tempFile?.delete()
         }
     }
-
 }

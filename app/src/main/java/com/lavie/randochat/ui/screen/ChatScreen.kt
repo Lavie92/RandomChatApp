@@ -83,6 +83,7 @@ import com.lavie.randochat.utils.MessageType
 import com.lavie.randochat.utils.formatMillis
 import com.lavie.randochat.utils.getAudioDurationMs
 import com.lavie.randochat.utils.resolveAudioFile
+import com.lavie.randochat.utils.startVoicePlayback
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -453,10 +454,10 @@ fun MessageBubble(
                     val scope = rememberCoroutineScope()
                     val mediaPlayer = remember { MediaPlayer() }
                     val isPlaying = remember { mutableStateOf(false) }
+                    val displayTime = remember { mutableStateOf("0:00") }
+                    val lastPlaybackPosition = remember { mutableStateOf(0) }
                     var durationText by remember { mutableStateOf("0:00") }
-                    var displayTime by remember { mutableStateOf("0:00") }
                     var durationMs by remember { mutableStateOf(0L) }
-                    var lastPlaybackPosition by remember { mutableStateOf(0) }
 
                     LaunchedEffect(content) {
                         scope.launch {
@@ -464,37 +465,8 @@ fun MessageBubble(
                             if (file != null) {
                                 durationMs = getAudioDurationMs(file)
                                 durationText = formatMillis(durationMs)
-                                displayTime = durationText
+                                displayTime.value = durationText
                             }
-                        }
-                    }
-
-                    fun startPlayback(file: File) {
-                        try {
-                            mediaPlayer.reset()
-                            mediaPlayer.setDataSource(file.absolutePath)
-                            mediaPlayer.prepare()
-                            mediaPlayer.seekTo(lastPlaybackPosition)
-                            mediaPlayer.start()
-                            isPlaying.value = true
-
-                            scope.launch {
-                                while (isPlaying.value && mediaPlayer.isPlaying) {
-                                    delay(1000)
-                                    val current = mediaPlayer.currentPosition
-                                    displayTime = formatMillis(current.toLong())
-                                }
-                            }
-
-                            mediaPlayer.setOnCompletionListener {
-                                isPlaying.value = false
-                                lastPlaybackPosition = 0
-                                displayTime = durationText
-                            }
-                        } catch (_: Exception) {
-                            isPlaying.value = false
-                            customToast(context,R.string.voice_playback_failed)
-
                         }
                     }
 
@@ -508,12 +480,22 @@ fun MessageBubble(
                                     val file = resolveAudioFile(context, content)
                                     if (file != null) {
                                         if (isPlaying.value) {
-                                            lastPlaybackPosition = mediaPlayer.currentPosition
+                                            lastPlaybackPosition.value = mediaPlayer.currentPosition
                                             mediaPlayer.pause()
                                             isPlaying.value = false
                                         } else {
-                                            displayTime = formatMillis(lastPlaybackPosition.toLong())
-                                            startPlayback(file)
+                                            displayTime.value = formatMillis(lastPlaybackPosition.value.toLong())
+                                            startVoicePlayback(
+                                                context = context,
+                                                file = file,
+                                                mediaPlayer = mediaPlayer,
+                                                scope = scope,
+                                                isPlaying = isPlaying,
+                                                lastPlaybackPosition = lastPlaybackPosition,
+                                                displayTime = displayTime,
+                                                durationText = durationText,
+                                                onError = { customToast(context, R.string.voice_playback_failed) }
+                                            )
                                         }
                                     }
                                 }
@@ -530,7 +512,7 @@ fun MessageBubble(
                                 tint = Color.White
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(displayTime, color = Color.White)
+                            Text(displayTime.value, color = Color.White)
                         }
                     }
                 }

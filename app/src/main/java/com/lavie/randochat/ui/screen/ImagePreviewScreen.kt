@@ -1,6 +1,7 @@
 package com.lavie.randochat.ui.screen
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.lavie.randochat.R
@@ -62,12 +64,38 @@ fun ImagePreviewScreen(
 
         FloatingActionButton(
             onClick = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    chatViewModel.downloadImage(context, imageUrl) { success ->
-                        customToast(context, if (success) R.string.image_saved else R.string.download_failed)
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.READ_MEDIA_IMAGES
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                        } else {
+                            chatViewModel.downloadImage(context, imageUrl) { success ->
+                                customToast(context, if (success) R.string.image_saved else R.string.download_failed)
+                            }
+                        }
                     }
-                } else {
-                    permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                        chatViewModel.downloadImage(context, imageUrl) { success ->
+                            customToast(context, if (success) R.string.image_saved else R.string.download_failed)
+                        }
+                    }
+                    else -> {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        } else {
+                            chatViewModel.downloadImage(context, imageUrl) { success ->
+                                customToast(context, if (success) R.string.image_saved else R.string.download_failed)
+                            }
+                        }
+                    }
                 }
             },
             modifier = Modifier

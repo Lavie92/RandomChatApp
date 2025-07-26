@@ -41,6 +41,7 @@ import com.lavie.randochat.R
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.formatMillis
 import com.lavie.randochat.utils.getAudioDuration
+import com.lavie.randochat.utils.startVoicePlayback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -183,36 +184,13 @@ fun ChatInputBar(
                 val scope = rememberCoroutineScope()
                 val mediaPlayer = remember { MediaPlayer() }
                 val isPlaying = remember { mutableStateOf(false) }
-
-                var displayTime by remember { mutableStateOf("0:00") }
+                val lastPlaybackPosition = remember { mutableStateOf(0) }
+                val displayTime = remember { mutableStateOf("0:00") }
                 var durationText by remember { mutableStateOf("0:00") }
 
                 LaunchedEffect(voiceRecordState) {
                     durationText = getAudioDuration(voiceRecordState.file)
-                    displayTime = durationText
-                }
-
-                fun startPlayback(file: File) {
-                    try {
-                        mediaPlayer.reset()
-                        mediaPlayer.setDataSource(file.absolutePath)
-                        mediaPlayer.prepare()
-                        mediaPlayer.start()
-                        isPlaying.value = true
-                        scope.launch {
-                            while (isPlaying.value && mediaPlayer.isPlaying) {
-                                delay(1000)
-                                displayTime = formatMillis(mediaPlayer.currentPosition.toLong())
-                            }
-                        }
-                        mediaPlayer.setOnCompletionListener {
-                            isPlaying.value = false
-                            displayTime = durationText
-                        }
-                    } catch (e: Exception) {
-                        isPlaying.value = false
-                        customToast(context, R.string.voice_playback_failed)
-                    }
+                    displayTime.value = durationText
                 }
 
                 Row(
@@ -257,7 +235,19 @@ fun ChatInputBar(
                                         mediaPlayer.pause()
                                         isPlaying.value = false
                                     } else {
-                                        startPlayback(voiceRecordState.file)
+                                        lastPlaybackPosition.value = 0
+                                        displayTime.value = "0:00"
+                                        startVoicePlayback(
+                                            context = context,
+                                            file = voiceRecordState.file,
+                                            mediaPlayer = mediaPlayer,
+                                            scope = scope,
+                                            isPlaying = isPlaying,
+                                            lastPlaybackPosition = lastPlaybackPosition,
+                                            displayTime = displayTime,
+                                            durationText = durationText,
+                                            onError = { customToast(context, R.string.voice_playback_failed) }
+                                        )
                                     }
                                 }) {
                                     Icon(
@@ -276,23 +266,20 @@ fun ChatInputBar(
                                 color = Color.Transparent
                             ) {
                                 Text(
-                                    text = displayTime,
+                                    text = displayTime.value,
                                     color = Color.White,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
-}
+                    }
+
                     Spacer(modifier = Modifier.width(Dimens.baseMargin))
 
                     ImageButton(
                         onClick = {
-                            if (true) {
-                                onVoiceRecordStop()
-                                onVoiceRecordSend()
-                            } else {
-                                onSend()
-                            }
+                            onVoiceRecordStop()
+                            onVoiceRecordSend()
                         },
                         vectorId = R.drawable.vector_send,
                         vectorColor = MaterialTheme.colorScheme.primary,

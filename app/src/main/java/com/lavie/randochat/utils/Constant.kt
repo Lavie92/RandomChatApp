@@ -82,4 +82,11 @@ object Constants {
     const val CLOUDINARY_AUDIO_FOLDER = "chat_audios"
     const val AUDIO_FILE_PREFIX = "voice_"
     const val AUDIO_FILE_EXTENSION = ".m4a"
+    const val TEMP_AUDIO_FILE_PREFIX = "temp_audio"
+    const val HTTP_PREFIX = "http"
+    const val TIME_FORMAT = "%d:%02d"
+    const val MILLISECONDS_PER_SECOND = 1000
+    const val SECONDS_PER_MINUTE = 60
+    const val ERROR_CANNOT_OPEN_INPUT_STREAM = "Không thể mở inputStream từ uri %s (có thể đã mất quyền truy cập hoặc file không còn tồn tại)"
+
 }
