@@ -100,4 +100,6 @@ object Constants {
     const val ROUTE_IMAGE_PREVIEW = "imagePreview"
     const val ARG_IMAGE_URL = "imageUrl"
     const val DEFAULT_DURATION_MS = 0L
+    const val ROUTE_PASSWORD_CHANGED = "password_changed"
+
 }

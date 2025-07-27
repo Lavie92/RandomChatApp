@@ -39,7 +39,7 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             RegisterScreen(navController, authViewModel)
         }
 
-        composable("password_changed") {
+        composable(Constants.ROUTE_PASSWORD_CHANGED) {
             PasswordChangedScreen(navController)
         }
 
