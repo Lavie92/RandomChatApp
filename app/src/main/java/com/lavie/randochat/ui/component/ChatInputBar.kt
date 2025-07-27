@@ -74,6 +74,7 @@ fun ChatInputBar(
     var startTime by remember { mutableStateOf(System.currentTimeMillis()) }
     var currentTime by remember { mutableStateOf(startTime) }
     var menuExpanded by remember { mutableStateOf(false) }
+    var emojiExpanded by remember { mutableStateOf(false) }
     remember { mutableStateOf(false) }
 
     LaunchedEffect(voiceRecordState) {
@@ -365,6 +366,46 @@ fun ChatInputBar(
                             .padding(end = Dimens.baseMargin)
                             .width(Dimens.baseIconSize)
                     )
+
+                    Box(
+                        modifier = Modifier
+                            .padding(end = Dimens.baseMargin)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        ImageButton(
+                            onClick = { emojiExpanded = true },
+                            vectorId = R.drawable.vector_emoji_icon,
+                            modifier = Modifier.width(Dimens.baseIconSize)
+                        )
+
+                        DropdownMenu(
+                            expanded = emojiExpanded,
+                            onDismissRequest = { emojiExpanded = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Icon(painterResource(R.drawable.vector_emoji_smile), contentDescription = null) },
+                                onClick = {
+                                    emojiExpanded = false
+                                    onValueChange(value + "\uD83D\uDE04")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Icon(painterResource(R.drawable.vector_emoji_people), contentDescription = null) },
+                                onClick = {
+                                    emojiExpanded = false
+                                    onValueChange(value + "\uD83E\uDD73")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Icon(painterResource(R.drawable.vector_emoji_food), contentDescription = null) },
+                                onClick = {
+                                    emojiExpanded = false
+                                    onValueChange(value + "\uD83C\uDF54")
+                                }
+                            )
+                        }
+                    }
 
                     CustomChatTextField(
                         value = value,
