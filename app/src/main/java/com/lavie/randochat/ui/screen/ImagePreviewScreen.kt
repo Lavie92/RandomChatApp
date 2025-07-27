@@ -151,7 +151,7 @@ fun ImagePreviewScreen(
                         IconButton(onClick = { requestOrDownload() }) {
                             Icon(Icons.Default.Download, null, tint = Color.White)
                         }
-//                        IconButton(onClick = { /* TODO: mở menu thêm (Chia sẻ, Đặt làm avatar, Xoá, …) */ }) {
+//                        IconButton(onClick = { /* TODO: add menu (share, set avatar, delete, …) */ }) {
 //                            Icon(Icons.Default.MoreVert, null, tint = Color.White)
 //                        }
                     },
