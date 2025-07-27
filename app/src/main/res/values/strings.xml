@@ -66,9 +66,16 @@
     <string name="new_message_voice">Sent a voice message</string>
     <string name="notification_permission_required">You need to allow notifications to receive new messages</string>
     <string name="channel_id">chat_messages</string>
+    <string name="image_saved">Image saved to Gallery!</string>
+    <string name="download_failed">Download failed: %1$s</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="voice_playback_failed">Cannot play voice message</string>
+    <string name="record_error">An error occurred while recording. Please try again.</string>
+    <string name="record_permission_required">You need to grant microphone permission to use this feature</string>
     <string name="message_sending">Sending…</string>
     <string name="message_sent">Sent</string>
     <string name="message_seen">Seen</string>
+    <string name="play_audio_failed">Failed to play audio</string>
     <string name="typing">Typing…</string>
     <string name="welcome_notice">
         Welcome to Rando Chat! You are about to chat with strangers. For your safety, do not share sensitive personal information and always respect your chat partner. Any inappropriate or abusive behavior is strictly prohibited.
@@ -81,5 +88,6 @@
     <string name="leave_chat">Leave</string>
     <string name="chat_ended">The conversation has ended</string>
     <string name="already_in_chat">You are already in a chat</string>
+    <string name="sending">Sending…</string>
 
 </resources>

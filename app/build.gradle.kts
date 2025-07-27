@@ -82,6 +82,11 @@ dependencies {
     implementation (libs.play.services.auth)
     implementation(libs.androidx.compose.icons.extended)
     implementation(libs.lottie.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.glide)
+    implementation(libs.glide.transformations)
     implementation (libs.kotlinx.coroutines.play.services)
+    implementation(libs.okhttp)
 
 }

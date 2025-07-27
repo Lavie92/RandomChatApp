@@ -14,11 +14,16 @@ kotlinxCoroutinesPlayServices = "1.8.1"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
+okhttp = "4.12.0"
 playServicesAuth = "20.7.0"
 timber = "5.0.1"
 compose = "1.5.1"
 firebaseMessagingKtx = "23.4.0"
 navigationRuntimeAndroid = "2.9.1"
+coil = "2.4.0"
+firebaseStorageKtx = "20.3.0"
+glide = "4.15.1"
+glideTransformations = "4.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,12 +50,18 @@ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", versi
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 androidx-compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version = "6.4.0" }
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
+glide-transformations = { group = "jp.wasabeef", name = "glide-transformations", version.ref = "glideTransformations" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

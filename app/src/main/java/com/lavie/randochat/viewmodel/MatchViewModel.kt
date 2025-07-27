@@ -95,11 +95,6 @@ class MatchViewModel(
         }
     }
 
-    fun resetState() {
-        _matchState.value = MatchState.Idle
-        removeMatchedListener()
-    }
-
     private fun removeMatchedListener() {
         currentUserId?.let { userId ->
             matchedListener?.let {

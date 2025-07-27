@@ -1,8 +1,10 @@
 package com.lavie.randochat.repository
 
+import android.content.Context
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.MessageStatus
+import java.io.File
 
 interface ChatRepository {
     suspend fun sendMessage(roomId: String, message: Message): Result<Unit>
@@ -28,4 +30,7 @@ interface ChatRepository {
     fun listenToRoomStatus(roomId: String, onStatusChanged: (Boolean) -> Unit): ValueEventListener
 
     fun removeRoomStatusListener(roomId: String, listener: ValueEventListener)
+
+    suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String>
+
 }

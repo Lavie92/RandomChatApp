@@ -1,16 +1,30 @@
 package com.lavie.randochat.repository
 
-import com.google.firebase.database.*
-import com.lavie.randochat.model.ChatRoom
+import android.content.Context
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ServerValue
+import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 import timber.log.Timber
+import java.io.File
 
 class ChatRepositoryImpl(
-    private val database: DatabaseReference
+    private val database: DatabaseReference,
+    private val httpClient: OkHttpClient
 ) : ChatRepository {
 
     private val listeners = mutableMapOf<String, ValueEventListener>()
@@ -18,7 +32,7 @@ class ChatRepositoryImpl(
 
     override suspend fun sendMessage(roomId: String, message: Message): Result<Unit> {
         return try {
-
+            Timber.d("message: ${message}")
             val key = CommonUtils.generateMessageKey(roomId, message.senderId)
 
             val encryptedContent = CommonUtils.encryptMessage(message.content, key)
@@ -115,11 +129,16 @@ class ChatRepositoryImpl(
     }
 
     override fun removeMessageListener(roomId: String, listener: ValueEventListener) {
-        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES).removeEventListener(listener)
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.MESSAGES)
+            .removeEventListener(listener)
         listeners.remove(roomId)
     }
 
-    override suspend fun updateMessageStatus(roomId: String, messageId: String, status: MessageStatus): Result<Unit> {
+    override suspend fun updateMessageStatus(
+        roomId: String,
+        messageId: String,
+        status: MessageStatus
+    ): Result<Unit> {
         return try {
             val statusRef = database.child(Constants.CHAT_ROOMS)
                 .child(roomId)
@@ -133,7 +152,7 @@ class ChatRepositoryImpl(
         }
     }
 
-    private fun decryptedMessage(message: Message, roomId: String) : String {
+    private fun decryptedMessage(message: Message, roomId: String): String {
         val key = CommonUtils.generateMessageKey(roomId, message.senderId)
 
         return try {
@@ -143,7 +162,11 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun updateTypingStatus(roomId: String, userId: String, isTyping: Boolean): Result<Unit> {
+    override suspend fun updateTypingStatus(
+        roomId: String,
+        userId: String,
+        isTyping: Boolean
+    ): Result<Unit> {
         return try {
             val typingRef = database.child(Constants.CHAT_ROOMS)
                 .child(roomId)
@@ -178,7 +201,8 @@ class ChatRepositoryImpl(
     }
 
     override fun removeTypingListener(roomId: String, listener: ValueEventListener) {
-        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING).removeEventListener(listener)
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.TYPING)
+            .removeEventListener(listener)
         typingListeners.remove(roomId)
     }
 
@@ -204,7 +228,8 @@ class ChatRepositoryImpl(
     }
 
     override fun removeRoomStatusListener(roomId: String, listener: ValueEventListener) {
-        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.ACTIVE).removeEventListener(listener)
+        database.child(Constants.CHAT_ROOMS).child(roomId).child(Constants.ACTIVE)
+            .removeEventListener(listener)
     }
 
     override suspend fun getChatType(roomId: String): String? {
@@ -222,10 +247,48 @@ class ChatRepositoryImpl(
         }
     }
 
+    override suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String> =
+        withContext(Dispatchers.IO) {
+            try {
+                val uploadPreset = Constants.CLOUDINARY_AUDIO_UPLOAD_PRESET
+                val url = Constants.CLOUDINARY_AUDIO_UPLOAD_URL
+
+                val requestBody = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart(
+                        Constants.CLOUDINARY_FORM_KEY_FILE,
+                        file.name,
+                        file.asRequestBody(Constants.AUDIO_MIME_TYPE.toMediaTypeOrNull())
+                    )
+                    .addFormDataPart(Constants.CLOUDINARY_FORM_KEY_UPLOAD_PRESET, uploadPreset)
+                    .addFormDataPart(
+                        Constants.CLOUDINARY_FORM_KEY_FOLDER,
+                        Constants.CLOUDINARY_AUDIO_FOLDER
+                    )
+                    .build()
+
+                val request = Request.Builder().url(url).post(requestBody).build()
+                val response = httpClient.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    val json = JSONObject(body!!)
+                    val secureUrl = json.getString(Constants.CLOUDINARY_RESPONSE_KEY_SECURE_URL)
+                    Result.success(secureUrl)
+                } else {
+                    Result.failure(Exception("${Constants.CLOUDINARY_ERROR_PREFIX}${response.message}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     override suspend fun endChat(roomId: String, userId: String): Result<Unit> {
         return try {
             val chatRoomSnap = database.child(Constants.CHAT_ROOMS).child(roomId).get().await()
-            val participantIds = chatRoomSnap.child(Constants.PARTICIPANTS_ID).children.mapNotNull { it.getValue(String::class.java) }
+            val participantIds = chatRoomSnap.child(Constants.PARTICIPANTS_ID).children.mapNotNull {
+                it.getValue(String::class.java)
+            }
 
             val updates = mutableMapOf<String, Any?>(
                 "${Constants.CHAT_ROOMS}/$roomId/${Constants.ACTIVE}" to false
@@ -244,3 +307,4 @@ class ChatRepositoryImpl(
         }
     }
 }
+
