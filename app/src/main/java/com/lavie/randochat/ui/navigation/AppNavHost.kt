@@ -118,9 +118,6 @@ fun AppNavHost(authViewModel: AuthViewModel) {
                     chatViewModel = chatViewModel
                 )
             }
-
         }
-
-
     }
 }
