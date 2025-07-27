@@ -181,7 +181,7 @@ fun ChatScreen(
             chatViewModel.updateTypingStatus(roomId, myUserId, false)
         },
         onSendImage = {
-            galleryLauncher.launch("image/*")
+            galleryLauncher.launch(Constants.MIME_TYPE_IMAGE)
         },
         onEndChat = {
             chatViewModel.endChat(roomId, myUserId)
@@ -481,7 +481,7 @@ fun MessageBubble(
                                 .size(200.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
-                                    navController.navigate("imagePreview/${Uri.encode(content)}")
+                                    navController.navigate("${Constants.ROUTE_IMAGE_PREVIEW}/${Uri.encode(content)}")
                                 }
                         )
 

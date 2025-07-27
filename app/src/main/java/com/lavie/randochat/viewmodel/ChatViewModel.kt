@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.R
-import com.google.firebase.database.ServerValue
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
@@ -421,7 +420,7 @@ class ChatViewModel(
         _voiceRecordState.value = VoiceRecordState.Idle
     }
 
-    fun updateMessageStatus(localId: String, status: MessageStatus, newContent: String? = null) {
+    private fun updateMessageStatus(localId: String, status: MessageStatus, newContent: String? = null) {
         _messages.update { msgs ->
             msgs.map {
                 if (it.id == localId)

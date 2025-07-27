@@ -19,6 +19,7 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
@@ -112,8 +113,17 @@ class ImageFileRepositoryImpl(
             val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
                 val json = response.body?.string()
-                val jsonObj = org.json.JSONObject(json)
-                Result.success(jsonObj.getString(Constants.CLOUDINARY_RESPONSE_KEY_SECURE_URL))
+                if (!json.isNullOrBlank()) {
+                    val jsonObj = JSONObject(json)
+                    val secureUrl = jsonObj.optString(Constants.CLOUDINARY_RESPONSE_KEY_SECURE_URL, "")
+                    if (secureUrl.isNotEmpty()) {
+                        Result.success(secureUrl)
+                    } else {
+                        Result.failure(Exception("${Constants.CLOUDINARY_ERROR_PREFIX}secure_url not found"))
+                    }
+                } else {
+                    Result.failure(Exception("${Constants.CLOUDINARY_ERROR_PREFIX}empty response body"))
+                }
             } else {
                 Result.failure(Exception("${Constants.CLOUDINARY_ERROR_PREFIX}${response.message}"))
             }
