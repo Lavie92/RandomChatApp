@@ -87,5 +87,6 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.glide.transformations)
     implementation (libs.kotlinx.coroutines.play.services)
+    implementation(libs.okhttp)
 
 }
