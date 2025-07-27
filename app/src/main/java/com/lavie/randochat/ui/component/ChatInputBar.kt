@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.theme.Dimens
+import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.getAudioDuration
 import com.lavie.randochat.utils.startVoicePlayback
 import kotlinx.coroutines.delay
@@ -80,10 +81,10 @@ fun ChatInputBar(
         if (voiceRecordState is VoiceRecordState.Recording) {
             startTime = System.currentTimeMillis()
             while (true) {
-                delay(1000)
+                delay(Constants.VOICE_RECORD_DELAY)
                 currentTime = System.currentTimeMillis()
-                val elapsed = ((currentTime - startTime) / 1000L)
-                if (elapsed >= 180L) {
+                val elapsed = ((currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND)
+                if (elapsed >= Constants.VOICE_RECORD_DELAY_MAX_SECOND) {
                     onVoiceRecordStop()
                     break
                 }
@@ -91,11 +92,12 @@ fun ChatInputBar(
         }
     }
 
-    val elapsedSeconds = ((currentTime - startTime) / 1000L).coerceAtLeast(0L)
+    val elapsedSeconds = ((currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND).coerceAtLeast(Constants.ZERO_LONG)
+
     Column(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
         when (voiceRecordState) {
             VoiceRecordState.Recording -> {
-                if (elapsedSeconds >= 180L) {
+                if (elapsedSeconds >= Constants.VOICE_RECORD_DELAY_MAX_SECOND) {
                     onVoiceRecordStop()
                 }
                 Row(
@@ -147,10 +149,10 @@ fun ChatInputBar(
                                 shape = CircleShape,
                                 color = Color.Transparent
                             ) {
-                                val minutes = elapsedSeconds / 60
-                                val seconds = elapsedSeconds % 60
+                                val minutes = elapsedSeconds / Constants.SECONDS_PER_MINUTE
+                                val seconds = elapsedSeconds % Constants.SECONDS_PER_MINUTE
                                 Text(
-                                    text = String.format("%d:%02d", minutes, seconds),
+                                    text = String.format(Constants.TIME_FORMAT, minutes, seconds),
                                     color = Color.White,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -164,7 +166,7 @@ fun ChatInputBar(
                     ImageButton(
                         onClick = {
                             if (voiceRecordState is VoiceRecordState.Recording) {
-                                if (elapsedSeconds >= 2L) {
+                                if (elapsedSeconds >= Constants.VOICE_RECORD_MIN_DURATION_TO_SEND) {
                                     onVoiceRecordStop()
                                     onVoiceRecordSend()
                                 }
@@ -190,9 +192,9 @@ fun ChatInputBar(
                 val scope = rememberCoroutineScope()
                 val mediaPlayer = remember { MediaPlayer() }
                 val isPlaying = remember { mutableStateOf(false) }
-                val lastPlaybackPosition = remember { mutableStateOf(0) }
-                val displayTime = remember { mutableStateOf("0:00") }
-                var durationText by remember { mutableStateOf("0:00") }
+                val lastPlaybackPosition = remember { mutableStateOf(Constants.DEFAULT_PLAYBACK_POSITION) }
+                val displayTime = remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
+                var durationText by remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
 
                 LaunchedEffect(voiceRecordState) {
                     durationText = getAudioDuration(voiceRecordState.file)
@@ -241,8 +243,8 @@ fun ChatInputBar(
                                         mediaPlayer.pause()
                                         isPlaying.value = false
                                     } else {
-                                        lastPlaybackPosition.value = 0
-                                        displayTime.value = "0:00"
+                                        lastPlaybackPosition.value = Constants.DEFAULT_PLAYBACK_POSITION
+                                        displayTime.value = Constants.DEFAULT_TIME_DISPLAY
                                         startVoicePlayback(
                                             context = context,
                                             file = voiceRecordState.file,

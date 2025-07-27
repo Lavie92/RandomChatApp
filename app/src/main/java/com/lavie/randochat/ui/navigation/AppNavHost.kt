@@ -109,8 +109,8 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             )
         }
 
-        composable("imagePreview/{imageUrl}") { backStackEntry ->
-            val imageUrl = backStackEntry.arguments?.getString("imageUrl")
+        composable("${Constants.ROUTE_IMAGE_PREVIEW}/{${Constants.ARG_IMAGE_URL}}") { backStackEntry ->
+            val imageUrl = backStackEntry.arguments?.getString(Constants.ARG_IMAGE_URL)
             imageUrl?.let {
                 ImagePreviewScreen(
                     imageUrl = it,
@@ -118,9 +118,6 @@ fun AppNavHost(authViewModel: AuthViewModel) {
                     chatViewModel = chatViewModel
                 )
             }
-
         }
-
-
     }
 }

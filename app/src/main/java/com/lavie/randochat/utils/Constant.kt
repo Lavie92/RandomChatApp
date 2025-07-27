@@ -88,8 +88,16 @@ object Constants {
     const val TEMP_AUDIO_FILE_PREFIX = "temp_audio"
     const val HTTP_PREFIX = "http"
     const val TIME_FORMAT = "%d:%02d"
-    const val MILLISECONDS_PER_SECOND = 1000
+    const val MILLISECONDS_PER_SECOND = 1000L
     const val SECONDS_PER_MINUTE = 60
+    const val VOICE_RECORD_DELAY = 1000L
+    const val VOICE_RECORD_DELAY_MAX_SECOND = 180
+    const val ZERO_LONG = 0L
+    const val DEFAULT_PLAYBACK_POSITION = 0
+    const val DEFAULT_TIME_DISPLAY = "0:00"
+    const val VOICE_RECORD_MIN_DURATION_TO_SEND = 2L
     const val ERROR_CANNOT_OPEN_INPUT_STREAM = "Không thể mở inputStream từ uri %s (có thể đã mất quyền truy cập hoặc file không còn tồn tại)"
-
+    const val ROUTE_IMAGE_PREVIEW = "imagePreview"
+    const val ARG_IMAGE_URL = "imageUrl"
+    const val DEFAULT_DURATION_MS = 0L
 }

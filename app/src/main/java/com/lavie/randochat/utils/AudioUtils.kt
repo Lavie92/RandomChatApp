@@ -5,6 +5,7 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.unit.Constraints
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -68,7 +69,7 @@ fun getAudioDuration(file: File): String {
         val minutes = (duration / (Constants.MILLISECONDS_PER_SECOND * Constants.SECONDS_PER_MINUTE)) % Constants.SECONDS_PER_MINUTE
         String.format(Constants.TIME_FORMAT, minutes, seconds)
     } catch (e: Exception) {
-        "0:00"
+        Constants.DEFAULT_TIME_DISPLAY
     }
 }
 
@@ -80,7 +81,7 @@ fun getAudioDurationMs(file: File): Long {
         retriever.release()
         duration
     } catch (e: Exception) {
-        0L
+        Constants.ZERO_LONG
     }
 }
 
@@ -112,7 +113,7 @@ fun startVoicePlayback(
 
         scope.launch {
             while (isPlaying.value && mediaPlayer.isPlaying) {
-                delay(1000)
+                delay(Constants.VOICE_RECORD_DELAY)
                 val current = mediaPlayer.currentPosition
                 displayTime.value = formatMillis(current.toLong())
             }
@@ -120,7 +121,7 @@ fun startVoicePlayback(
 
         mediaPlayer.setOnCompletionListener {
             isPlaying.value = false
-            lastPlaybackPosition.value = 0
+            lastPlaybackPosition.value = Constants.DEFAULT_PLAYBACK_POSITION
             displayTime.value = durationText
         }
     } catch (_: Exception) {

@@ -88,5 +88,8 @@
     <string name="chat_ended">Cuộc trò chuyện đã kết thúc</string>
     <string name="already_in_chat">Bạn đang trong một cuộc trò chuyện</string>
     <string name="sending">Đang gửi…</string>
+    <string name="stranger">Người lạ</string>
+    <string name="hd">HD</string>
+    <string name="back">Quay lại</string>
 
 </resources>
