@@ -15,3 +15,4 @@ data class Message(
 ) {
     fun isSystemMessage(): Boolean = senderId == Constants.SYSTEM
 }
+

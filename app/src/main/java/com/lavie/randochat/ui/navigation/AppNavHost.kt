@@ -1,21 +1,14 @@
 package com.lavie.randochat.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.lavie.randochat.R
-import com.lavie.randochat.ui.screen.ChatScreen
-import com.lavie.randochat.ui.screen.ImagePreviewScreen
-import com.lavie.randochat.ui.screen.LoginScreen
-import com.lavie.randochat.ui.screen.PasswordChangedScreen
-import com.lavie.randochat.ui.screen.RegisterScreen
-import com.lavie.randochat.ui.screen.SettingScreen
-import com.lavie.randochat.ui.screen.SplashScreen
-import com.lavie.randochat.ui.screen.StartChatScreen
-import com.lavie.randochat.ui.screen.WelcomeScreen
+import com.lavie.randochat.ui.screen.*
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.SplashType
 import com.lavie.randochat.viewmodel.AuthViewModel
@@ -108,19 +101,5 @@ fun AppNavHost(authViewModel: AuthViewModel) {
                 matchViewModel = matchViewModel
             )
         }
-
-        composable("imagePreview/{imageUrl}") { backStackEntry ->
-            val imageUrl = backStackEntry.arguments?.getString("imageUrl")
-            imageUrl?.let {
-                ImagePreviewScreen(
-                    imageUrl = it,
-                    navController = navController,
-                    chatViewModel = chatViewModel
-                )
-            }
-
-        }
-
-
     }
 }

@@ -20,6 +20,5 @@ enum class SplashType {
 enum class MessageStatus {
     SENDING,
     SENT,
-    SEEN,
-    FAILED
+    SEEN
 }
