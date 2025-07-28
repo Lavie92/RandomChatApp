@@ -66,7 +66,7 @@ fun ChatInputBar(
     onVoiceRecordStop: () -> Unit,
     onVoiceRecordCancel: () -> Unit,
     onSend: () -> Unit,
-     onLikeClick: () -> Unit,
+    onLikeClick: () -> Unit,
     onReportClick: () -> Unit,
     onExitClick: () -> Unit,
     onVoiceRecordSend: () -> Unit,
