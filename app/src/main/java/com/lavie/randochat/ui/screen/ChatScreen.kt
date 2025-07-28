@@ -181,7 +181,7 @@ fun ChatScreen(
             chatViewModel.updateTypingStatus(roomId, myUserId, false)
         },
         onSendImage = {
-            galleryLauncher.launch("image/*")
+            galleryLauncher.launch(Constants.MIME_TYPE_IMAGE)
         },
         onEndChat = {
             chatViewModel.endChat(roomId, myUserId)
@@ -436,10 +436,10 @@ fun MessageBubble(
                 bottomEnd = if (isMe) Dimens.emptySize else Dimens.baseMarginDouble,
                 bottomStart = if (isMe) Dimens.baseMarginDouble else Dimens.emptySize
             ),
-            border = if (!isMe) BorderStroke(
-                Dimens.smallBorderStrokeWidth,
-                Color.LightGray
-            ) else null
+            border = if (!isMe && type != MessageType.VOICE)
+                BorderStroke(Dimens.smallBorderStrokeWidth, Color.LightGray)
+            else null
+
         ) {
             when (type) {
                 MessageType.TEXT -> Text(
@@ -481,7 +481,7 @@ fun MessageBubble(
                                 .size(200.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
-                                    navController.navigate("imagePreview/${Uri.encode(content)}")
+                                    navController.navigate("${Constants.ROUTE_IMAGE_PREVIEW}/${Uri.encode(content)}")
                                 }
                         )
 
@@ -507,10 +507,10 @@ fun MessageBubble(
                     val scope = rememberCoroutineScope()
                     val mediaPlayer = remember { MediaPlayer() }
                     val isPlaying = remember { mutableStateOf(false) }
-                    val displayTime = remember { mutableStateOf("0:00") }
-                    val lastPlaybackPosition = remember { mutableStateOf(0) }
-                    var durationText by remember { mutableStateOf("0:00") }
-                    var durationMs by remember { mutableStateOf(0L) }
+                    val displayTime = remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
+                    val lastPlaybackPosition = remember { mutableStateOf(Constants.DEFAULT_PLAYBACK_POSITION) }
+                    var durationText by remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
+                    var durationMs by remember { mutableStateOf(Constants.DEFAULT_DURATION_MS) }
 
                     LaunchedEffect(content) {
                         scope.launch {
@@ -633,7 +633,8 @@ private fun createChatItemsWithTimestamps(
     if (messages.isEmpty()) return emptyList()
 
     val chatItems = mutableListOf<ChatItem>()
-    val timeGapMillis = Constants.TIME_GAP_MINUTES * 60 * 1000
+    val timeGapMillis = Constants.TIME_GAP_MINUTES * Constants.SECONDS_PER_MINUTE * Constants.MILLISECONDS_PER_SECOND
+
 
     messages.forEachIndexed { index, message ->
         val shouldShowTimestamp = if (index == 0) {

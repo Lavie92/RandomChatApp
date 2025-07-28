@@ -89,5 +89,8 @@
     <string name="chat_ended">The conversation has ended</string>
     <string name="already_in_chat">You are already in a chat</string>
     <string name="sending">Sending…</string>
+    <string name="stranger">Stranger</string>
+    <string name="hd">HD</string>
+    <string name="back">Back</string>
 
 </resources>

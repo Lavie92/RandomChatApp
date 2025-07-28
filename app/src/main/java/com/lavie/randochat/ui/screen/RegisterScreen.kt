@@ -105,7 +105,7 @@ fun RegisterScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     tint = Color.Black,
                     modifier = Modifier.padding(10.dp)
                 )
