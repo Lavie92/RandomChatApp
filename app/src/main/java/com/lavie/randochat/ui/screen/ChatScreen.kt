@@ -195,7 +195,9 @@ fun ChatScreen(
                             val lastMessageId = messages.lastOrNull()?.id
 
                             MessageBubble(
-                                content = message.content,
+                                content = if (message.isSystemMessage() && message.contentResId != null) {
+                                    stringResource(message.contentResId)
+                                } else message.content,
                                 isMe = isMe,
                                 type = message.type,
                                 time = message.timestamp,

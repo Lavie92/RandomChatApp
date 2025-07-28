@@ -93,7 +93,6 @@ class ChatViewModel(
         }
     }
 
-
     fun loadMoreMessages(onLoaded: (addedCount: Int) -> Unit = {}) {
         if (_isLoadingMore.value || isEndReached || currentRoomId == null || oldestTimestamp == null) return
 
