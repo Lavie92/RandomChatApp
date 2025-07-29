@@ -92,5 +92,9 @@
     <string name="hd">HD</string>
     <string name="back">Quay lại</string>
     <string name="ok">OK</string>
+    <string name="end_chat_title">Kết thúc trò chuyện</string>
+    <string name="end_chat_message">Bạn có chắc muốn kết thúc cuộc trò chuyện này? Sau khi kết thúc, bạn sẽ không thể kết nối lại với người này.</string>
+    <string name="confirm">Đồng ý</string>
+    <string name="cancel">Không</string>
 
 </resources>
