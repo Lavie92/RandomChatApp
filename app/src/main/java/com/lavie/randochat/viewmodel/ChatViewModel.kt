@@ -210,7 +210,7 @@ class ChatViewModel(
         )
     }
 
-    fun removeMessageListener() {
+    private fun removeMessageListener() {
         currentRoomId?.let { roomId ->
             messagesListener?.let { chatRepository.removeMessageListener(roomId, it) }
         }
@@ -385,7 +385,8 @@ class ChatViewModel(
             recorder = null
             audioFile?.delete()
             audioFile = null
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Timber.e(e)
         }
         _voiceRecordState.value = VoiceRecordState.Idle
     }

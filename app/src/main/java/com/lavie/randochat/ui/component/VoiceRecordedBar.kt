@@ -64,7 +64,15 @@ fun VoiceRecordedBar(
             .padding(Dimens.baseMargin),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        VoiceCancelButton(onCancel)
+        VoiceCancelButton(onClick = {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+                mediaPlayer.reset()
+            }
+            mediaPlayer.release()
+            isPlaying.value = false
+            onCancel()
+        })
 
         CustomSpacer(width = Dimens.baseMargin)
 
@@ -78,7 +86,6 @@ fun VoiceRecordedBar(
                     lastPlaybackPosition.intValue = 0
                     displayTime.value = durationText
                     startVoicePlayback(
-                        context = context,
                         file = file,
                         mediaPlayer = mediaPlayer,
                         scope = scope,
