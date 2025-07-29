@@ -25,6 +25,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomSpacer
+import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 
@@ -83,7 +84,8 @@ fun WelcomeScreen(
                 tint = Color.Unspecified,
                 modifier = Modifier.size(64.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            CustomSpacer(height = Dimens.baseMargin)
+
             Text(
                 buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {

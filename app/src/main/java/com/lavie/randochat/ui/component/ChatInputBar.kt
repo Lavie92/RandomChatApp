@@ -1,59 +1,24 @@
 package com.lavie.randochat.ui.component
 
-import android.media.MediaPlayer
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import com.lavie.randochat.R
-import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.Constants
-import com.lavie.randochat.utils.getAudioDuration
-import com.lavie.randochat.utils.startVoicePlayback
 import kotlinx.coroutines.delay
 import java.io.File
 
 sealed class VoiceRecordState {
-    object Recording : VoiceRecordState()
-    object Idle : VoiceRecordState()
+    data object Recording : VoiceRecordState()
+    data object Idle : VoiceRecordState()
     data class Recorded(val file: File) : VoiceRecordState()
-    object Locked : VoiceRecordState()
+    data object Locked : VoiceRecordState()
 }
 
 @Composable
@@ -68,14 +33,13 @@ fun ChatInputBar(
     onSend: () -> Unit,
     onLikeClick: () -> Unit,
     onReportClick: () -> Unit,
-    onExitClick: () -> Unit,
+    onEndChatClick: () -> Unit,
     onVoiceRecordSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var startTime by remember { mutableStateOf(System.currentTimeMillis()) }
-    var currentTime by remember { mutableStateOf(startTime) }
-    var menuExpanded by remember { mutableStateOf(false) }
-    remember { mutableStateOf(false) }
+    var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var currentTime by remember { mutableLongStateOf(startTime) }
+    val elapsedSeconds = ((currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND).coerceAtLeast(0L)
 
     LaunchedEffect(voiceRecordState) {
         if (voiceRecordState is VoiceRecordState.Recording) {
@@ -83,7 +47,8 @@ fun ChatInputBar(
             while (true) {
                 delay(Constants.VOICE_RECORD_DELAY)
                 currentTime = System.currentTimeMillis()
-                val elapsed = ((currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND)
+
+                val elapsed = (currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND
                 if (elapsed >= Constants.VOICE_RECORD_DELAY_MAX_SECOND) {
                     onVoiceRecordStop()
                     break
@@ -92,319 +57,34 @@ fun ChatInputBar(
         }
     }
 
-    val elapsedSeconds = ((currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND).coerceAtLeast(Constants.ZERO_LONG)
-
     Column(modifier = modifier.background(MaterialTheme.colorScheme.surface)) {
         when (voiceRecordState) {
-            VoiceRecordState.Recording -> {
-                if (elapsedSeconds >= Constants.VOICE_RECORD_DELAY_MAX_SECOND) {
+            is VoiceRecordState.Recording -> VoiceRecordingBar(
+                elapsedSeconds = elapsedSeconds,
+                onStop = onVoiceRecordStop,
+                onCancel = onVoiceRecordCancel,
+                onSend = onVoiceRecordSend
+            )
+
+            is VoiceRecordState.Recorded -> VoiceRecordedBar(
+                file = voiceRecordState.file,
+                onCancel = onVoiceRecordCancel,
+                onSend = {
                     onVoiceRecordStop()
+                    onVoiceRecordSend()
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimens.baseMargin),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        modifier = Modifier.size(Dimens.baseIconSize),
-                        shape = CircleShape,
-                        color = Color(0xFF757575)
-                    ) {
-                        IconButton(onClick = onVoiceRecordCancel) {
-                            Icon(Icons.Default.Close, tint = Color.White, contentDescription = null)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(Dimens.baseMargin))
-
-                    Surface(
-                        modifier = Modifier
-                            .height(Dimens.textFieldHeight)
-                            .weight(1f),
-                        shape = RoundedCornerShape(Dimens.textFieldRadius),
-                        color = Color(0xFF007AFF)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = Dimens.baseMargin),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Surface(
-                                modifier = Modifier.size(Dimens.baseIconSize),
-                                shape = CircleShape,
-                                color = Color.White
-                            ) {
-                                IconButton(onClick = onVoiceRecordStop) {
-                                    Icon(Icons.Default.Stop, tint = Color(0xFF007AFF), contentDescription = null)
-                                }
-                            }
-
-                            Surface(
-                                modifier = Modifier
-                                    .border(1.dp, Color.White, CircleShape)
-                                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                                shape = CircleShape,
-                                color = Color.Transparent
-                            ) {
-                                val minutes = elapsedSeconds / Constants.SECONDS_PER_MINUTE
-                                val seconds = elapsedSeconds % Constants.SECONDS_PER_MINUTE
-                                Text(
-                                    text = String.format(Constants.TIME_FORMAT, minutes, seconds),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(Dimens.baseMargin))
-
-                    ImageButton(
-                        onClick = {
-                            if (voiceRecordState is VoiceRecordState.Recording) {
-                                if (elapsedSeconds >= Constants.VOICE_RECORD_MIN_DURATION_TO_SEND) {
-                                    onVoiceRecordStop()
-                                    onVoiceRecordSend()
-                                }
-                            }
-                            if (voiceRecordState is VoiceRecordState.Recorded) {
-                                onVoiceRecordSend()
-                        }else {
-                                onSend()
-                            }
-                        },
-                        vectorId = R.drawable.vector_send,
-                        vectorColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .width(Dimens.sendButtonWidth)
-                            .padding(end = Dimens.baseMargin)
-                    )
-
-                }
-            }
-
-            is VoiceRecordState.Recorded -> {
-                val context = LocalContext.current
-                val scope = rememberCoroutineScope()
-                val mediaPlayer = remember { MediaPlayer() }
-                val isPlaying = remember { mutableStateOf(false) }
-                val lastPlaybackPosition = remember { mutableStateOf(Constants.DEFAULT_PLAYBACK_POSITION) }
-                val displayTime = remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
-                var durationText by remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
-
-                LaunchedEffect(voiceRecordState) {
-                    durationText = getAudioDuration(voiceRecordState.file)
-                    displayTime.value = durationText
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimens.baseMargin),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        modifier = Modifier.size(Dimens.baseIconSize),
-                        shape = CircleShape,
-                        color = Color(0xFF757575)
-                    ) {
-                        IconButton(onClick = onVoiceRecordCancel) {
-                            Icon(Icons.Default.Close, tint = Color.White, contentDescription = null)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(Dimens.baseMargin))
-
-                    Surface(
-                        modifier = Modifier
-                            .height(Dimens.textFieldHeight)
-                            .weight(1f),
-                        shape = RoundedCornerShape(Dimens.textFieldRadius),
-                        color = Color(0xFF007AFF)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = Dimens.baseMargin),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Surface(
-                                modifier = Modifier.size(Dimens.baseIconSize),
-                                shape = CircleShape,
-                                color = Color.White
-                            ) {
-                                IconButton(onClick = {
-                                    if (isPlaying.value) {
-                                        mediaPlayer.pause()
-                                        isPlaying.value = false
-                                    } else {
-                                        lastPlaybackPosition.value = Constants.DEFAULT_PLAYBACK_POSITION
-                                        displayTime.value = Constants.DEFAULT_TIME_DISPLAY
-                                        startVoicePlayback(
-                                            context = context,
-                                            file = voiceRecordState.file,
-                                            mediaPlayer = mediaPlayer,
-                                            scope = scope,
-                                            isPlaying = isPlaying,
-                                            lastPlaybackPosition = lastPlaybackPosition,
-                                            displayTime = displayTime,
-                                            durationText = durationText,
-                                            onError = { customToast(context, R.string.voice_playback_failed) }
-                                        )
-                                    }
-                                }) {
-                                    Icon(
-                                        if (isPlaying.value) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                        tint = Color(0xFF007AFF),
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-
-                            Surface(
-                                modifier = Modifier
-                                    .border(1.dp, Color.White, CircleShape)
-                                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                                shape = CircleShape,
-                                color = Color.Transparent
-                            ) {
-                                Text(
-                                    text = displayTime.value,
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(Dimens.baseMargin))
-
-                    ImageButton(
-                        onClick = {
-                            onVoiceRecordStop()
-                            onVoiceRecordSend()
-                        },
-                        vectorId = R.drawable.vector_send,
-                        vectorColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .width(Dimens.sendButtonWidth)
-                            .padding(end = Dimens.baseMargin)
-                    )
-                }
-            }
-
-            VoiceRecordState.Idle -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimens.baseMargin),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(end = Dimens.baseMargin)
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        ImageButton(
-                            onClick = { menuExpanded = true },
-                            icon = Icons.Default.Add,
-                            modifier = Modifier.width(Dimens.baseIconSize),
-                        )
-
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.send_heart)) },
-                                onClick = {
-                                    menuExpanded = false
-                                    onLikeClick()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.report)) },
-                                onClick = {
-                                    menuExpanded = false
-                                    onReportClick()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.leave_chat)) },
-                                onClick = {
-                                    menuExpanded = false
-                                    onExitClick()
-                                }
-                            )
-                        }
-                    }
-
-                    IconButton(
-                        onClick = onVoiceRecordStart,
-                        modifier = Modifier
-                            .padding(end = Dimens.baseMargin)
-                            .width(Dimens.baseIconSize)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.vector_voice),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-        			Spacer(modifier = Modifier.width(Dimens.baseMarginDouble))
-        			
-                    ImageButton(
-                        onClick = onSendImage,
-                        vectorId = R.drawable.vector_welcome_background,
-                        modifier = Modifier
-                            .padding(end = Dimens.baseMargin)
-                            .width(Dimens.baseIconSize)
-                    )
-
-                    CustomChatTextField(
-                        value = value,
-                        onValueChange = onValueChange,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Spacer(modifier = Modifier.width(Dimens.smallMargin))
-
-                    ImageButton(
-                        onClick = onSend,
-                        vectorId = R.drawable.vector_send,
-                        vectorColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .width(Dimens.sendButtonWidth)
-                            .padding(end = Dimens.baseMargin)
-                    )
-                }
-            }
-
-            VoiceRecordState.Locked -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimens.baseMargin),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.record_error),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+            )
+            VoiceRecordState.Idle -> IdleInputBar(
+                value = value,
+                onValueChange = onValueChange,
+                onSendImage = onSendImage,
+                onVoiceRecordStart = onVoiceRecordStart,
+                onSend = onSend,
+                onLikeClick = onLikeClick,
+                onReportClick = onReportClick,
+                onEndChatClick = onEndChatClick
+            )
+            VoiceRecordState.Locked -> LockedVoiceBar()
         }
     }
 }
-
-
-
