@@ -93,7 +93,6 @@ fun formatMillis(ms: Long): String {
 }
 
 fun startVoicePlayback(
-    context: Context,
     file: File,
     mediaPlayer: MediaPlayer,
     scope: CoroutineScope,

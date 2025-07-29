@@ -85,7 +85,7 @@
     <string name="chat_by_age">Chat by Age</string>
     <string name="report">Report</string>
     <string name="send_heart">Send Heart</string>
-    <string name="leave_chat">Leave</string>
+    <string name="end_chat">End Chat</string>
     <string name="chat_ended">The conversation has ended</string>
     <string name="already_in_chat">You are already in a chat</string>
     <string name="sending">Sending…</string>

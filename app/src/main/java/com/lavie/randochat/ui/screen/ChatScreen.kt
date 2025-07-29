@@ -270,7 +270,7 @@ fun ChatScreen(
                     },
                     onReportClick = {},
                     onLikeClick = {},
-                    onExitClick = { chatViewModel.endChat(roomId, myUserId) },
+                    onEndChatClick = { chatViewModel.endChat(roomId, myUserId) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }

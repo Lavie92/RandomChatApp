@@ -28,6 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -159,9 +161,9 @@ fun MessageBubble(
                     val mediaPlayer = remember { MediaPlayer() }
                     val isPlaying = remember { mutableStateOf(false) }
                     val displayTime = remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
-                    val lastPlaybackPosition = remember { mutableStateOf(Constants.DEFAULT_PLAYBACK_POSITION) }
+                    val lastPlaybackPosition = remember { mutableIntStateOf(Constants.DEFAULT_PLAYBACK_POSITION) }
                     var durationText by remember { mutableStateOf(Constants.DEFAULT_TIME_DISPLAY) }
-                    var durationMs by remember { mutableStateOf(Constants.DEFAULT_DURATION_MS) }
+                    var durationMs by remember { mutableLongStateOf(Constants.DEFAULT_DURATION_MS) }
 
                     LaunchedEffect(content) {
                         scope.launch {
@@ -184,13 +186,12 @@ fun MessageBubble(
                                     val file = resolveAudioFile(context, content)
                                     if (file != null) {
                                         if (isPlaying.value) {
-                                            lastPlaybackPosition.value = mediaPlayer.currentPosition
+                                            lastPlaybackPosition.intValue = mediaPlayer.currentPosition
                                             mediaPlayer.pause()
                                             isPlaying.value = false
                                         } else {
-                                            displayTime.value = formatMillis(lastPlaybackPosition.value.toLong())
+                                            displayTime.value = formatMillis(lastPlaybackPosition.intValue.toLong())
                                             startVoicePlayback(
-                                                context = context,
                                                 file = file,
                                                 mediaPlayer = mediaPlayer,
                                                 scope = scope,

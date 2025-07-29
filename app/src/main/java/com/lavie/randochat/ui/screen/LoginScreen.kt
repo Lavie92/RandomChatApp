@@ -1,7 +1,5 @@
 package com.lavie.randochat.ui.screen
 
-import android.Manifest
-import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,13 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +42,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.component.CustomOutlinedTextField
@@ -90,7 +87,7 @@ fun LoginScreen(
                     .clickable { navController.popBackStack() }
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "",
                     tint = Color.Black,
                     modifier = Modifier.padding(10.dp)
@@ -176,13 +173,13 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Divider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
                 Text(
                     stringResource(R.string.or_login_with),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Divider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE5E7EB))
             }
 
             CustomSpacer(height = 16.dp)
