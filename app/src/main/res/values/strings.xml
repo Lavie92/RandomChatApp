@@ -93,5 +93,9 @@
     <string name="hd">HD</string>
     <string name="back">Back</string>
     <string name="ok">OK</string>
+    <string name="end_chat_title">End Conversation</string>
+    <string name="end_chat_message">Are you sure you want to end this conversation? You won\'t be able to reconnect after ending.</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 
 </resources>

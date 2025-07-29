@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
+import com.lavie.randochat.service.DialogService
 import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.MessageBubble
@@ -125,6 +126,10 @@ fun ChatScreen(
     var messageText by remember { mutableStateOf("") }
     var selectedMessageId by remember { mutableStateOf<String?>(null) }
     var shouldScrollToBottom by remember { mutableStateOf(true) }
+    val endChatTitle = stringResource(R.string.end_chat_title)
+    val endChatMessage = stringResource(R.string.end_chat_message)
+    val confirmOption = stringResource(R.string.confirm)
+    val cancelOption = stringResource(R.string.cancel)
     val chatItems = remember(messages) {
         createChatItemsWithTimestamps(messages)
     }
@@ -270,7 +275,17 @@ fun ChatScreen(
                     },
                     onReportClick = {},
                     onLikeClick = {},
-                    onEndChatClick = { chatViewModel.endChat(roomId, myUserId) },
+                    onEndChatClick = {
+                        DialogService.show(
+                            title = endChatTitle,
+                            message = endChatMessage,
+                            confirmButton = confirmOption,
+                            dismissButton = cancelOption,
+                            onConfirmAction = {
+                                chatViewModel.endChat(roomId, myUserId)
+                            }
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -280,6 +295,8 @@ fun ChatScreen(
     OnAppResumed {
         chatViewModel.startRealtimeMessageListener(roomId)
     }
+
+    DialogService.Render()
 }
 
 @Composable

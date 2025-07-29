@@ -16,3 +16,4 @@ local.properties
 google-services.json
 
 .idea/deploymentTargetSelector.xml
+.kotlin
