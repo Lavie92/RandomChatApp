@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -53,6 +54,15 @@ fun VoiceRecordedBar(
     var durationText by remember { mutableStateOf("0:00") }
     val lastPlaybackPosition = remember { mutableIntStateOf(0) }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+            }
+            mediaPlayer.release()
+        }
+    }
+
     LaunchedEffect(file) {
         durationText = getAudioDuration(file)
         displayTime.value = durationText
@@ -64,15 +74,9 @@ fun VoiceRecordedBar(
             .padding(Dimens.baseMargin),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        VoiceCancelButton(onClick = {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.stop()
-                mediaPlayer.reset()
-            }
-            mediaPlayer.release()
-            isPlaying.value = false
-            onCancel()
-        })
+        VoiceCancelButton(
+            onCancel
+        )
 
         CustomSpacer(width = Dimens.baseMargin)
 
