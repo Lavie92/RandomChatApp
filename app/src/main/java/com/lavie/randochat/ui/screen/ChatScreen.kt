@@ -41,8 +41,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -51,6 +55,7 @@ import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.service.DialogService
 import com.lavie.randochat.ui.component.ChatInputBar
+import com.lavie.randochat.ui.component.EmojiPicker
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.MessageBubble
 import com.lavie.randochat.ui.component.customToast
@@ -121,6 +126,8 @@ fun ChatScreen(
             chatViewModel.markMessagesAsSeen(roomId, myUserId, messages)
         }
     }
+// State emoji picker
+    var emojiExpanded by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     var messageText by remember { mutableStateOf("") }
@@ -133,6 +140,9 @@ fun ChatScreen(
     val chatItems = remember(messages) {
         createChatItemsWithTimestamps(messages)
     }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val view = LocalView.current
 
     LaunchedEffect(messages.size, shouldScrollToBottom) {
         if (shouldScrollToBottom && messages.isNotEmpty()) {
@@ -146,6 +156,17 @@ fun ChatScreen(
             .collectLatest { (index, offset) ->
                 if (index == 0 && offset == 0) chatViewModel.loadMoreMessages()
             }
+    }
+
+    LaunchedEffect(view, emojiExpanded) {
+        snapshotFlow {
+            ViewCompat.getRootWindowInsets(view)
+                ?.isVisible(android.view.WindowInsets.Type.ime()) == true
+        }.collect { isKeyboardVisible ->
+            if (isKeyboardVisible && emojiExpanded) {
+                emojiExpanded = false
+            }
+        }
     }
 
     Scaffold(
@@ -275,19 +296,25 @@ fun ChatScreen(
                     },
                     onReportClick = {},
                     onLikeClick = {},
-                    onEndChatClick = {
-                        DialogService.show(
-                            title = endChatTitle,
-                            message = endChatMessage,
-                            confirmButton = confirmOption,
-                            dismissButton = cancelOption,
-                            onConfirmAction = {
-                                chatViewModel.endChat(roomId, myUserId)
-                            }
-                        )
+                    onEndChatClick = { chatViewModel.endChat(roomId, myUserId) },
+                    onToggleEmojiPicker = {
+                        emojiExpanded = !emojiExpanded
+                        if (emojiExpanded) {
+                            keyboardController?.hide()
+                        } else {
+                            focusManager.clearFocus()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (emojiExpanded) {
+                    EmojiPicker(
+                        onEmojiSelected = { emoji ->
+                            messageText += emoji
+                        },
+                        onDismiss = { emojiExpanded = false }
+                    )
+                }
             }
         }
     }

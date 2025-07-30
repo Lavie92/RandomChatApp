@@ -3,12 +3,7 @@ package com.lavie.randochat.ui.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.delay
@@ -35,6 +30,7 @@ fun ChatInputBar(
     onReportClick: () -> Unit,
     onEndChatClick: () -> Unit,
     onVoiceRecordSend: () -> Unit,
+    onToggleEmojiPicker: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -47,9 +43,7 @@ fun ChatInputBar(
             while (true) {
                 delay(Constants.VOICE_RECORD_DELAY)
                 currentTime = System.currentTimeMillis()
-
-                val elapsed = (currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND
-                if (elapsed >= Constants.VOICE_RECORD_DELAY_MAX_SECOND) {
+                if ((currentTime - startTime) / Constants.MILLISECONDS_PER_SECOND >= Constants.VOICE_RECORD_DELAY_MAX_SECOND) {
                     onVoiceRecordStop()
                     break
                 }
@@ -74,6 +68,7 @@ fun ChatInputBar(
                     onVoiceRecordSend()
                 }
             )
+
             VoiceRecordState.Idle -> IdleInputBar(
                 value = value,
                 onValueChange = onValueChange,
@@ -82,8 +77,10 @@ fun ChatInputBar(
                 onSend = onSend,
                 onLikeClick = onLikeClick,
                 onReportClick = onReportClick,
-                onEndChatClick = onEndChatClick
+                onEndChatClick = onEndChatClick,
+                onToggleEmojiPicker = onToggleEmojiPicker
             )
+
             VoiceRecordState.Locked -> LockedVoiceBar()
         }
     }
