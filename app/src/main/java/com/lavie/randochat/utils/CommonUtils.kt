@@ -2,6 +2,8 @@ package com.lavie.randochat.utils
 
 import android.content.Context
 import android.util.Base64
+import com.lavie.randochat.model.Emoji
+import com.lavie.randochat.ui.component.MessageComponent
 import kotlinx.coroutines.TimeoutCancellationException
 import timber.log.Timber
 import java.security.MessageDigest
@@ -168,6 +170,31 @@ object CommonUtils {
         }
 
         return false
+    }
+
+    //EMOJI
+    fun parseMessageWithEmojis(content: String, emojiList: List<Emoji>): List<MessageComponent> {
+        val components = buildList {
+            val emojiRegex = "\\[:([^]]+):]".toRegex()
+            var lastIndex = 0
+            emojiRegex.findAll(content).forEach { match ->
+                if (match.range.first > lastIndex) {
+                    add(MessageComponent.TextComponent(content.substring(lastIndex, match.range.first)))
+                }
+                val name = match.groupValues[1]
+                val emoji = emojiList.find { it.name == name }
+                if (emoji != null) {
+                    add(MessageComponent.EmojiComponent(emoji))
+                } else {
+                    add(MessageComponent.TextComponent(match.value))
+                }
+                lastIndex = match.range.last + 1
+            }
+            if (lastIndex < content.length) {
+                add(MessageComponent.TextComponent(content.substring(lastIndex)))
+            }
+        }
+        return components
     }
 }
 

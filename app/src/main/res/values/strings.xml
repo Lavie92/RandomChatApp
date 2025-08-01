@@ -97,5 +97,6 @@
     <string name="end_chat_message">Are you sure you want to end this conversation? You won\'t be able to reconnect after ending.</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="emoji">Emoji</string>
 
 </resources>

@@ -8,8 +8,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -38,17 +41,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.bumptech.glide.Glide
 import com.lavie.randochat.R
+import com.lavie.randochat.model.Emoji
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.ui.theme.MessageBackground
 import com.lavie.randochat.utils.CommonUtils
+import com.lavie.randochat.utils.CommonUtils.parseMessageWithEmojis
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
@@ -56,8 +64,10 @@ import com.lavie.randochat.utils.formatMillis
 import com.lavie.randochat.utils.getAudioDurationMs
 import com.lavie.randochat.utils.resolveAudioFile
 import com.lavie.randochat.utils.startVoicePlayback
+import com.lavie.randochat.viewmodel.EmojiViewModel
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MessageBubble(
@@ -71,6 +81,9 @@ fun MessageBubble(
     onClick: () -> Unit,
     navController: NavController
 ) {
+    val emojiViewModel: EmojiViewModel = koinViewModel()
+    val emojiList by emojiViewModel.emojis.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,17 +105,32 @@ fun MessageBubble(
             border = if (!isMe && type != MessageType.VOICE)
                 BorderStroke(Dimens.smallBorderStrokeWidth, Color.LightGray)
             else null
-
         ) {
             when (type) {
-                MessageType.TEXT -> Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (isMe) Color.White else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
-                        .widthIn(max = Dimens.messageMaxSizeable)
-                )
+                MessageType.TEXT -> {
+                    val parsedContent = remember(content, emojiList) {
+                        parseMessageWithEmojis(content, emojiList)
+                    }
+
+                    if (parsedContent.any { it is MessageComponent.EmojiComponent }) {
+                        RichTextMessage(
+                            components = parsedContent,
+                            isMe = isMe,
+                            modifier = Modifier
+                                .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
+                                .widthIn(max = Dimens.messageMaxSizeable)
+                        )
+                    } else {
+                        Text(
+                            text = content,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (isMe) Color.White else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .padding(horizontal = Dimens.baseMarginDouble, vertical = Dimens.baseMargin)
+                                .widthIn(max = Dimens.messageMaxSizeable)
+                        )
+                    }
+                }
 
                 MessageType.IMAGE -> {
                     Box(
@@ -247,6 +275,49 @@ fun MessageBubble(
                         end = Dimens.baseMarginDouble
                     )
                 )
+            }
+        }
+    }
+}
+
+sealed class MessageComponent {
+    data class TextComponent(val text: String) : MessageComponent()
+    data class EmojiComponent(val emoji: Emoji) : MessageComponent()
+}
+
+@Composable
+fun RichTextMessage(
+    components: List<MessageComponent>,
+    isMe: Boolean,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        components.forEach { component ->
+            when (component) {
+                is MessageComponent.TextComponent -> {
+                    Text(
+                        text = component.text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isMe) Color.White else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                is MessageComponent.EmojiComponent -> {
+                    AsyncImage(
+                        model = component.emoji.imageUrl,
+                        contentDescription = component.emoji.displayName,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 2.dp),
+                        contentScale = ContentScale.Fit,
+                        placeholder = painterResource(R.drawable.placeholder),
+                        error = painterResource(R.drawable.placeholder)
+                    )
+                }
             }
         }
     }
