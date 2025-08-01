@@ -88,8 +88,6 @@ fun IdleInputBar(
                 .width(Dimens.baseIconSize)
         )
 
-        CustomSpacer(width = Dimens.baseMargin)
-
         ImageButton(
             onClick = onSendImage,
             vectorId = R.drawable.vector_image,
@@ -104,8 +102,6 @@ fun IdleInputBar(
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f)
         )
-
-        CustomSpacer(width = Dimens.smallMargin)
 
         ImageButton(
             onClick = onToggleEmojiPicker,

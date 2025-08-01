@@ -57,6 +57,7 @@ import com.lavie.randochat.model.Emoji
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.ui.theme.MessageBackground
 import com.lavie.randochat.utils.CommonUtils
+import com.lavie.randochat.utils.CommonUtils.parseMessageWithEmojis
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
@@ -281,44 +282,6 @@ fun MessageBubble(
 sealed class MessageComponent {
     data class TextComponent(val text: String) : MessageComponent()
     data class EmojiComponent(val emoji: Emoji) : MessageComponent()
-}
-
-fun parseMessageWithEmojis(content: String, emojiList: List<Emoji>): List<MessageComponent> {
-    val components = mutableListOf<MessageComponent>()
-    val emojiRegex = "\\[:([^]]+):]".toRegex()
-
-    var lastIndex = 0
-    emojiRegex.findAll(content).forEach { matchResult ->
-        if (matchResult.range.first > lastIndex) {
-            val textBefore = content.substring(lastIndex, matchResult.range.first)
-            if (textBefore.isNotEmpty()) {
-                components.add(MessageComponent.TextComponent(textBefore))
-            }
-        }
-
-        val emojiName = matchResult.groupValues[1]
-        val emoji = emojiList.find { it.name == emojiName }
-        if (emoji != null) {
-            components.add(MessageComponent.EmojiComponent(emoji))
-        } else {
-            components.add(MessageComponent.TextComponent(matchResult.value))
-        }
-
-        lastIndex = matchResult.range.last + 1
-    }
-
-    if (lastIndex < content.length) {
-        val remainingText = content.substring(lastIndex)
-        if (remainingText.isNotEmpty()) {
-            components.add(MessageComponent.TextComponent(remainingText))
-        }
-    }
-
-    if (components.isEmpty()) {
-        components.add(MessageComponent.TextComponent(content))
-    }
-
-    return components
 }
 
 @Composable

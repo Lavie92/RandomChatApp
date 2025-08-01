@@ -27,6 +27,7 @@ fun CustomChatTextField(
 ) {
     TextField(
         value = value,
+        textStyle = MaterialTheme.typography.bodySmall,
         onValueChange = onValueChange,
         placeholder = {
             Text(
@@ -44,7 +45,6 @@ fun CustomChatTextField(
             unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             focusedTextColor = MaterialTheme.colorScheme.onSurface
         ),
-        singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(
             capitalization = KeyboardCapitalization.Sentences),
         modifier = modifier

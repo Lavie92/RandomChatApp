@@ -2,6 +2,8 @@ package com.lavie.randochat.utils
 
 import android.content.Context
 import android.util.Base64
+import com.lavie.randochat.model.Emoji
+import com.lavie.randochat.ui.component.MessageComponent
 import kotlinx.coroutines.TimeoutCancellationException
 import timber.log.Timber
 import java.security.MessageDigest
@@ -168,6 +170,45 @@ object CommonUtils {
         }
 
         return false
+    }
+
+    //EMOJI
+    fun parseMessageWithEmojis(content: String, emojiList: List<Emoji>): List<MessageComponent> {
+        val components = mutableListOf<MessageComponent>()
+        val emojiRegex = "\\[:([^]]+):]".toRegex()
+
+        var lastIndex = 0
+        emojiRegex.findAll(content).forEach { matchResult ->
+            if (matchResult.range.first > lastIndex) {
+                val textBefore = content.substring(lastIndex, matchResult.range.first)
+                if (textBefore.isNotEmpty()) {
+                    components.add(MessageComponent.TextComponent(textBefore))
+                }
+            }
+
+            val emojiName = matchResult.groupValues[1]
+            val emoji = emojiList.find { it.name == emojiName }
+            if (emoji != null) {
+                components.add(MessageComponent.EmojiComponent(emoji))
+            } else {
+                components.add(MessageComponent.TextComponent(matchResult.value))
+            }
+
+            lastIndex = matchResult.range.last + 1
+        }
+
+        if (lastIndex < content.length) {
+            val remainingText = content.substring(lastIndex)
+            if (remainingText.isNotEmpty()) {
+                components.add(MessageComponent.TextComponent(remainingText))
+            }
+        }
+
+        if (components.isEmpty()) {
+            components.add(MessageComponent.TextComponent(content))
+        }
+
+        return components
     }
 }
 
