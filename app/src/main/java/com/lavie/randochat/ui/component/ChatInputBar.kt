@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.delay
 import java.io.File
@@ -23,8 +24,8 @@ sealed class VoiceRecordState {
 
 @Composable
 fun ChatInputBar(
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     onSendImage: () -> Unit,
     voiceRecordState: VoiceRecordState,
     onVoiceRecordStart: () -> Unit,
@@ -35,6 +36,7 @@ fun ChatInputBar(
     onReportClick: () -> Unit,
     onEndChatClick: () -> Unit,
     onVoiceRecordSend: () -> Unit,
+    onToggleEmojiPicker: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var startTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -82,7 +84,8 @@ fun ChatInputBar(
                 onSend = onSend,
                 onLikeClick = onLikeClick,
                 onReportClick = onReportClick,
-                onEndChatClick = onEndChatClick
+                onEndChatClick = onEndChatClick,
+                onToggleEmojiPicker = onToggleEmojiPicker
             )
             VoiceRecordState.Locked -> LockedVoiceBar()
         }

@@ -3,16 +3,21 @@ package com.lavie.randochat.ui.screen
 import android.Manifest
 import android.app.Activity
 import android.net.Uri
+import android.os.Build
+import android.view.ViewTreeObserver
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,17 +37,28 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -51,6 +67,7 @@ import com.lavie.randochat.R
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.service.DialogService
 import com.lavie.randochat.ui.component.ChatInputBar
+import com.lavie.randochat.ui.component.EmojiPicker
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.MessageBubble
 import com.lavie.randochat.ui.component.customToast
@@ -63,6 +80,7 @@ import com.lavie.randochat.viewmodel.ChatViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
+@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
@@ -82,12 +100,36 @@ fun ChatScreen(
     val isChatRoomEnded by chatViewModel.isChatRoomEnded.collectAsState()
     val isLoadingMore by chatViewModel.isLoadingMore.collectAsState()
     val voiceRecordState by chatViewModel.voiceRecordState.collectAsState()
-
+    val listState = rememberLazyListState()
+    var messageText by remember { mutableStateOf(TextFieldValue("")) }
+    var selectedMessageId by remember { mutableStateOf<String?>(null) }
+    var shouldScrollToBottom by remember { mutableStateOf(true) }
+    val endChatTitle = stringResource(R.string.end_chat_title)
+    val endChatMessage = stringResource(R.string.end_chat_message)
+    val confirmOption = stringResource(R.string.confirm)
+    val cancelOption = stringResource(R.string.cancel)
+    val chatItems = remember(messages) {
+        createChatItemsWithTimestamps(messages)
+    }
+    var isKeyboardVisible by remember { mutableStateOf(false) }
+    var emojiExpanded by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
         uris.forEach { uri ->
             chatViewModel.sendImage(roomId, myUserId, uri, context)
+        }
+    }
+
+    val isKeyboardOpen by keyboardAsState()
+
+    LaunchedEffect(isKeyboardOpen) {
+        if (isKeyboardOpen && emojiExpanded) {
+            emojiExpanded = false
+            focusManager.clearFocus()
+            keyboardController?.hide()
         }
     }
 
@@ -120,18 +162,6 @@ fun ChatScreen(
         if (CommonUtils.isAppInForeground(context)) {
             chatViewModel.markMessagesAsSeen(roomId, myUserId, messages)
         }
-    }
-
-    val listState = rememberLazyListState()
-    var messageText by remember { mutableStateOf("") }
-    var selectedMessageId by remember { mutableStateOf<String?>(null) }
-    var shouldScrollToBottom by remember { mutableStateOf(true) }
-    val endChatTitle = stringResource(R.string.end_chat_title)
-    val endChatMessage = stringResource(R.string.end_chat_message)
-    val confirmOption = stringResource(R.string.confirm)
-    val cancelOption = stringResource(R.string.cancel)
-    val chatItems = remember(messages) {
-        createChatItemsWithTimestamps(messages)
     }
 
     LaunchedEffect(messages.size, shouldScrollToBottom) {
@@ -250,7 +280,7 @@ fun ChatScreen(
                     value = messageText,
                     onValueChange = {
                         messageText = it
-                        chatViewModel.updateTypingStatus(roomId, myUserId, it.isNotBlank())
+                        chatViewModel.updateTypingStatus(roomId, myUserId, it.text.isNotBlank())
                     },
                     onSendImage = { galleryLauncher.launch(Constants.MIME_TYPE_IMAGE) },
                     voiceRecordState = voiceRecordState,
@@ -265,12 +295,13 @@ fun ChatScreen(
                         chatViewModel.sendVoiceMessageOptimistic(context, roomId, myUserId)
                     },
                     onSend = {
-                        val trimmed = messageText.trim()
+                        val trimmed = messageText.text.trim()
                         if (trimmed.isNotBlank()) {
                             chatViewModel.sendTextMessage(roomId, myUserId, trimmed)
                             chatViewModel.updateTypingStatus(roomId, myUserId, false)
-                            messageText = ""
+                            messageText = TextFieldValue("")
                             shouldScrollToBottom = true
+                            emojiExpanded = false
                         }
                     },
                     onReportClick = {},
@@ -286,8 +317,30 @@ fun ChatScreen(
                             }
                         )
                     },
+                    onToggleEmojiPicker = {
+                        if (!emojiExpanded) {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        }
+                        emojiExpanded = !emojiExpanded
+                        if (!emojiExpanded) {
+                            focusManager.clearFocus()
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (emojiExpanded) {
+                    EmojiPicker(
+                        onEmojiSelected = { emoji ->
+                            val newText = messageText.text + emoji
+                            messageText = TextFieldValue(
+                                text = newText,
+                                selection = TextRange(newText.length)
+                            )
+                        },
+                        onDismiss = { emojiExpanded = false }
+                    )
+                }
             }
         }
     }
@@ -389,6 +442,29 @@ fun OnAppResumed(action: () -> Unit) {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+}
+
+@Composable
+fun keyboardAsState(): State<Boolean> {
+    val keyboardState = remember { mutableStateOf(false) }
+    val view = LocalView.current
+
+    DisposableEffect(view) {
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = android.graphics.Rect()
+            view.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = view.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+            keyboardState.value = keypadHeight > screenHeight * 0.15 // Ngưỡng 15% để phát hiện bàn phím
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(listener)
+
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        }
+    }
+
+    return keyboardState
 }
 
 sealed class ChatItem {

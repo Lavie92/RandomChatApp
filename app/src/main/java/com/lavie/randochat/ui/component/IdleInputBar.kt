@@ -19,19 +19,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import com.lavie.randochat.R
 import com.lavie.randochat.ui.theme.Dimens
 
 @Composable
 fun IdleInputBar(
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     onSendImage: () -> Unit,
     onVoiceRecordStart: () -> Unit,
     onSend: () -> Unit,
     onLikeClick: () -> Unit,
     onReportClick: () -> Unit,
-    onEndChatClick: () -> Unit
+    onEndChatClick: () -> Unit,
+    onToggleEmojiPicker: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -104,6 +106,15 @@ fun IdleInputBar(
         )
 
         CustomSpacer(width = Dimens.smallMargin)
+
+        ImageButton(
+            onClick = onToggleEmojiPicker,
+            vectorId = R.drawable.vector_emoji,
+            vectorColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .padding(end = Dimens.baseMargin)
+                .width(Dimens.baseIconSize)
+        )
 
         ImageButton(
             onClick = onSend,
