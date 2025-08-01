@@ -109,7 +109,9 @@ fun MessageBubble(
         ) {
             when (type) {
                 MessageType.TEXT -> {
-                    val parsedContent = parseMessageWithEmojis(content, emojiList)
+                    val parsedContent = remember(content, emojiList) {
+                        parseMessageWithEmojis(content, emojiList)
+                    }
 
                     if (parsedContent.any { it is MessageComponent.EmojiComponent }) {
                         RichTextMessage(
@@ -304,6 +306,7 @@ fun RichTextMessage(
                         color = if (isMe) Color.White else MaterialTheme.colorScheme.onSurface
                     )
                 }
+
                 is MessageComponent.EmojiComponent -> {
                     AsyncImage(
                         model = component.emoji.imageUrl,
