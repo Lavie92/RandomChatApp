@@ -7,6 +7,7 @@ import android.content.Context
 import android.os.Build
 import com.google.firebase.FirebaseApp
 import com.lavie.randochat.di.firebaseModule
+import com.lavie.randochat.di.localDataModule
 import com.lavie.randochat.di.networkModule
 import com.lavie.randochat.di.prefsModule
 import com.lavie.randochat.di.repositoryModule
@@ -26,7 +27,7 @@ class MainApplication : Application() {
 
         startKoin {
             androidContext(this@MainApplication)
-            modules(listOf(firebaseModule, networkModule, repositoryModule, viewModelModule, prefsModule))
+            modules(listOf(firebaseModule, networkModule, repositoryModule, viewModelModule, prefsModule, localDataModule))
         }
         createNotificationChannel()
     }

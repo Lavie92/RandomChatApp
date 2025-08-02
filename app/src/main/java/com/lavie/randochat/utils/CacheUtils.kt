@@ -6,42 +6,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object CacheUtils {
-    fun messagesToJson(messages: List<Message>): String {
-        val arr = JSONArray()
-        messages.forEach { msg ->
-            val obj = JSONObject()
-            obj.put(Constants.ID, msg.id)
-            obj.put(Constants.SENDER_ID, msg.senderId)
-            obj.put(Constants.CONTENT, msg.content)
-            obj.put(Constants.TIMESTAMP, msg.timestamp)
-            obj.put(Constants.TYPE, msg.type.name)
-            obj.put(Constants.STATUS, msg.status.name)
-            arr.put(obj)
-        }
-
-        return arr.toString()
-    }
-
-    fun jsonToMessages(json: String?): List<Message> {
-        if (json.isNullOrEmpty()) return emptyList()
-        val arr = JSONArray(json)
-        val list = mutableListOf<Message>()
-        for (i in 0 until arr.length()) {
-            val obj = arr.getJSONObject(i)
-            list.add(
-                Message(
-                    id = obj.optString(Constants.ID),
-                    senderId = obj.optString(Constants.SENDER_ID),
-                    content = obj.optString(Constants.CONTENT),
-                    timestamp = obj.optLong(Constants.TIMESTAMP),
-                    type = MessageType.valueOf(obj.optString(Constants.TYPE, MessageType.TEXT.name)),
-                    status = MessageStatus.valueOf(obj.optString(Constants.STATUS, MessageStatus.SENT.name))
-                )
-            )
-        }
-        return list
-    }
-
     fun chatRoomToJson(room: ChatRoom): String {
         val obj = JSONObject()
         obj.put(Constants.ID, room.id)
