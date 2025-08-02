@@ -104,73 +104,38 @@ class AuthViewModel(
 
     private fun checkInitialUserState() {
         viewModelScope.launch {
+            val cachedUser = getCachedUser()
+            val cachedRoom = getCachedActiveRoom()
+
             when (val result = userRepository.checkUserValid()) {
                 is UserRepository.UserResult.Success -> {
                     val user = result.user
                     _loginState.value = user
-                    _errorMessageId.value = null
                     cacheUser(user)
 
                     val activeRoom = userRepository.getActiveRoomForUser(user.id)
-                    val cachedRoom = getCachedActiveRoom()
+                    _activeRoom.value = activeRoom
+                    cacheActiveRoom(activeRoom)
 
-                    when {
-                        activeRoom != null -> {
-                            _activeRoom.value = activeRoom
-                            cacheActiveRoom(activeRoom)
-                            _navigationEvent.emit(NavigationEvent.NavigateToChat(activeRoom.id))
-                        }
-
-                        cachedRoom != null -> {
-                            try {
-                                val isRoomActive = userRepository.getChatRoomStatus(cachedRoom.id)
-
-                                if (isRoomActive == true) {
-                                    _activeRoom.value = cachedRoom
-                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
-                                } else if (isRoomActive == false) {
-                                    _activeRoom.value = cachedRoom
-                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
-                                } else {
-                                    _activeRoom.value = cachedRoom
-                                    _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
-                                }
-                            } catch (e: Exception) {
-                                _activeRoom.value = cachedRoom
-                                _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
-                            }
-                        }
-
-                        else -> {
-                            _activeRoom.value = null
-                            _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
-                        }
+                    if (activeRoom != null) {
+                        _navigationEvent.emit(NavigationEvent.NavigateToChat(activeRoom.id))
+                    } else {
+                        _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                     }
                 }
 
                 is UserRepository.UserResult.Error -> {
-                    if (result.messageId == R.string.network_error) {
-                        val cachedUser = getCachedUser()
-                        val cachedRoom = getCachedActiveRoom()
+                    if (cachedUser != null) {
+                        _loginState.value = cachedUser
 
-                        if (cachedUser != null) {
-                            _loginState.value = cachedUser
-                            _errorMessageId.value = null
-
-                            if (cachedRoom != null) {
-                                _activeRoom.value = cachedRoom
-                                _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
-                            } else {
-                                _activeRoom.value = null
-                                _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
-                            }
+                        if (cachedRoom != null) {
+                            _activeRoom.value = cachedRoom
+                            _navigationEvent.emit(NavigationEvent.NavigateToChat(cachedRoom.id))
                         } else {
-                            _loginState.value = null
-                            _errorMessageId.value = result.messageId
+                            _navigationEvent.emit(NavigationEvent.NavigateToStartChat)
                         }
                     } else {
-                        _loginState.value = null
-                        _errorMessageId.value = result.messageId
+                        _errorMessageId.value = result.messageId ?: R.string.login_error
                     }
                 }
 

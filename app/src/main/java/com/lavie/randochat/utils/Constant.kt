@@ -102,5 +102,5 @@ object Constants {
     const val DEFAULT_DURATION_MS = 0L
     const val ROUTE_PASSWORD_CHANGED = "password_changed"
     const val MIME_TYPE_IMAGE = "image/*"
-
+    const val CHAT_DB = "chat-db"
 }

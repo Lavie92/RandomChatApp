@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.R
+import com.lavie.randochat.localdata.datasource.MessageCacheDataSource
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
@@ -32,7 +33,7 @@ import java.util.UUID
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val imageFileRepository: ImageFileRepository,
-    private val prefs: PreferencesService
+    private val messageCacheDataSource: MessageCacheDataSource
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
@@ -66,11 +67,12 @@ class ChatViewModel(
         isEndReached = false
         oldestTimestamp = null
 
-        val cachedJson = prefs.getString(Constants.CACHED_MESSAGES_PREFIX + roomId, null)
-        val cachedMessages = CacheUtils.jsonToMessages(cachedJson)
-        _messages.value = cachedMessages.sortedBy { it.timestamp }
-        oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
-        isEndReached = cachedMessages.size < pageSize
+        viewModelScope.launch {
+            val cachedMessages = messageCacheDataSource.getCachedMessages(roomId)
+            _messages.value = cachedMessages
+            oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
+            isEndReached = cachedMessages.size < pageSize
+        }
 
         startRealtimeMessageListener(roomId)
     }
@@ -97,24 +99,34 @@ class ChatViewModel(
         if (_isLoadingMore.value || isEndReached || currentRoomId == null || oldestTimestamp == null) return
 
         _isLoadingMore.value = true
+
         viewModelScope.launch {
             try {
-                val result = chatRepository.getPreviousMessages(
-                    currentRoomId!!, pageSize, oldestTimestamp!!
+                val olderMessages = chatRepository.getPreviousMessages(
+                    roomId = currentRoomId!!,
+                    limit = pageSize,
+                    startAfter = oldestTimestamp!!
                 )
-                val sorted = result.sortedBy { it.timestamp }
-                if (result.size < pageSize) isEndReached = true
 
-                val added = sorted.size
+                val sorted = olderMessages.sortedBy { it.timestamp }
 
-                _messages.value =
-                    (sorted + _messages.value).associateBy { it.id }.values.sortedBy { it.timestamp }
+                if (sorted.isEmpty()) {
+                    isEndReached = true
+                    return@launch
+                }
+
+                val combined = (sorted + _messages.value)
+                    .associateBy { it.id }
+                    .values
+                    .sortedBy { it.timestamp }
+
+                _messages.value = combined
                 oldestTimestamp = _messages.value.minByOrNull { it.timestamp }?.timestamp
-                cacheMessages(currentRoomId!!, _messages.value)
 
-                onLoaded(added)
+                cacheMessages(currentRoomId!!, _messages.value)
+                onLoaded(sorted.size)
             } catch (e: Exception) {
-                Timber.d(e)
+                Timber.e(e, "Failed to load more messages")
             } finally {
                 _isLoadingMore.value = false
             }
@@ -204,10 +216,9 @@ class ChatViewModel(
     }
 
     private fun cacheMessages(roomId: String, messages: List<Message>) {
-        prefs.putString(
-            Constants.CACHED_MESSAGES_PREFIX + roomId,
-            CacheUtils.messagesToJson(messages)
-        )
+        viewModelScope.launch {
+            messageCacheDataSource.cacheMessage(roomId, messages)
+        }
     }
 
     private fun removeMessageListener() {
@@ -280,11 +291,6 @@ class ChatViewModel(
                 }
             }
         }
-    }
-
-    fun clearChatCache(roomId: String) {
-        prefs.remove(Constants.CACHED_MESSAGES_PREFIX + roomId)
-        prefs.remove(Constants.CACHED_ACTIVE_ROOM)
     }
 
     fun listenToRoomStatus(roomId: String) {

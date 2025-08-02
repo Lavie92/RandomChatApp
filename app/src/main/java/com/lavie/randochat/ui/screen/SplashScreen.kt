@@ -94,10 +94,9 @@ private fun LoginCheckSplash(
     LaunchedEffect(Unit) {
         delay(Constants.CHECK_USER_TIMEOUT)
         val noLogin = authViewModel.loginState.value == null
-        val noError = authViewModel.errorMessageId.value == null
         val noCache = !authViewModel.hasCachedUser()
 
-        if (noLogin && noError && noCache) {
+        if (noLogin && noCache) {
             navController.navigate(Constants.WELCOME_SCREEN) {
                 popUpTo(Constants.SPLASH_SCREEN) { inclusive = true }
             }

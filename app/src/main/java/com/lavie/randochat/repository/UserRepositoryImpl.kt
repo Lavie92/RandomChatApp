@@ -151,7 +151,7 @@ class UserRepositoryImpl(
             }
         }
 
-        return UserResult.Error(null)
+        return UserResult.Error(R.string.login_error)
     }
 
     override suspend fun getActiveRoomForUser(userId: String): ChatRoom? {
