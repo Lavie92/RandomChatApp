@@ -151,10 +151,6 @@ class ChatViewModel(
         sendMessage(roomId, senderId, content, MessageType.TEXT)
     }
 
-    fun sendImageMessage(roomId: String, senderId: String, imageUrl: String) {
-        sendMessage(roomId, senderId, imageUrl, MessageType.IMAGE)
-    }
-
     private fun sendMessage(
         roomId: String,
         senderId: String,
@@ -322,7 +318,7 @@ class ChatViewModel(
     }
 
     private fun addLocalMessage(message: Message) {
-        _messages.value = _messages.value + message
+        _messages.value += message
     }
 
     private fun updateMessageStatus(messageId: String, status: MessageStatus) {
