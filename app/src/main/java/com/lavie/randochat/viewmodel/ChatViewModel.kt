@@ -14,9 +14,7 @@ import com.lavie.randochat.localdata.datasource.MessageCacheDataSource
 import com.lavie.randochat.model.Message
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
-import com.lavie.randochat.service.PreferencesService
 import com.lavie.randochat.ui.component.VoiceRecordState
-import com.lavie.randochat.utils.CacheUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
@@ -217,7 +215,7 @@ class ChatViewModel(
 
     private fun cacheMessages(roomId: String, messages: List<Message>) {
         viewModelScope.launch {
-            messageCacheDataSource.cacheMessage(roomId, messages)
+            messageCacheDataSource.cacheMessages(roomId, messages)
         }
     }
 
