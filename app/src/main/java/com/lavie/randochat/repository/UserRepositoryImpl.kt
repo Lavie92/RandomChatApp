@@ -11,9 +11,11 @@ import com.lavie.randochat.model.User
 import com.lavie.randochat.repository.UserRepository.UserResult
 import com.lavie.randochat.utils.CommonUtils.isNetworkError
 import com.lavie.randochat.utils.Constants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 
@@ -151,27 +153,8 @@ class UserRepositoryImpl(
             }
         }
 
-        return UserResult.Error(null)
+        return UserResult.Error(R.string.login_error)
     }
-
-    override suspend fun getActiveRoomForUser(userId: String): ChatRoom? {
-        val userSnapshot = database.child(Constants.USERS).child(userId).get().await()
-        val activeRoomId = userSnapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
-            ?: return null
-
-        val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(activeRoomId).get().await()
-        return roomSnapshot.getValue(ChatRoom::class.java)
-    }
-
-    override suspend fun getNavigableActiveRoomForUser(userId: String): ChatRoom? {
-        val userSnapshot = database.child(Constants.USERS).child(userId).get().await()
-        val activeRoomId = userSnapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
-            ?: return null
-
-        val roomSnapshot = database.child(Constants.CHAT_ROOMS).child(activeRoomId).get().await()
-        return roomSnapshot.getValue(ChatRoom::class.java)
-    }
-
 
     override suspend fun registerWithEmail(email: String, password: String): UserResult {
         return try {
@@ -279,5 +262,27 @@ class UserRepositoryImpl(
 
         val lastRoomId = snapshot.child(Constants.LAST_ROOM_ID).getValue(String::class.java)
         return lastRoomId
+    }
+
+    override suspend fun getActiveRoomId(userId: String): String? {
+        val snapshot = database.child(Constants.USERS).child(userId).get().await()
+        return snapshot.child(Constants.ACTIVE_ROOM_ID).getValue(String::class.java)
+    }
+
+    override suspend fun getUserById(userId: String): User? = withContext(Dispatchers.IO) {
+        try {
+            val snapshot = database
+                .child(Constants.USERS)
+                .child(userId)
+                .get()
+                .await()
+
+            val user = snapshot.getValue(User::class.java)
+            Timber.d("[getUserById] User loaded: $user")
+            return@withContext user
+        } catch (e: Exception) {
+            Timber.e(e, "getUserById] Failed to load user: $userId")
+            null
+        }
     }
 }

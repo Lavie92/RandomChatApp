@@ -1,6 +1,5 @@
 package com.lavie.randochat.repository
 
-import com.lavie.randochat.model.ChatRoom
 import com.lavie.randochat.model.User
 import com.google.firebase.auth.FirebaseAuth
 
@@ -11,8 +10,6 @@ interface UserRepository {
 
     suspend fun checkUserValid(): UserResult?
 
-    suspend fun getActiveRoomForUser(userId: String): ChatRoom?
-    
     suspend fun registerWithEmail(email: String, password: String): UserResult?
 
     suspend fun loginWithEmail(email: String, password: String): UserResult?
@@ -25,9 +22,11 @@ interface UserRepository {
 
     suspend fun getChatRoomStatus(roomId: String): Boolean?
 
-    suspend fun getNavigableActiveRoomForUser(userId: String): ChatRoom?
-
     suspend fun getActiveOrLastRoom(userId: String): String?
+
+    suspend fun getUserById(userId: String): User?
+
+    suspend fun getActiveRoomId(userId: String): String?
 
     sealed class UserResult {
         data class Success(val user: User) : UserResult()
