@@ -14,7 +14,8 @@ val localDataModule = module {
             get(),
             ChatDatabase::class.java,
             Constants.CHAT_DB
-        ).build()
+        ).fallbackToDestructiveMigration(false)
+            .build()
     }
 
     single { get<ChatDatabase>().messageDao() }
