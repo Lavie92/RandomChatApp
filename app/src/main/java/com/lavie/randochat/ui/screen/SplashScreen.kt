@@ -34,6 +34,7 @@ import com.lavie.randochat.viewmodel.MatchViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.lavie.randochat.utils.singleClickHandler
+import timber.log.Timber
 
 @Composable
 fun SplashScreen(
@@ -104,7 +105,9 @@ private fun LoginCheckSplash(
     }
 
     LaunchedEffect(Unit) {
+        Timber.d("Entered LaunchedEffect for navigationEvent")
         authViewModel.navigationEvent.collect { event ->
+            Timber.d("navigationEvent received: $event")
             when (event) {
                 is AuthViewModel.NavigationEvent.NavigateToChat -> {
                     navController.navigate("${Constants.CHAT_SCREEN}/${event.roomId}") {

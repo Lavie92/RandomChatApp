@@ -28,7 +28,7 @@ class MessageCacheDataSourceImpl (
         }
     }
 
-    override suspend fun clearCachedMessage(roomId: String) {
+    override suspend fun clearCachedMessages(roomId: String) {
         messageDao.deleteMessagesByRoom(roomId)
     }
 }

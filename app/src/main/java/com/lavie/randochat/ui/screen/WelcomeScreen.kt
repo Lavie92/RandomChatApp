@@ -39,12 +39,12 @@ fun WelcomeScreen(
 ) {
 
     val loginState by authViewModel.loginState.collectAsState()
-    val activeRoom by authViewModel.activeRoom.collectAsState()
+    val activeRoom by authViewModel.activeRoomId.collectAsState()
 
     LaunchedEffect(loginState, activeRoom) {
         if (loginState != null) {
             if (activeRoom != null) {
-                val roomId = activeRoom!!.id
+                val roomId = activeRoom
 
                 navController.navigate("${Constants.CHAT_SCREEN}/${roomId}") {
                     popUpTo(Constants.WELCOME_SCREEN) { inclusive = true }

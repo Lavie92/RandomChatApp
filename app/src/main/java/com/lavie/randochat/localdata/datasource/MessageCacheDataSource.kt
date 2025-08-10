@@ -7,5 +7,5 @@ interface MessageCacheDataSource {
 
     suspend fun cacheMessages(roomId: String, messages: List<Message>)
 
-    suspend fun clearCachedMessage(roomId: String)
+    suspend fun clearCachedMessages(roomId: String)
 }

@@ -59,7 +59,7 @@ object Constants {
     const val CACHED_USER_ID = "cached_user_id"
     const val CACHED_USER_EMAIL = "cached_user_email"
     const val CACHED_USER_NICKNAME = "cached_user_nickname"
-    const val CACHED_ACTIVE_ROOM = "cached_active_room"
+    const val CACHED_ROOM_ID = "cached_active_room"
     const val SENDER_ID = "senderId"
     const val CONTENT_RES_ID = "contentResId"
     const val ACTIVE_ROOM_ID = "activeRoomId"

@@ -265,6 +265,7 @@ fun ChatScreen(
             if (isChatRoomEnded) {
                 Button(
                     onClick = {
+                        chatViewModel.clearCachedMessages(roomId)
                         authViewModel.clearActiveRoom()
                         navController.navigate(Constants.START_CHAT_SCREEN) {
                             popUpTo(Constants.CHAT_SCREEN) { inclusive = true }

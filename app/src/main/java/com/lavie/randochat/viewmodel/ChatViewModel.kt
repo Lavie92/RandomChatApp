@@ -248,6 +248,12 @@ class ChatViewModel(
      		}
         }
     }
+
+    fun clearCachedMessages(roomId: String) {
+        viewModelScope.launch {
+            messageCacheDataSource.clearCachedMessages(roomId)
+        }
+    }
     
     fun sendImage(roomId: String, senderId: String, uri: Uri, context: Context) {
         val localId = UUID.randomUUID().toString()
