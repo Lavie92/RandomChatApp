@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 
 class AuthViewModel(
     private val userRepository: UserRepository,
@@ -24,7 +25,7 @@ class AuthViewModel(
     private val prefs: PreferencesService
 ) : ViewModel() {
 
-    private var hasCheckedInitialState = false
+    private val hasCheckedInitialState = AtomicBoolean(false)
 
     private val _loginState = MutableStateFlow<User?>(null)
     val loginState: StateFlow<User?> = _loginState
@@ -49,11 +50,10 @@ class AuthViewModel(
 
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
         val user = auth.currentUser
-        if (user != null && _loginState.value == null && !hasCheckedInitialState) {
+        if (user != null && _loginState.value == null &&  hasCheckedInitialState.compareAndSet(false, true)) {
             viewModelScope.launch {
-                hasCheckedInitialState = true
                 checkInitialUserState()
-                Timber.d("🧪 AuthStateListener fired: loginState=${_loginState.value}, hasChecked=$hasCheckedInitialState")
+                Timber.d("🧪 AuthStateListener fired: loginState=${_loginState.value}, hasChecked=${hasCheckedInitialState.get()}")
             }
         }
     }
@@ -237,8 +237,7 @@ class AuthViewModel(
             _loginState.value = user
             _activeRoomId.value = roomId
             _navigationEvent.emit(NavigationEvent.NavigateToChat(roomId))
-            hasCheckedInitialState = true
-        }
+            hasCheckedInitialState.set(true)        }
 
         return@withContext true
     }
