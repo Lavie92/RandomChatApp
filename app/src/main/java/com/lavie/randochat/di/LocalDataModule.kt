@@ -14,7 +14,7 @@ val localDataModule = module {
             get(),
             ChatDatabase::class.java,
             Constants.CHAT_DB
-        ).fallbackToDestructiveMigration(false)
+        ).fallbackToDestructiveMigration(true)
             .build()
     }
 
