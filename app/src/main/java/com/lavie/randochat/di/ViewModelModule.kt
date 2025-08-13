@@ -4,6 +4,7 @@ import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import com.lavie.randochat.viewmodel.EmojiViewModel
 import com.lavie.randochat.viewmodel.MatchViewModel
+import com.lavie.randochat.viewmodel.ReportViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -12,4 +13,5 @@ val viewModelModule = module {
     viewModel { MatchViewModel(get(), get()) }
     viewModel { ChatViewModel(get(), get(), get()) }
     viewModel { EmojiViewModel() }
+    viewModel { ReportViewModel(get(), get()) }
 }

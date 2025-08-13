@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +71,7 @@ import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.EmojiPicker
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.MessageBubble
+import com.lavie.randochat.ui.component.ReportBottomSheet
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.ChatType
@@ -77,6 +79,7 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
+import com.lavie.randochat.viewmodel.ReportViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
@@ -89,6 +92,7 @@ fun ChatScreen(
 ) {
     val chatViewModel: ChatViewModel = koinViewModel()
     val authViewModel: AuthViewModel = koinViewModel()
+    val reportViewModel: ReportViewModel = koinViewModel()
 
     val context = LocalContext.current
     val myUser by authViewModel.loginState.collectAsState()
@@ -104,6 +108,7 @@ fun ChatScreen(
     var messageText by remember { mutableStateOf(TextFieldValue("")) }
     var selectedMessageId by remember { mutableStateOf<String?>(null) }
     var shouldScrollToBottom by remember { mutableStateOf(true) }
+    var showReportSheet by remember { mutableStateOf(false) }
     val endChatTitle = stringResource(R.string.end_chat_title)
     val endChatMessage = stringResource(R.string.end_chat_message)
     val confirmOption = stringResource(R.string.confirm)
@@ -185,6 +190,10 @@ fun ChatScreen(
                     Text(text = stringResource(id = getTitleFromChatType(chatType)))
                 },
                 actions = {
+                    ImageButton(
+                        onClick = { showReportSheet = true },
+                        icon = Icons.Default.Flag
+                    )
                     ImageButton(
                         onClick = { navController.navigate(Constants.SETTINGS_SCREEN) },
                         icon = Icons.Default.Settings
@@ -343,6 +352,20 @@ fun ChatScreen(
                 }
             }
         }
+    }
+
+    if (showReportSheet) {
+        ReportBottomSheet(
+            viewModel = reportViewModel,
+            roomId = roomId,
+            reporterId = myUserId,
+            messages = messages,
+            onDismiss = { showReportSheet = false },
+            onSubmitted = {
+                showReportSheet = false
+                customToast(context, R.string.report_submitted)
+            }
+        )
     }
 
     OnAppResumed {

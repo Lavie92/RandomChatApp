@@ -98,5 +98,14 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="emoji">Emoji</string>
+    <string name="select_reason">Select reason</string>
+    <string name="select_messages">Select messages</string>
+    <string name="add_screenshot">Add screenshot</string>
+    <string name="submit">Submit</string>
+    <string name="report_reason_spam">Spam</string>
+    <string name="report_reason_harassment">Harassment</string>
+    <string name="report_reason_inappropriate">Inappropriate content</string>
+    <string name="report_reason_other">Other</string>
+    <string name="report_submitted">Report submitted</string>
 
 </resources>

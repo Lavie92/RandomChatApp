@@ -50,6 +50,12 @@ object Constants {
     const val MESSAGE_ID = "messageId"
     const val APP_PREFS = "app_prefs"
     const val FCM_TOKENS = "fcm_tokens"
+    const val REPORTS = "reports"
+    const val REPORTER_ID = "reporterId"
+    const val REPORTED_USER_ID = "reportedUserId"
+    const val REASON = "reason"
+    const val EVIDENCE_MESSAGES = "evidenceMessages"
+    const val SCREENSHOT_URLS = "screenshotUrls"
     const val TYPE = "type"
     const val CONTENT = "content"
     const val SINGLE_CLICK_TIMEOUT = 600L
