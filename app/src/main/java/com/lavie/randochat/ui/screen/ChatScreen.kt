@@ -374,17 +374,7 @@ fun ChatScreen(
             onReasonSelected = { selectedReason = it },
             onSubmit = {
                 if (selectedReason != null && reportedUserId.isNotEmpty()) {
-                    reportImageUris.forEach { uri ->
-                        chatViewModel.uploadReportImage(
-                            context = context,
-                            uri = uri,
-                            reporterId = myUserId,
-                            reportedUserId = reportedUserId,
-                            roomId = roomId,
-                            reason = selectedReason!!,
-                            note = note
-                        )
-                    }
+                    chatViewModel.submitReportWithImages(context, reportImageUris.toList(), myUserId, reportedUserId, roomId, selectedReason!!, note)
                     selectedReason = null
                     hasReported = true
                     reportImageUris.clear()

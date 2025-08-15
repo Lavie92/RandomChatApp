@@ -438,9 +438,9 @@ class ChatViewModel(
         }
     }
 
-    fun uploadReportImage(
+    fun submitReportWithImages(
         context: Context,
-        uri: Uri,
+        uris: List<Uri>,
         reporterId: String,
         reportedUserId: String,
         roomId: String,
@@ -448,32 +448,39 @@ class ChatViewModel(
         note: String
     ) {
         viewModelScope.launch {
-            try {
-                val compressedFile = imageFileRepository.compressImage(context, uri)
-                val result = imageFileRepository.uploadImageToCloudinary(context, Uri.fromFile(compressedFile))
+            val urls = mutableListOf<String>()
 
-                if (result.isSuccess) {
-                    val url = result.getOrNull()
-                    Timber.d("✅ Uploaded report image: $url")
+            for (uri in uris) {
+                try {
+                    val compressed = imageFileRepository.compressImage(context, uri)
+                    val result = imageFileRepository.uploadImageToCloudinary(context, Uri.fromFile(compressed))
 
-                    submitReport(
-                        reporterId = reporterId,
-                        reportedUserId = reportedUserId,
-                        roomId = roomId,
-                        reason = reason,
-                        note = note,
-                        screenshotUrl = url
-                    )
-
-                    withContext(Dispatchers.Main) {
-                        customToast(context, R.string.report_success_toast)
+                    if (result.isSuccess) {
+                        result.getOrNull()?.let {
+                            urls.add(it)
+                            Timber.d("✅ Uploaded: $it")
+                        } ?: Timber.e("Upload result null for $uri")
+                    } else {
+                        Timber.e("Upload failed: ${result.exceptionOrNull()?.message}")
                     }
-
-                } else {
-                    Timber.e("❌ Failed to upload report image: ${result.exceptionOrNull()?.message}")
+                } catch (e: Exception) {
+                    Timber.e(e, "Exception uploading $uri")
                 }
-            } catch (e: Exception) {
-                Timber.e(e, "❌ Exception in uploadReportImage")
+            }
+
+            if (urls.isNotEmpty()) {
+                submitReport(
+                    reporterId = reporterId,
+                    reportedUserId = reportedUserId,
+                    roomId = roomId,
+                    reason = reason,
+                    note = note,
+                    screenshotUrls = urls
+                )
+
+                withContext(Dispatchers.Main) {
+                    customToast(context, R.string.report_success_toast)
+                }
             }
         }
     }
@@ -484,7 +491,7 @@ class ChatViewModel(
         roomId: String,
         reason: String,
         note: String,
-        screenshotUrl: String?
+        screenshotUrls: List<String>
     ) {
         val id = chatRepository.getNewReportId()
         val report = Report(
@@ -494,7 +501,7 @@ class ChatViewModel(
             reportedId = reportedUserId,
             reason = reason,
             note = note,
-            screenShotUrl = screenshotUrl,
+            screenShotUrls = screenshotUrls,
             createdAt = System.currentTimeMillis()
         )
         chatRepository.saveReport(report)
