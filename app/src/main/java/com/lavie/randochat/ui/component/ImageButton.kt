@@ -38,10 +38,12 @@ fun ImageButton(
     onClick: () -> Unit,
     icon: ImageVector,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     IconButton(
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled
     ) {
         Icon(
             imageVector = icon,

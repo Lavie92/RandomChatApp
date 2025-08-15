@@ -31,7 +31,6 @@ fun IdleInputBar(
     onVoiceRecordStart: () -> Unit,
     onSend: () -> Unit,
     onLikeClick: () -> Unit,
-    onReportClick: () -> Unit,
     onEndChatClick: () -> Unit,
     onToggleEmojiPicker: () -> Unit
 ) {
@@ -59,13 +58,6 @@ fun IdleInputBar(
                     onClick = {
                         menuExpanded = false
                         onLikeClick()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.report)) },
-                    onClick = {
-                        menuExpanded = false
-                        onReportClick()
                     }
                 )
 

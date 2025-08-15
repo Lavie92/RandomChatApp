@@ -33,7 +33,6 @@ fun ChatInputBar(
     onVoiceRecordCancel: () -> Unit,
     onSend: () -> Unit,
     onLikeClick: () -> Unit,
-    onReportClick: () -> Unit,
     onEndChatClick: () -> Unit,
     onVoiceRecordSend: () -> Unit,
     onToggleEmojiPicker: () -> Unit,
@@ -83,7 +82,6 @@ fun ChatInputBar(
                 onVoiceRecordStart = onVoiceRecordStart,
                 onSend = onSend,
                 onLikeClick = onLikeClick,
-                onReportClick = onReportClick,
                 onEndChatClick = onEndChatClick,
                 onToggleEmojiPicker = onToggleEmojiPicker
             )

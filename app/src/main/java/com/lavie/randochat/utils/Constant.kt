@@ -102,4 +102,6 @@ object Constants {
     const val ROUTE_PASSWORD_CHANGED = "password_changed"
     const val MIME_TYPE_IMAGE = "image/*"
     const val CHAT_DB = "chat-db"
+    const val REPORTS = "reports"
+    const val REPORTER_ID = "reporterId"
 }

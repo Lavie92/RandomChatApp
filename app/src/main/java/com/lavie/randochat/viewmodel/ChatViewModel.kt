@@ -12,9 +12,11 @@ import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.R
 import com.lavie.randochat.localdata.datasource.MessageCacheDataSource
 import com.lavie.randochat.model.Message
+import com.lavie.randochat.model.Report
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
 import com.lavie.randochat.ui.component.VoiceRecordState
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
@@ -434,5 +436,71 @@ class ChatViewModel(
                 else it
             }
         }
+    }
+
+    fun uploadReportImage(
+        context: Context,
+        uri: Uri,
+        reporterId: String,
+        reportedUserId: String,
+        roomId: String,
+        reason: String,
+        note: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val compressedFile = imageFileRepository.compressImage(context, uri)
+                val result = imageFileRepository.uploadImageToCloudinary(context, Uri.fromFile(compressedFile))
+
+                if (result.isSuccess) {
+                    val url = result.getOrNull()
+                    Timber.d("✅ Uploaded report image: $url")
+
+                    submitReport(
+                        reporterId = reporterId,
+                        reportedUserId = reportedUserId,
+                        roomId = roomId,
+                        reason = reason,
+                        note = note,
+                        screenshotUrl = url
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        customToast(context, R.string.report_success_toast)
+                    }
+
+                } else {
+                    Timber.e("❌ Failed to upload report image: ${result.exceptionOrNull()?.message}")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "❌ Exception in uploadReportImage")
+            }
+        }
+    }
+
+    private suspend fun submitReport(
+        reporterId: String,
+        reportedUserId: String,
+        roomId: String,
+        reason: String,
+        note: String,
+        screenshotUrl: String?
+    ) {
+        val id = chatRepository.getNewReportId()
+        val report = Report(
+            id = id,
+            roomId = roomId,
+            reporterId = reporterId,
+            reportedId = reportedUserId,
+            reason = reason,
+            note = note,
+            screenShotUrl = screenshotUrl,
+            createdAt = System.currentTimeMillis()
+        )
+        chatRepository.saveReport(report)
+    }
+
+    suspend fun hasUserReportedRoom(myUserId: String, roomId: String) : Boolean {
+        return chatRepository.hasUserReportedRoom(myUserId, roomId)
     }
 }

@@ -97,5 +97,20 @@
     <string name="confirm">Đồng ý</string>
     <string name="cancel">Không</string>
     <string name="emoji">Emoji</string>
+    <string name="report_title">Báo cáo người dùng</string>
+    <string name="report_select_reason">Lý do</string>
+    <string name="report_add_note">Thêm ghi chú (không bắt buộc)</string>
+    <string name="report_pick_screenshot">Chọn ảnh chụp màn hình</string>
+    <string name="report_change_screenshot">Đổi ảnh</string>
+    <string name="report_submit">Gửi báo cáo</string>
+    <string name="report_cancel">Huỷ</string>
+    <string name="report_submitted">Đã gửi báo cáo</string>
+    <string name="report_submit_failed">Gửi thất bại</string>
+    <string name="report_reason_spam">Spam</string>
+    <string name="report_reason_harassment">Quấy rối</string>
+    <string name="report_reason_inappropriate">Nội dung không phù hợp</string>
+    <string name="report_reason_other">Khác</string>
+    <string name="choose_screenshot">Chọn ảnh màn hình</string>
+    <string name="report_success_toast">Report thành công. Admin sẽ xử lý nếu phát hiện vi phạm.</string>
 
 </resources>

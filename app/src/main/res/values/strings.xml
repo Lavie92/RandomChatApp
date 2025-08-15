@@ -98,5 +98,20 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="emoji">Emoji</string>
+    <string name="report_title">Report user</string>
+    <string name="report_select_reason">Reason</string>
+    <string name="report_add_note">Add note (optional)</string>
+    <string name="report_pick_screenshot">Pick screenshot</string>
+    <string name="report_change_screenshot">Change screenshot</string>
+    <string name="report_submit">Submit</string>
+    <string name="report_cancel">Cancel</string>
+    <string name="report_submitted">Report submitted</string>
+    <string name="report_submit_failed">Submit failed</string>
+    <string name="report_reason_spam">Spam</string>
+    <string name="report_reason_harassment">Harassment</string>
+    <string name="report_reason_inappropriate">Inappropriate content</string>
+    <string name="report_reason_other">Other</string>
+    <string name="choose_screenshot">Choose screenshot</string>
+    <string name="report_success_toast">Report submitted successfully. Our admin team will review and take action if necessary.</string>
 
 </resources>
