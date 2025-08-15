@@ -111,6 +111,7 @@
     <string name="report_reason_inappropriate">Nội dung không phù hợp</string>
     <string name="report_reason_other">Khác</string>
     <string name="choose_screenshot">Chọn ảnh màn hình</string>
-    <string name="report_success_toast">Report thành công. Admin sẽ xử lý nếu phát hiện vi phạm.</string>
+    <string name="report_success">Report thành công. Admin sẽ xử lý nếu phát hiện vi phạm.</string>
+    <string name="report_failure">Báo cáo thất bại. Vui lòng thử lại.</string>
 
 </resources>

@@ -479,8 +479,10 @@ class ChatViewModel(
                 )
 
                 withContext(Dispatchers.Main) {
-                    customToast(context, R.string.report_success_toast)
+                    customToast(context, R.string.report_success)
                 }
+            } else {
+                customToast(context, R.string.report_failure)
             }
         }
     }
@@ -501,7 +503,7 @@ class ChatViewModel(
             reportedId = reportedUserId,
             reason = reason,
             note = note,
-            screenShotUrls = screenshotUrls,
+            screenshotUrls = screenshotUrls,
             createdAt = System.currentTimeMillis()
         )
         chatRepository.saveReport(report)

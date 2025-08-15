@@ -112,6 +112,7 @@
     <string name="report_reason_inappropriate">Inappropriate content</string>
     <string name="report_reason_other">Other</string>
     <string name="choose_screenshot">Choose screenshot</string>
-    <string name="report_success_toast">Report submitted successfully. Our admin team will review and take action if necessary.</string>
+    <string name="report_success">Report submitted successfully. Our admin team will review and take action if necessary.</string>
+    <string name="report_failure">Report failed. Please try again.</string>
 
 </resources>

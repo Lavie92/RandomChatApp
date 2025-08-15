@@ -7,6 +7,6 @@ data class Report(
     val reportedId: String,
     val reason: String,
     val note: String,
-    val screenShotUrls: List<String> = emptyList(),
+    val screenshotUrls: List<String> = emptyList(),
     val createdAt: Long = System.currentTimeMillis()
 )
