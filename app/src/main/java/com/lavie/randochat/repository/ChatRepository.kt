@@ -3,6 +3,7 @@ package com.lavie.randochat.repository
 import android.content.Context
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.model.Message
+import com.lavie.randochat.model.Report
 import com.lavie.randochat.utils.MessageStatus
 import java.io.File
 
@@ -33,4 +34,9 @@ interface ChatRepository {
 
     suspend fun uploadAudioToCloudinary(context: Context, file: File): Result<String>
 
+    suspend fun getNewReportId(): String
+
+    suspend fun saveReport(report: Report): Result<Unit>
+
+    suspend fun hasUserReportedRoom(userId: String, roomId: String): Boolean
 }

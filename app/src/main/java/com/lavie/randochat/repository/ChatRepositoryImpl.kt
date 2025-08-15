@@ -7,6 +7,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.model.Message
+import com.lavie.randochat.model.Report
 import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
@@ -21,6 +22,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
+import java.util.UUID
 
 class ChatRepositoryImpl(
     private val database: DatabaseReference,
@@ -304,6 +306,38 @@ class ChatRepositoryImpl(
         } catch (ex: Exception) {
             Timber.e(ex, "Failed to end chat for $roomId")
             Result.failure(ex)
+        }
+    }
+
+    override suspend fun getNewReportId(): String {
+        return database.child(Constants.REPORTS).push().key ?: UUID.randomUUID().toString()
+    }
+
+    override suspend fun saveReport(report: Report): Result<Unit> {
+        return try {
+            database.child(Constants.REPORTS)
+                .child(report.id)
+                .setValue(report)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun hasUserReportedRoom(userId: String, roomId: String): Boolean {
+        return try {
+            val snapshot = database.child(Constants.REPORTS)
+                .orderByChild(Constants.REPORTER_ID)
+                .equalTo(userId)
+                .get()
+                .await()
+
+            snapshot.children.any {
+                it.child(Constants.ROOM_ID).getValue(String::class.java) == roomId
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 }

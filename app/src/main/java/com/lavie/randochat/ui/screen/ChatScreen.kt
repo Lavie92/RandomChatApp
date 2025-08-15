@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,16 +39,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
@@ -57,8 +54,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -70,6 +65,7 @@ import com.lavie.randochat.ui.component.ChatInputBar
 import com.lavie.randochat.ui.component.EmojiPicker
 import com.lavie.randochat.ui.component.ImageButton
 import com.lavie.randochat.ui.component.MessageBubble
+import com.lavie.randochat.ui.component.ReportBottomSheet
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.ui.theme.Dimens
 import com.lavie.randochat.utils.ChatType
@@ -79,6 +75,7 @@ import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
+import timber.log.Timber
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,7 +108,7 @@ fun ChatScreen(
     val chatItems = remember(messages) {
         createChatItemsWithTimestamps(messages)
     }
-    var isKeyboardVisible by remember { mutableStateOf(false) }
+    var showReportSheet by remember { mutableStateOf(false) }
     var emojiExpanded by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -122,8 +119,23 @@ fun ChatScreen(
             chatViewModel.sendImage(roomId, myUserId, uri, context)
         }
     }
+    val reportImageUris = remember { mutableStateListOf<Uri>() }
+    var selectedReason by remember { mutableStateOf<String?>(null) }
+    val reportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        reportImageUris.clear()
+        reportImageUris.addAll(uris)
+    }
 
     val isKeyboardOpen by keyboardAsState()
+    val reportedUserId = messages
+        .firstOrNull { it.senderId != myUserId && it.senderId != Constants.SYSTEM }
+        ?.senderId
+        .orEmpty()
+
+    val note = ""
+    var hasReported by remember { mutableStateOf(false) }
 
     LaunchedEffect(isKeyboardOpen) {
         if (isKeyboardOpen && emojiExpanded) {
@@ -140,6 +152,11 @@ fun ChatScreen(
     }
 
     BackHandler { (context as? Activity)?.finish() }
+
+    LaunchedEffect(Unit) {
+        hasReported = chatViewModel.hasUserReportedRoom(myUserId, roomId)
+        Timber.i("hasReported $hasReported")
+    }
 
     LaunchedEffect(roomId) {
         chatViewModel.loadChatType(roomId)
@@ -186,8 +203,13 @@ fun ChatScreen(
                 },
                 actions = {
                     ImageButton(
+                        onClick = { showReportSheet = true },
+                        icon = Icons.Default.Flag,
+                        enabled = !hasReported
+                    )
+                    ImageButton(
                         onClick = { navController.navigate(Constants.SETTINGS_SCREEN) },
-                        icon = Icons.Default.Settings
+                        icon = Icons.Default.Settings,
                     )
                 }
             )
@@ -304,7 +326,6 @@ fun ChatScreen(
                             emojiExpanded = false
                         }
                     },
-                    onReportClick = {},
                     onLikeClick = {},
                     onEndChatClick = {
                         DialogService.show(
@@ -343,6 +364,29 @@ fun ChatScreen(
                 }
             }
         }
+    }
+
+    if (showReportSheet) {
+        ReportBottomSheet(
+            onPickImages = { reportLauncher.launch(Constants.MIME_TYPE_IMAGE) },
+            selectedImageUris = reportImageUris,
+            selectedReasonValue = selectedReason,
+            onReasonSelected = { selectedReason = it },
+            onSubmit = {
+                if (selectedReason != null && reportedUserId.isNotEmpty()) {
+                    chatViewModel.submitReportWithImages(context, reportImageUris.toList(), myUserId, reportedUserId, roomId, selectedReason!!, note)
+                    selectedReason = null
+                    hasReported = true
+                    reportImageUris.clear()
+                    showReportSheet = false
+                }
+            },
+            onDismiss = {
+                selectedReason = null
+                reportImageUris.clear()
+                showReportSheet = false
+            }
+        )
     }
 
     OnAppResumed {
@@ -455,7 +499,7 @@ fun keyboardAsState(): State<Boolean> {
             view.getWindowVisibleDisplayFrame(rect)
             val screenHeight = view.rootView.height
             val keypadHeight = screenHeight - rect.bottom
-            keyboardState.value = keypadHeight > screenHeight * 0.15 // Ngưỡng 15% để phát hiện bàn phím
+            keyboardState.value = keypadHeight > screenHeight * 0.15
         }
         view.viewTreeObserver.addOnGlobalLayoutListener(listener)
 

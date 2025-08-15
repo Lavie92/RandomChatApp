@@ -12,9 +12,11 @@ import com.google.firebase.database.ValueEventListener
 import com.lavie.randochat.R
 import com.lavie.randochat.localdata.datasource.MessageCacheDataSource
 import com.lavie.randochat.model.Message
+import com.lavie.randochat.model.Report
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
 import com.lavie.randochat.ui.component.VoiceRecordState
+import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageStatus
 import com.lavie.randochat.utils.MessageType
@@ -434,5 +436,80 @@ class ChatViewModel(
                 else it
             }
         }
+    }
+
+    fun submitReportWithImages(
+        context: Context,
+        uris: List<Uri>,
+        reporterId: String,
+        reportedUserId: String,
+        roomId: String,
+        reason: String,
+        note: String
+    ) {
+        viewModelScope.launch {
+            val urls = mutableListOf<String>()
+
+            for (uri in uris) {
+                try {
+                    val compressed = imageFileRepository.compressImage(context, uri)
+                    val result = imageFileRepository.uploadImageToCloudinary(context, Uri.fromFile(compressed))
+
+                    if (result.isSuccess) {
+                        result.getOrNull()?.let {
+                            urls.add(it)
+                            Timber.d("✅ Uploaded: $it")
+                        } ?: Timber.e("Upload result null for $uri")
+                    } else {
+                        Timber.e("Upload failed: ${result.exceptionOrNull()?.message}")
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Exception uploading $uri")
+                }
+            }
+
+            if (urls.isNotEmpty()) {
+                submitReport(
+                    reporterId = reporterId,
+                    reportedUserId = reportedUserId,
+                    roomId = roomId,
+                    reason = reason,
+                    note = note,
+                    screenshotUrls = urls
+                )
+
+                withContext(Dispatchers.Main) {
+                    customToast(context, R.string.report_success)
+                }
+            } else {
+                customToast(context, R.string.report_failure)
+            }
+        }
+    }
+
+    private suspend fun submitReport(
+        reporterId: String,
+        reportedUserId: String,
+        roomId: String,
+        reason: String,
+        note: String,
+        screenshotUrls: List<String>
+    ) {
+        val id = chatRepository.getNewReportId()
+        val report = Report(
+            id = id,
+            roomId = roomId,
+            reporterId = reporterId,
+            reportedId = reportedUserId,
+            reason = reason,
+            note = note,
+            screenshotUrls = screenshotUrls,
+            createdAt = System.currentTimeMillis()
+        )
+        chatRepository.saveReport(report)
+    }
+
+    suspend fun hasUserReportedRoom(myUserId: String, roomId: String) : Boolean {
+        return chatRepository.hasUserReportedRoom(myUserId, roomId)
     }
 }
