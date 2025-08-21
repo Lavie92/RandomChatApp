@@ -16,6 +16,8 @@ interface UserRepository {
 
     suspend fun addFcmToken(userId: String, token: String)
 
+    suspend fun removeFcmToken(userId: String, token: String): Result<Unit>
+
     fun addAuthStateListener(listener: FirebaseAuth.AuthStateListener)
 
     fun removeAuthStateListener(listener: FirebaseAuth.AuthStateListener)

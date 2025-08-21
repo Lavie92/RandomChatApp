@@ -285,4 +285,14 @@ class UserRepositoryImpl(
             null
         }
     }
+
+    override suspend fun removeFcmToken(userId: String, token: String) = try {
+        database.child(Constants.USERS)
+            .child(userId)
+            .child(Constants.FCM_TOKENS)
+            .child(token)
+            .removeValue()
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) { Result.failure(e) }
 }

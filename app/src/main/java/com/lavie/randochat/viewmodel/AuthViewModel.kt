@@ -276,6 +276,22 @@ class AuthViewModel(
         return userRepository.getActiveRoomId(userId)
     }
 
+    fun logout() {
+        val uid = loginState.value?.id ?: return
+        firebaseMessaging.token.addOnSuccessListener { token ->
+            viewModelScope.launch {
+                userRepository.removeFcmToken(uid, token)
+                FirebaseAuth.getInstance().signOut()
+                _loginState.value = null
+                _activeRoomId.value = null
+                prefs.remove(Constants.CACHED_USER_ID)
+                prefs.remove(Constants.CACHED_USER_EMAIL)
+                prefs.remove(Constants.CACHED_USER_NICKNAME)
+                prefs.remove(Constants.CACHED_ROOM_ID)
+            }
+        }
+    }
+
     sealed class NavigationEvent {
         data object NavigateToStartChat : NavigationEvent()
         data class NavigateToChat(val roomId: String) : NavigationEvent()
