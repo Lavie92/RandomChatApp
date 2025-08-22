@@ -63,7 +63,6 @@ fun SettingScreen(
 
             CustomSpacer(height = 24.dp)
 
-            // Notifications
             Text(
                 text = stringResource(R.string.settings_notifications),
                 style = MaterialTheme.typography.titleMedium
@@ -89,7 +88,6 @@ fun SettingScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Logout
             Button(
                 onClick = {
                     DialogService.show(
@@ -98,10 +96,10 @@ fun SettingScreen(
                         confirmButton = confirmButton,
                         dismissButton = dismissButton,
                         onConfirmAction = {
-                            navController.navigate(Constants.SPLASH_SCREEN_LOGIN) {
+                            authViewModel.logout()
+                            navController.navigate(Constants.LOGIN_SCREEN) {
                                 popUpTo(0) { inclusive = true }
                             }
-                            authViewModel.logout()
                         }
                     )
                 },

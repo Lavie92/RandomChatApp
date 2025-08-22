@@ -283,11 +283,15 @@ class AuthViewModel(
                 userRepository.removeFcmToken(uid, token)
                 FirebaseAuth.getInstance().signOut()
                 _loginState.value = null
-                _activeRoomId.value = null
                 prefs.remove(Constants.CACHED_USER_ID)
                 prefs.remove(Constants.CACHED_USER_EMAIL)
                 prefs.remove(Constants.CACHED_USER_NICKNAME)
                 prefs.remove(Constants.CACHED_ROOM_ID)
+                clearActiveRoom()
+                viewModelScope.launch {
+                    Timber.d("After 100ms: loginState = ${_loginState.value}")
+                }
+                hasCheckedInitialState.set(false)
             }
         }
     }
