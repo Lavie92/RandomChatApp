@@ -45,7 +45,6 @@ fun SettingScreen(
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            // Account info
             Text(
                 text = stringResource(R.string.settings_account_info),
                 style = MaterialTheme.typography.titleMedium
@@ -57,7 +56,9 @@ fun SettingScreen(
                     CustomSpacer(width = 8.dp)
                     Text(text = stringResource(R.string.settings_nickname, user?.nickname ?: ""))
                     CustomSpacer(width = 8.dp)
-                    Text(text = stringResource(R.string.settings_user_id, user?.id ?: ""))
+                    Text(text = stringResource(R.string.citizen_score, user?.citizenScore ?: ""))
+                    CustomSpacer(width = 8.dp)
+                    Text(text = stringResource(R.string.image_credit, user?.imageCredit ?: ""))
                 }
             }
 

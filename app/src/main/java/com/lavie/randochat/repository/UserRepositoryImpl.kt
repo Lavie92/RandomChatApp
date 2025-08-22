@@ -219,7 +219,9 @@ class UserRepositoryImpl(
             Constants.NICKNAME to user.nickname,
             Constants.IS_ONLINE to user.isOnline,
             Constants.LAST_UPDATED to System.currentTimeMillis(),
-            Constants.IS_DISABLED to isDisabled
+            Constants.IS_DISABLED to isDisabled,
+            Constants.CITIZEN_SCORE to user.citizenScore,
+            Constants.IMAGE_CREDIT to user.imageCredit
         )
 
         withTimeout(Constants.SAVE_USER_TIMEOUT) {

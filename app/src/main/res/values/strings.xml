@@ -118,11 +118,12 @@
     <string name="settings_account_info">Account</string>
     <string name="settings_email">Email: %1$s</string>
     <string name="settings_nickname">Nickname: %1$s</string>
-    <string name="settings_user_id">User ID: %1$s</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_enable_notifications">Enable notifications</string>
     <string name="logout">Log out</string>
     <string name="logout_confirm_title">Log out</string>
     <string name="logout_confirm_message">Are you sure you want to log out?</string>
+    <string name="citizen_score">Citizen score: %1$s</string>
+    <string name="image_credit">Rando Coin (used to send images): %1$s</string>
 
 </resources>

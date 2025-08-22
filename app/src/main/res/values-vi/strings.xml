@@ -117,11 +117,12 @@
     <string name="settings_account_info">Tài khoản</string>
     <string name="settings_email">Email: %1$s</string>
     <string name="settings_nickname">Biệt danh: %1$s</string>
-    <string name="settings_user_id">Mã người dùng: %1$s</string>
     <string name="settings_notifications">Thông báo</string>
     <string name="settings_enable_notifications">Bật thông báo</string>
     <string name="logout">Đăng xuất</string>
     <string name="logout_confirm_title">Đăng xuất</string>
     <string name="logout_confirm_message">Bạn có chắc muốn đăng xuất?</string>
+    <string name="citizen_score">Điểm công dân: %1$s</string>
+    <string name="image_credit">Rando Coin (dùng để gửi ảnh): %1$s</string>
 
 </resources>
