@@ -296,5 +296,20 @@ class UserRepositoryImpl(
             .removeValue()
             .await()
         Result.success(Unit)
-    } catch (e: Exception) { Result.failure(e) }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun getCitizenScore(userId: String): Int =
+        try {
+            val ref = database.child(Constants.USERS)
+                .child(userId)
+                .child(Constants.CITIZEN_SCORE)
+
+            val snapshot = ref.get().await()
+            snapshot.getValue(Int::class.java) ?: 0
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get citizen score for user $userId")
+            0
+        }
 }
