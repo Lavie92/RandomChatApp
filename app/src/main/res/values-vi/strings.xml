@@ -113,5 +113,18 @@
     <string name="choose_screenshot">Chọn ảnh màn hình</string>
     <string name="report_success">Report thành công. Admin sẽ xử lý nếu phát hiện vi phạm.</string>
     <string name="report_failure">Báo cáo thất bại. Vui lòng thử lại.</string>
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_account_info">Tài khoản</string>
+    <string name="settings_email">Email: %1$s</string>
+    <string name="settings_nickname">Biệt danh: %1$s</string>
+    <string name="settings_notifications">Thông báo</string>
+    <string name="settings_enable_notifications">Bật thông báo</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="logout_confirm_title">Đăng xuất</string>
+    <string name="logout_confirm_message">Bạn có chắc muốn đăng xuất?</string>
+    <string name="citizen_score">Điểm công dân: %1$s</string>
+    <string name="image_credit">Rando Coin (dùng để gửi ảnh): %1$s</string>
+    <string name="not_enough_rando_coin">Bạn không đủ Rando Coin để gửi ảnh</string>
+    <string name="cannot_send_image">Không thể gửi ảnh, vui lòng thử lại sau vài giây</string>
 
 </resources>

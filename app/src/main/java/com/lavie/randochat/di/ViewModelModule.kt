@@ -10,6 +10,6 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { MatchViewModel(get(), get()) }
-    viewModel { ChatViewModel(get(), get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get(), get()) }
     viewModel { EmojiViewModel() }
 }

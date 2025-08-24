@@ -16,6 +16,8 @@ interface UserRepository {
 
     suspend fun addFcmToken(userId: String, token: String)
 
+    suspend fun removeFcmToken(userId: String, token: String): Result<Unit>
+
     fun addAuthStateListener(listener: FirebaseAuth.AuthStateListener)
 
     fun removeAuthStateListener(listener: FirebaseAuth.AuthStateListener)
@@ -27,6 +29,12 @@ interface UserRepository {
     suspend fun getUserById(userId: String): User?
 
     suspend fun getActiveRoomId(userId: String): String?
+
+    suspend fun getCitizenScore(userId: String): Int
+
+    suspend fun getImageCredit(userId: String): Int
+
+    suspend fun decreaseImageCredit(userId: String, delta: Int): Result<Unit>
 
     sealed class UserResult {
         data class Success(val user: User) : UserResult()

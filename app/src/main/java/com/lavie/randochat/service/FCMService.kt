@@ -13,7 +13,6 @@ import com.lavie.randochat.utils.CommonUtils
 import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.utils.MessageType
 import timber.log.Timber
-
 class FCMService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
@@ -72,4 +71,5 @@ class FCMService : FirebaseMessagingService() {
         val notificationId = System.currentTimeMillis().toInt()
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
+
 }

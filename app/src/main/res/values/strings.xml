@@ -114,5 +114,18 @@
     <string name="choose_screenshot">Choose screenshot</string>
     <string name="report_success">Report submitted successfully. Our admin team will review and take action if necessary.</string>
     <string name="report_failure">Report failed. Please try again.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_account_info">Account</string>
+    <string name="settings_email">Email: %1$s</string>
+    <string name="settings_nickname">Nickname: %1$s</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_enable_notifications">Enable notifications</string>
+    <string name="logout">Log out</string>
+    <string name="logout_confirm_title">Log out</string>
+    <string name="logout_confirm_message">Are you sure you want to log out?</string>
+    <string name="citizen_score">Citizen score: %1$s</string>
+    <string name="image_credit">Rando Coin (used to send images): %1$s</string>
+    <string name="not_enough_rando_coin">You don\'t have enough Rando Coins to send an image</string>
+    <string name="cannot_send_image">Cannot send image, please try again in a few seconds</string>
 
 </resources>

@@ -10,6 +10,7 @@ import com.lavie.randochat.repository.UserRepository
 import com.lavie.randochat.service.PreferencesService
 import com.lavie.randochat.utils.Constants
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -217,10 +218,16 @@ class AuthViewModel(
         }
     }
 
-    private fun cacheUser(user: User) {
-        prefs.putString(Constants.CACHED_USER_ID, user.id)
-        prefs.putString(Constants.CACHED_USER_EMAIL, user.email)
-        prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
+    private fun cacheUser(user: User?) {
+        if (user != null) {
+            prefs.putString(Constants.CACHED_USER_ID, user.id)
+            prefs.putString(Constants.CACHED_USER_EMAIL, user.email)
+            prefs.putString(Constants.CACHED_USER_NICKNAME, user.nickname)
+        } else {
+            prefs.remove(Constants.CACHED_USER_ID)
+            prefs.remove(Constants.CACHED_USER_EMAIL)
+            prefs.remove(Constants.CACHED_USER_NICKNAME)
+        }
     }
 
     suspend fun restoreCachedUser(): Boolean = withContext(Dispatchers.IO) {
@@ -267,6 +274,11 @@ class AuthViewModel(
         cacheRoomId(null)
     }
 
+    fun clearCachedUser() {
+        _loginState.value = null
+        cacheUser(null)
+    }
+
     private fun getCachedRoomId(): String? {
         return prefs.getString(Constants.CACHED_ROOM_ID, null)
     }
@@ -274,6 +286,23 @@ class AuthViewModel(
     suspend fun getActiveRoomIdOnly(): String? {
         val userId = loginState.value?.id ?: return null
         return userRepository.getActiveRoomId(userId)
+    }
+
+    fun logout() {
+        val uid = loginState.value?.id ?: return
+        firebaseMessaging.token.addOnSuccessListener { token ->
+            viewModelScope.launch {
+                userRepository.removeFcmToken(uid, token)
+                FirebaseAuth.getInstance().signOut()
+                clearCachedUser()
+                clearActiveRoom()
+                hasCheckedInitialState.set(false)
+            }
+        }
+    }
+
+    suspend fun getCurrentImageCredit(userId: String): Int {
+        return userRepository.getImageCredit(userId)
     }
 
     sealed class NavigationEvent {

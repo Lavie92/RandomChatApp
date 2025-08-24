@@ -15,6 +15,7 @@ import com.lavie.randochat.model.Message
 import com.lavie.randochat.model.Report
 import com.lavie.randochat.repository.ChatRepository
 import com.lavie.randochat.repository.ImageFileRepository
+import com.lavie.randochat.repository.UserRepository
 import com.lavie.randochat.ui.component.VoiceRecordState
 import com.lavie.randochat.ui.component.customToast
 import com.lavie.randochat.utils.Constants
@@ -33,7 +34,8 @@ import java.util.UUID
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val imageFileRepository: ImageFileRepository,
-    private val messageCacheDataSource: MessageCacheDataSource
+    private val messageCacheDataSource: MessageCacheDataSource,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
@@ -511,5 +513,14 @@ class ChatViewModel(
 
     suspend fun hasUserReportedRoom(myUserId: String, roomId: String) : Boolean {
         return chatRepository.hasUserReportedRoom(myUserId, roomId)
+    }
+
+    suspend fun canSendImage(userId: String, cost: Int = 1): Boolean {
+        val credit = userRepository.getImageCredit(userId)
+        return credit >= cost
+    }
+
+    suspend fun consumeImageCredit(userId: String, cost: Int = 1): Boolean {
+        return userRepository.decreaseImageCredit(userId, cost).isSuccess
     }
 }

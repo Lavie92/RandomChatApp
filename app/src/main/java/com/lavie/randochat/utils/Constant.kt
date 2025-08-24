@@ -104,4 +104,7 @@ object Constants {
     const val CHAT_DB = "chat-db"
     const val REPORTS = "reports"
     const val REPORTER_ID = "reporterId"
+    const val PREF_NOTIFICATIONS_ENABLED = "pref_notifications_enabled"
+    const val CITIZEN_SCORE = "citizenScore"
+    const val IMAGE_CREDIT = "imageCredit"
 }
