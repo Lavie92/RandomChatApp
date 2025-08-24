@@ -121,7 +121,10 @@ class UserRepositoryImpl(
                 if (userSnapshot.exists()) {
                     val userMap = userSnapshot.value as? Map<*, *>
                     val isDisabled = userMap?.get(Constants.IS_DISABLED) as? Boolean ?: false
-
+                    val citizenScore = (userMap?.get(Constants.CITIZEN_SCORE) as? Long)?.toInt() ?: 100
+                    val imageCredit = (userMap?.get(Constants.IMAGE_CREDIT) as? Long)?.toInt() ?: 5
+                    Timber.d("Citizen Score: $citizenScore")
+                    Timber.d("imageCredit: $imageCredit")
                     if (isDisabled) {
                         firebaseAuth.signOut()
                         return UserResult.Error(R.string.account_locked_full)
@@ -133,7 +136,9 @@ class UserRepositoryImpl(
                             email = userMap?.get(Constants.EMAIL) as? String ?: "",
                             nickname = userMap?.get(Constants.NICKNAME) as? String ?: "",
                             isOnline = userMap?.get(Constants.IS_ONLINE) as? Boolean ?: true,
-                            isDisabled = isDisabled
+                            isDisabled = isDisabled,
+                            citizenScore = citizenScore,
+                            imageCredit = imageCredit
                         )
                     )
                 } else {
@@ -312,4 +317,26 @@ class UserRepositoryImpl(
             Timber.e(e, "Failed to get citizen score for user $userId")
             0
         }
+
+    override suspend fun getImageCredit(userId: String): Int = try {
+        val ref = database.child(Constants.USERS).child(userId).child(Constants.IMAGE_CREDIT)
+        val snapshot = ref.get().await()
+        snapshot.getValue(Int::class.java) ?: 0
+    } catch (_: Exception) {
+        0
+    }
+
+    override suspend fun decreaseImageCredit(userId: String, delta: Int): Result<Unit> {
+        return try {
+            val ref = database.child(Constants.USERS).child(userId).child(Constants.IMAGE_CREDIT)
+            val snapshot = ref.get().await()
+            val current = snapshot.getValue(Int::class.java) ?: 0
+            if (current < delta) return Result.failure(IllegalStateException("Insufficient credit"))
+            ref.setValue(current - delta).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

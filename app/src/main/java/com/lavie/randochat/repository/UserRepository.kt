@@ -30,6 +30,12 @@ interface UserRepository {
 
     suspend fun getActiveRoomId(userId: String): String?
 
+    suspend fun getCitizenScore(userId: String): Int
+
+    suspend fun getImageCredit(userId: String): Int
+
+    suspend fun decreaseImageCredit(userId: String, delta: Int): Result<Unit>
+
     sealed class UserResult {
         data class Success(val user: User) : UserResult()
         data class Error(val messageId: Int?) : UserResult()

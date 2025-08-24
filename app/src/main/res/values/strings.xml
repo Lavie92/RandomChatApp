@@ -125,5 +125,7 @@
     <string name="logout_confirm_message">Are you sure you want to log out?</string>
     <string name="citizen_score">Citizen score: %1$s</string>
     <string name="image_credit">Rando Coin (used to send images): %1$s</string>
+    <string name="not_enough_rando_coin">You don\'t have enough Rando Coins to send an image</string>
+    <string name="cannot_send_image">Cannot send image, please try again in a few seconds</string>
 
 </resources>

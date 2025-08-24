@@ -5,6 +5,7 @@ import android.app.Activity
 import android.net.Uri
 import android.os.Build
 import android.view.ViewTreeObserver
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -74,6 +76,7 @@ import com.lavie.randochat.utils.Constants
 import com.lavie.randochat.viewmodel.AuthViewModel
 import com.lavie.randochat.viewmodel.ChatViewModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import timber.log.Timber
 
@@ -112,13 +115,34 @@ fun ChatScreen(
     var emojiExpanded by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
-        uris.forEach { uri ->
-            chatViewModel.sendImage(roomId, myUserId, uri, context)
+        coroutineScope.launch {
+            val imageCount = uris.size
+            val costPerImage = 1
+            val totalCost = imageCount * costPerImage
+
+            val currentCredit = authViewModel.getCurrentImageCredit(myUserId)
+            if (currentCredit < totalCost) {
+                customToast(context, R.string.not_enough_rando_coin)
+
+                return@launch
+            }
+
+            val success = chatViewModel.consumeImageCredit(myUserId, totalCost)
+            if (!success) {
+                customToast(context, R.string.cannot_send_image)
+                return@launch
+            }
+
+            uris.forEach { uri ->
+                chatViewModel.sendImage(roomId, myUserId, uri, context)
+            }
         }
     }
+
     val reportImageUris = remember { mutableStateListOf<Uri>() }
     var selectedReason by remember { mutableStateOf<String?>(null) }
     val reportLauncher = rememberLauncherForActivityResult(
@@ -231,7 +255,9 @@ fun ChatScreen(
                 if (isLoadingMore) {
                     item {
                         Box(
-                            modifier = Modifier.fillMaxWidth().padding(Dimens.baseMargin),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimens.baseMargin),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator()
@@ -268,6 +294,7 @@ fun ChatScreen(
                                 navController = navController
                             )
                         }
+
                         is ChatItem.TimestampItem -> TimestampHeader(timestamp = item.timestamp)
                     }
                 }
@@ -293,7 +320,9 @@ fun ChatScreen(
                             popUpTo(Constants.CHAT_SCREEN) { inclusive = true }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().padding(Dimens.baseMargin)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.baseMargin)
                 ) {
                     Text(stringResource(R.string.ok))
                 }
@@ -304,7 +333,23 @@ fun ChatScreen(
                         messageText = it
                         chatViewModel.updateTypingStatus(roomId, myUserId, it.text.isNotBlank())
                     },
-                    onSendImage = { galleryLauncher.launch(Constants.MIME_TYPE_IMAGE) },
+                    onSendImage = {
+                        coroutineScope.launch {
+                            val userId = myUser?.id ?: return@launch
+                            val hasEnoughCredit = chatViewModel.canSendImage(userId)
+
+                            if (!hasEnoughCredit) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.not_enough_rando_coin),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                return@launch
+                            }
+
+                            galleryLauncher.launch(Constants.MIME_TYPE_IMAGE)
+                        }
+                    },
                     voiceRecordState = voiceRecordState,
                     onVoiceRecordStart = {
                         chatViewModel.startRecording(context) {
@@ -374,7 +419,15 @@ fun ChatScreen(
             onReasonSelected = { selectedReason = it },
             onSubmit = {
                 if (selectedReason != null && reportedUserId.isNotEmpty()) {
-                    chatViewModel.submitReportWithImages(context, reportImageUris.toList(), myUserId, reportedUserId, roomId, selectedReason!!, note)
+                    chatViewModel.submitReportWithImages(
+                        context,
+                        reportImageUris.toList(),
+                        myUserId,
+                        reportedUserId,
+                        roomId,
+                        selectedReason!!,
+                        note
+                    )
                     selectedReason = null
                     hasReported = true
                     reportImageUris.clear()
@@ -429,7 +482,8 @@ private fun createChatItemsWithTimestamps(
     if (messages.isEmpty()) return emptyList()
 
     val chatItems = mutableListOf<ChatItem>()
-    val timeGapMillis = Constants.TIME_GAP_MINUTES * Constants.SECONDS_PER_MINUTE * Constants.MILLISECONDS_PER_SECOND
+    val timeGapMillis =
+        Constants.TIME_GAP_MINUTES * Constants.SECONDS_PER_MINUTE * Constants.MILLISECONDS_PER_SECOND
 
 
     messages.forEachIndexed { index, message ->

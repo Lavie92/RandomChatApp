@@ -124,5 +124,7 @@
     <string name="logout_confirm_message">Bạn có chắc muốn đăng xuất?</string>
     <string name="citizen_score">Điểm công dân: %1$s</string>
     <string name="image_credit">Rando Coin (dùng để gửi ảnh): %1$s</string>
+    <string name="not_enough_rando_coin">Bạn không đủ Rando Coin để gửi ảnh</string>
+    <string name="cannot_send_image">Không thể gửi ảnh, vui lòng thử lại sau vài giây</string>
 
 </resources>

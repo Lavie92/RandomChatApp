@@ -6,7 +6,7 @@ data class User(
     val isOnline: Boolean = false,
     val email: String = "",
     val isDisabled: Boolean = false,
-    val citizenScore: Int = 100,
-    val imageCredit: Int = 3,
+    val citizenScore: Int = 0,
+    val imageCredit: Int = 0,
     val fcmTokens: List<String> = emptyList()
 )

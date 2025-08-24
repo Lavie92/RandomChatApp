@@ -1,4 +1,3 @@
-// SettingScreen.kt
 package com.lavie.randochat.ui.screen
 
 import androidx.compose.foundation.layout.*
@@ -26,7 +25,7 @@ fun SettingScreen(
     val authViewModel: AuthViewModel = koinViewModel()
 
     val user by authViewModel.loginState.collectAsState()
-    var notiEnabled by remember {
+    var notificationEnabled by remember {
         mutableStateOf(prefs.getBoolean(Constants.PREF_NOTIFICATIONS_ENABLED, true))
     }
     val title = stringResource(R.string.logout_confirm_title)
@@ -78,9 +77,9 @@ fun SettingScreen(
                 ) {
                     Text(stringResource(R.string.settings_enable_notifications))
                     Switch(
-                        checked = notiEnabled,
+                        checked = notificationEnabled,
                         onCheckedChange = {
-                            notiEnabled = it
+                            notificationEnabled = it
                             prefs.putBoolean(Constants.PREF_NOTIFICATIONS_ENABLED, it)
                         }
                     )
